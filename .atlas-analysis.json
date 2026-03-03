@@ -1,0 +1,189 @@
+{
+  "projectType": "saas",
+  "projectName": "LobeHub",
+  "projectDescription": "The ultimate AI workspace for work and life — to find, build, and collaborate with agent teammates that grow with you.",
+  "theme": "almond",
+  "primaryColor": "#6366f1",
+  "lightColor": "#8b5cf6",
+  "darkColor": "#4f46e5",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "features"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/agents",
+              "concepts/agent-groups",
+              "concepts/skills-and-tools",
+              "concepts/memory",
+              "concepts/mcp"
+            ]
+          },
+          {
+            "group": "Workspace",
+            "pages": [
+              "workspace/pages",
+              "workspace/projects",
+              "workspace/scheduling",
+              "workspace/collaboration"
+            ]
+          },
+          {
+            "group": "Agent Development",
+            "pages": [
+              "agents/creating-agents",
+              "agents/agent-builder",
+              "agents/skills",
+              "agents/tools",
+              "agents/knowledge-base",
+              "agents/marketplace"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/chat",
+              "features/artifacts",
+              "features/chain-of-thought",
+              "features/voice",
+              "features/vision",
+              "features/web-search",
+              "features/file-upload"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/ai-providers",
+              "integrations/mcp-plugins",
+              "integrations/desktop-app"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Self-Hosting",
+        "groups": [
+          {
+            "group": "Deployment",
+            "pages": [
+              "self-hosting/overview",
+              "self-hosting/docker",
+              "self-hosting/vercel",
+              "self-hosting/environment-variables"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "self-hosting/authentication",
+              "self-hosting/database",
+              "self-hosting/storage",
+              "self-hosting/observability"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "self-hosting/advanced/custom-models",
+              "self-hosting/advanced/plugins",
+              "self-hosting/advanced/upgrading",
+              "self-hosting/advanced/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Developer Guide",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "development/setup",
+              "development/architecture",
+              "development/tech-stack"
+            ]
+          },
+          {
+            "group": "Building",
+            "pages": [
+              "development/plugins",
+              "development/agents",
+              "development/skills",
+              "development/mcp-servers"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "development/contributing",
+              "development/code-style",
+              "development/testing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/introduction",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/agents",
+              "api/chat",
+              "api/files",
+              "api/knowledge-base"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Agent Builder - Create custom AI agents with one-click setup",
+    "Agent Groups - Multi-agent collaboration with parallel workflows",
+    "Personal Memory - Contextual learning that adapts to your work style",
+    "MCP Plugin System - 10,000+ skills and tools via MCP compatibility",
+    "Knowledge Base - Upload and manage files for agent context",
+    "Multi-Model Support - Access any AI model provider seamlessly",
+    "Desktop & Web Apps - Cross-platform with PWA support",
+    "Chain of Thought - Visualize AI reasoning step-by-step",
+    "Artifacts - Real-time creation of documents, code, and visualizations",
+    "Voice & Vision - TTS/STT and multimodal capabilities",
+    "Web Search - Real-time internet access for agents",
+    "Self-Hosted - Deploy on Docker, Vercel, or cloud platforms"
+  ],
+  "publicApiSurface": [
+    "Agent Builder API",
+    "Agent Groups API",
+    "Chat Completion API",
+    "Knowledge Base API",
+    "File Upload API",
+    "Memory Management API",
+    "MCP Plugin API",
+    "Authentication API (Better Auth)",
+    "Multi-User Management",
+    "Desktop App (Electron)",
+    "Web App (Next.js + React)",
+    "Plugin System (Function Calling)",
+    "Agent Marketplace",
+    "Skill Store"
+  ]
+}
