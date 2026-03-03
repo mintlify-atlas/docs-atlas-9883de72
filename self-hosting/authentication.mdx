@@ -1,0 +1,305 @@
+---
+title: Authentication Setup
+description: Configure Better Auth for user authentication in your self-hosted LobeHub instance
+---
+
+# Authentication Setup
+
+LobeHub uses [Better Auth](https://www.better-auth.com) to provide comprehensive authentication capabilities including email/password login, OAuth/SSO providers, and email verification.
+
+## Core Configuration
+
+### Required Environment Variables
+
+<ParamField path="AUTH_SECRET" type="string" required>
+  Secret key used to encrypt session tokens. Generate using:
+  ```bash
+  openssl rand -base64 32
+  ```
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_AUTH_URL" type="string" required>
+  The browser-accessible base URL for Better Auth (e.g., `http://localhost:3010` or `https://yourdomain.com`)
+  
+  <Note>Optional for Vercel deployments - automatically detected from `VERCEL_URL`</Note>
+</ParamField>
+
+<ParamField path="AUTH_SSO_PROVIDERS" type="string">
+  Comma-separated list of enabled SSO providers. The order determines display order on the login page.
+  
+  Example: `google,github,microsoft`
+</ParamField>
+
+## Authentication Methods
+
+### Email/Password Authentication
+
+Enabled by default. Users can register and sign in with email and password.
+
+<ParamField path="AUTH_DISABLE_EMAIL_PASSWORD" type="boolean" default="false">
+  Set to `1` to disable email/password authentication (SSO-only mode).
+  
+  When enabled:
+  - Email input is hidden on login page
+  - Signup page redirects to login
+  - Only SSO providers are available
+  
+  <Warning>Ensure at least one SSO provider is configured before enabling this</Warning>
+</ParamField>
+
+<ParamField path="AUTH_EMAIL_VERIFICATION" type="boolean" default="false">
+  Set to `1` to require email verification before users can sign in.
+  
+  Requires SMTP configuration (see Email Service below).
+</ParamField>
+
+<ParamField path="AUTH_ALLOWED_EMAILS" type="string">
+  Comma-separated list of allowed email addresses or domains for registration.
+  
+  Examples:
+  - `example.com` - Allow only @example.com emails
+  - `example.com,company.org,admin@other.com` - Allow multiple domains and specific emails
+  
+  <Note>This restricts registration but does not verify email ownership. Use with `AUTH_EMAIL_VERIFICATION=1` to ensure users own their email addresses.</Note>
+</ParamField>
+
+## SSO Providers
+
+### Supported Providers
+
+LobeHub supports the following OAuth/OIDC providers:
+
+| Provider | Value | Required Environment Variables |
+|----------|-------|--------------------------------|
+| Google | `google` | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` |
+| GitHub | `github` | `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` |
+| Microsoft | `microsoft` | `AUTH_MICROSOFT_ID`, `AUTH_MICROSOFT_SECRET` |
+| Apple | `apple` | `AUTH_APPLE_CLIENT_ID`, `AUTH_APPLE_CLIENT_SECRET` |
+| AWS Cognito | `cognito` | `AUTH_COGNITO_ID`, `AUTH_COGNITO_SECRET`, `AUTH_COGNITO_DOMAIN`, `AUTH_COGNITO_REGION`, `AUTH_COGNITO_USERPOOL_ID` |
+| Auth0 | `auth0` | `AUTH_AUTH0_ID`, `AUTH_AUTH0_SECRET`, `AUTH_AUTH0_ISSUER` |
+| Authelia | `authelia` | `AUTH_AUTHELIA_ID`, `AUTH_AUTHELIA_SECRET`, `AUTH_AUTHELIA_ISSUER` |
+| Authentik | `authentik` | `AUTH_AUTHENTIK_ID`, `AUTH_AUTHENTIK_SECRET`, `AUTH_AUTHENTIK_ISSUER` |
+| Casdoor | `casdoor` | `AUTH_CASDOOR_ID`, `AUTH_CASDOOR_SECRET`, `AUTH_CASDOOR_ISSUER` |
+| Cloudflare Zero Trust | `cloudflare-zero-trust` | `AUTH_CLOUDFLARE_ZERO_TRUST_ID`, `AUTH_CLOUDFLARE_ZERO_TRUST_SECRET`, `AUTH_CLOUDFLARE_ZERO_TRUST_ISSUER` |
+| Keycloak | `keycloak` | `AUTH_KEYCLOAK_ID`, `AUTH_KEYCLOAK_SECRET`, `AUTH_KEYCLOAK_ISSUER` |
+| Logto | `logto` | `AUTH_LOGTO_ID`, `AUTH_LOGTO_SECRET`, `AUTH_LOGTO_ISSUER` |
+| Okta | `okta` | `AUTH_OKTA_ID`, `AUTH_OKTA_SECRET`, `AUTH_OKTA_ISSUER` |
+| ZITADEL | `zitadel` | `AUTH_ZITADEL_ID`, `AUTH_ZITADEL_SECRET`, `AUTH_ZITADEL_ISSUER` |
+| Generic OIDC | `generic-oidc` | `AUTH_GENERIC_OIDC_ID`, `AUTH_GENERIC_OIDC_SECRET`, `AUTH_GENERIC_OIDC_ISSUER` |
+| Feishu | `feishu` | `AUTH_FEISHU_APP_ID`, `AUTH_FEISHU_APP_SECRET` |
+| WeChat | `wechat` | `AUTH_WECHAT_ID`, `AUTH_WECHAT_SECRET` |
+
+### Callback URL Format
+
+When configuring OAuth applications with your identity provider, use the following callback URL format:
+
+- **Development**: `http://localhost:3210/api/auth/callback/{provider}`
+- **Production**: `https://yourdomain.com/api/auth/callback/{provider}`
+
+Replace `{provider}` with the provider value from the table above (e.g., `google`, `github`).
+
+### Example: Google OAuth
+
+1. Create OAuth credentials at [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Set authorized redirect URI: `https://yourdomain.com/api/auth/callback/google`
+3. Configure environment variables:
+
+```bash
+AUTH_SSO_PROVIDERS=google
+AUTH_GOOGLE_ID=xxxxx.apps.googleusercontent.com
+AUTH_GOOGLE_SECRET=GOCSPX-xxxxxxxxxxxxxxxxxxxx
+```
+
+### Example: GitHub OAuth
+
+1. Create OAuth App at [GitHub Developer Settings](https://github.com/settings/developers)
+2. Set callback URL: `https://yourdomain.com/api/auth/callback/github`
+3. Configure environment variables:
+
+```bash
+AUTH_SSO_PROVIDERS=github
+AUTH_GITHUB_ID=Ov23xxxxxxxxxxxxx
+AUTH_GITHUB_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+## Email Service
+
+Email service is required for email verification, password reset, and magic link delivery.
+
+### SMTP Configuration
+
+<ParamField path="SMTP_HOST" type="string">
+  SMTP server hostname (e.g., `smtp.gmail.com`, `smtp.office365.com`)
+</ParamField>
+
+<ParamField path="SMTP_PORT" type="number">
+  SMTP server port:
+  - `587` for TLS (recommended)
+  - `465` for SSL
+</ParamField>
+
+<ParamField path="SMTP_SECURE" type="boolean">
+  Use secure connection:
+  - `true` for port 465 (SSL)
+  - `false` for port 587 (TLS)
+</ParamField>
+
+<ParamField path="SMTP_USER" type="string">
+  SMTP authentication username (usually your email address)
+</ParamField>
+
+<ParamField path="SMTP_PASS" type="string">
+  SMTP authentication password
+  
+  <Note>For Gmail, use an [app-specific password](https://support.google.com/accounts/answer/185833)</Note>
+</ParamField>
+
+<ParamField path="SMTP_FROM" type="string">
+  Sender email address (optional, defaults to `SMTP_USER`)
+  
+  Required for AWS SES where `SMTP_USER` is not a valid email address.
+</ParamField>
+
+### Example: Gmail SMTP
+
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-specific-password
+```
+
+## Session Storage
+
+### Database Sessions (Default)
+
+By default, Better Auth stores session data in the PostgreSQL database using these tables:
+
+- `auth_sessions` - Active user sessions
+- `accounts` - OAuth account linkages
+- `verifications` - Email verification tokens
+- `two_factor` - Two-factor authentication data
+- `passkey` - WebAuthn/passkey credentials
+
+### Redis Sessions (Optional)
+
+For better performance and cross-instance session sharing, configure Redis:
+
+<ParamField path="REDIS_URL" type="string">
+  Redis connection URL (e.g., `redis://localhost:6379`)
+  
+  When set, enables Redis session storage alongside database storage.
+</ParamField>
+
+<ParamField path="REDIS_PREFIX" type="string" default="lobechat">
+  Redis key prefix for namespacing
+</ParamField>
+
+<ParamField path="REDIS_DATABASE" type="number" default="0">
+  Redis database index (0-15)
+</ParamField>
+
+<ParamField path="REDIS_USERNAME" type="string">
+  Redis authentication username (for managed Redis services)
+</ParamField>
+
+<ParamField path="REDIS_PASSWORD" type="string">
+  Redis authentication password
+</ParamField>
+
+<ParamField path="REDIS_TLS" type="boolean" default="false">
+  Set to `1` to enforce TLS when connecting to Redis
+</ParamField>
+
+## Database Schema
+
+Better Auth creates the following tables in your PostgreSQL database:
+
+### `auth_sessions`
+
+Stores active user sessions.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | text | Session ID (primary key) |
+| `user_id` | text | Reference to users.id |
+| `token` | text | Session token (unique) |
+| `expires_at` | timestamp | Session expiration time |
+| `ip_address` | text | Client IP address |
+| `user_agent` | text | Client user agent |
+| `impersonated_by` | text | Admin user ID (for impersonation) |
+| `created_at` | timestamp | Session creation time |
+| `updated_at` | timestamp | Last update time |
+
+### `accounts`
+
+Links OAuth provider accounts to users.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | text | Account ID (primary key) |
+| `user_id` | text | Reference to users.id |
+| `provider_id` | text | OAuth provider identifier |
+| `account_id` | text | Provider-specific user ID |
+| `access_token` | text | OAuth access token |
+| `refresh_token` | text | OAuth refresh token |
+| `id_token` | text | OpenID Connect ID token |
+| `password` | text | Hashed password (for email/password) |
+| `scope` | text | OAuth scopes |
+| `access_token_expires_at` | timestamp | Access token expiration |
+| `refresh_token_expires_at` | timestamp | Refresh token expiration |
+| `created_at` | timestamp | Account creation time |
+| `updated_at` | timestamp | Last update time |
+
+### `verifications`
+
+Stores email verification and password reset tokens.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | text | Verification ID (primary key) |
+| `identifier` | text | Email address |
+| `value` | text | Verification token |
+| `expires_at` | timestamp | Token expiration time |
+| `created_at` | timestamp | Creation time |
+| `updated_at` | timestamp | Last update time |
+
+## Advanced Features
+
+### Two-Factor Authentication
+
+Better Auth supports TOTP-based two-factor authentication. Backup codes are automatically generated.
+
+### WebAuthn/Passkeys
+
+Supports passwordless authentication using WebAuthn passkeys stored in the `passkey` table.
+
+### Webhooks
+
+Receive notifications when user information is updated in the identity provider. Supported for Casdoor and Logto.
+
+## Security Considerations
+
+<Warning>
+  **Email Addresses**: Always use valid, real email addresses. Using fake emails will cause:
+  - Password reset functionality to fail
+  - Magic link login to fail
+  - Email verification to fail
+  - Account recovery issues
+</Warning>
+
+<Note>
+  For production deployments:
+  - Use strong `AUTH_SECRET` values
+  - Enable email verification for untrusted environments
+  - Restrict registration with `AUTH_ALLOWED_EMAILS` if needed
+  - Use HTTPS for all callback URLs
+  - Configure Redis for multi-instance deployments
+</Note>
+
+## Next Steps
+
+- [Database Configuration](/self-hosting/database) - Set up PostgreSQL
+- [Storage Configuration](/self-hosting/storage) - Configure S3 file storage
+- [Observability](/self-hosting/observability) - Set up monitoring and logging

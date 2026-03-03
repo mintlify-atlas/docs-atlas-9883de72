@@ -1,0 +1,549 @@
+---
+title: Testing Guide
+description: Comprehensive testing guide for LobeHub - unit tests, E2E tests, and best practices.
+---
+
+# Testing Guide
+
+LobeHub uses Vitest for unit testing and Playwright + Cucumber for E2E testing. This guide covers writing and running tests.
+
+## Overview
+
+Our testing strategy includes:
+
+- **Unit Tests** - Vitest for functions, components, stores
+- **E2E Tests** - Playwright + Cucumber for user flows
+- **Type Checking** - TypeScript compiler
+- **Linting** - ESLint, Stylelint
+
+## Quick Reference
+
+### Commands
+
+```bash
+# Run specific unit test (RECOMMENDED)
+bunx vitest run --silent='passed-only' 'path/to/test.test.ts'
+
+# Type checking
+bun run type-check
+
+# E2E tests
+pnpm e2e
+
+# NEVER run full test suite (takes ~10 minutes)
+# bun run test  # DON'T DO THIS
+```
+
+## Unit Testing with Vitest
+
+### Test Structure
+
+```typescript
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { formatDate } from './formatDate';
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe('formatDate', () => {
+  describe('with default format', () => {
+    it('should format date correctly', () => {
+      const date = new Date('2024-03-15');
+      const result = formatDate(date);
+      expect(result).toBe('Mar 15, 2024');
+    });
+  });
+
+  describe('with custom format', () => {
+    it('should use custom format', () => {
+      const date = new Date('2024-03-15');
+      const result = formatDate(date, 'YYYY-MM-DD');
+      expect(result).toBe('2024-03-15');
+    });
+  });
+});
+```
+
+### Testing React Components
+
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { UserProfile } from './UserProfile';
+
+describe('UserProfile', () => {
+  it('should render user name', () => {
+    render(<UserProfile name="Alice" />);
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+  });
+
+  it('should call onClick when button clicked', () => {
+    const onClick = vi.fn();
+    render(<UserProfile name="Alice" onClick={onClick} />);
+    
+    fireEvent.click(screen.getByRole('button'));
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('should handle async data loading', async () => {
+    render(<UserProfile userId="123" />);
+    
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    
+    await waitFor(() => {
+      expect(screen.getByText('Alice')).toBeInTheDocument();
+    });
+  });
+});
+```
+
+### Testing Zustand Stores
+
+```typescript
+import { describe, it, expect, beforeEach } from 'vitest';
+import { act } from '@testing-library/react';
+import { useUserStore } from './index';
+
+beforeEach(() => {
+  useUserStore.setState({
+    users: {},
+    currentUserId: null,
+  });
+});
+
+describe('useUserStore', () => {
+  describe('addUser', () => {
+    it('should add user to store', () => {
+      const user = { id: '1', name: 'Alice' };
+      
+      act(() => {
+        useUserStore.getState().addUser(user);
+      });
+      
+      const state = useUserStore.getState();
+      expect(state.users['1']).toEqual(user);
+    });
+  });
+
+  describe('setCurrentUser', () => {
+    it('should update current user ID', () => {
+      act(() => {
+        useUserStore.getState().setCurrentUser('123');
+      });
+      
+      expect(useUserStore.getState().currentUserId).toBe('123');
+    });
+  });
+});
+```
+
+### Mocking
+
+#### Mock Functions
+
+```typescript
+// ✅ Good - Use vi.spyOn
+vi.spyOn(messageService, 'createMessage').mockResolvedValue('msg_123');
+
+// ❌ Avoid - Global mocks are fragile
+vi.mock('@/services/message');
+```
+
+#### Mock Browser APIs
+
+```typescript
+// Mock Image
+const mockImage = vi.fn(() => ({
+  addEventListener: vi.fn((event, handler) => {
+    if (event === 'load') setTimeout(handler, 0);
+  }),
+  removeEventListener: vi.fn(),
+}));
+vi.stubGlobal('Image', mockImage);
+
+// Mock URL.createObjectURL
+vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+
+// Mock fetch
+global.fetch = vi.fn(() =>
+  Promise.resolve({
+    json: () => Promise.resolve({ data: 'test' }),
+    ok: true,
+  })
+);
+```
+
+#### Mock Modules
+
+```typescript
+// Mock external library
+vi.mock('axios', () => ({
+  default: {
+    get: vi.fn(() => Promise.resolve({ data: {} })),
+  },
+}));
+
+// Mock internal module
+vi.mock('@/utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+```
+
+### Testing Async Code
+
+```typescript
+import { waitFor } from '@testing-library/react';
+
+it('should load data asynchronously', async () => {
+  const promise = fetchUser('123');
+  
+  await waitFor(() => {
+    expect(promise).resolves.toEqual({ id: '123', name: 'Alice' });
+  });
+});
+
+it('should handle errors', async () => {
+  const promise = fetchUser('invalid');
+  
+  await expect(promise).rejects.toThrow('User not found');
+});
+```
+
+### Testing Database Code
+
+For database/ORM tests in packages:
+
+```bash
+# Client DB tests
+cd packages/database
+bunx vitest run --silent='passed-only' 'src/models/user.test.ts'
+
+# Server DB tests
+cd packages/database
+TEST_SERVER_DB=1 bunx vitest run --silent='passed-only' 'src/models/user.test.ts'
+```
+
+## E2E Testing with Playwright
+
+### Running E2E Tests
+
+```bash
+# Run all E2E tests
+pnpm e2e
+
+# Run in UI mode (interactive)
+pnpm e2e:ui
+
+# Smoke tests only (quick validation)
+pnpm test:e2e:smoke
+```
+
+### E2E Test Structure
+
+Location: `e2e/`
+
+```plaintext
+e2e/
+├── features/             # Cucumber feature files
+│   ├── auth.feature
+│   └── chat.feature
+├── step-definitions/    # Step implementations
+│   ├── auth.steps.ts
+│   └── chat.steps.ts
+├── support/             # Helper functions
+└── playwright.config.ts
+```
+
+### Writing E2E Tests
+
+**Feature file** (`e2e/features/chat.feature`):
+
+```gherkin
+Feature: Chat Functionality
+
+  Scenario: User sends a message
+    Given I am logged in
+    And I am on the chat page
+    When I type "Hello, AI!"
+    And I click the send button
+    Then I should see my message in the chat
+    And I should see a response from the AI
+```
+
+**Step definitions** (`e2e/step-definitions/chat.steps.ts`):
+
+```typescript
+import { Given, When, Then } from '@cucumber/cucumber';
+import { expect } from '@playwright/test';
+
+Given('I am on the chat page', async function () {
+  await this.page.goto('/chat');
+});
+
+When('I type {string}', async function (message: string) {
+  await this.page.fill('[data-testid="chat-input"]', message);
+});
+
+When('I click the send button', async function () {
+  await this.page.click('[data-testid="send-button"]');
+});
+
+Then('I should see my message in the chat', async function () {
+  await expect(this.page.locator('.user-message').last()).toBeVisible();
+});
+```
+
+## Best Practices
+
+### 1. Test Behavior, Not Implementation
+
+```typescript
+// ✅ Good - Test user behavior
+it('should allow user to submit form', () => {
+  render(<ContactForm />);
+  
+  fireEvent.change(screen.getByLabelText('Name'), {
+    target: { value: 'Alice' },
+  });
+  fireEvent.click(screen.getByText('Submit'));
+  
+  expect(screen.getByText('Form submitted')).toBeInTheDocument();
+});
+
+// ❌ Bad - Test implementation details
+it('should call setState when input changes', () => {
+  const setState = vi.fn();
+  render(<ContactForm setState={setState} />);
+  
+  fireEvent.change(screen.getByLabelText('Name'), {
+    target: { value: 'Alice' },
+  });
+  
+  expect(setState).toHaveBeenCalled();
+});
+```
+
+### 2. Use Semantic Queries
+
+```typescript
+// ✅ Good - Accessible queries
+screen.getByRole('button', { name: 'Submit' });
+screen.getByLabelText('Email address');
+screen.getByText('Welcome back');
+
+// ❌ Bad - Test IDs should be last resort
+screen.getByTestId('submit-button');
+```
+
+### 3. Clean Up After Tests
+
+```typescript
+import { beforeEach, afterEach, vi } from 'vitest';
+
+beforeEach(() => {
+  vi.clearAllMocks();    // Clear mock call history
+  vi.clearAllTimers();   // Clear timers if using fake timers
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();  // Restore original implementations
+});
+```
+
+### 4. Test Edge Cases
+
+```typescript
+describe('validateEmail', () => {
+  it('should accept valid email', () => {
+    expect(validateEmail('user@example.com')).toBe(true);
+  });
+
+  it('should reject empty string', () => {
+    expect(validateEmail('')).toBe(false);
+  });
+
+  it('should reject email without @', () => {
+    expect(validateEmail('user.example.com')).toBe(false);
+  });
+
+  it('should reject email without domain', () => {
+    expect(validateEmail('user@')).toBe(false);
+  });
+});
+```
+
+### 5. Avoid Test Interdependencies
+
+```typescript
+// ❌ Bad - Tests depend on each other
+let userId: string;
+
+it('should create user', () => {
+  userId = createUser('Alice');
+  expect(userId).toBeDefined();
+});
+
+it('should fetch user', () => {
+  const user = getUser(userId); // Depends on previous test!
+  expect(user.name).toBe('Alice');
+});
+
+// ✅ Good - Each test is independent
+it('should create user', () => {
+  const userId = createUser('Alice');
+  expect(userId).toBeDefined();
+});
+
+it('should fetch user', () => {
+  const userId = createUser('Bob');
+  const user = getUser(userId);
+  expect(user.name).toBe('Bob');
+});
+```
+
+## Coverage
+
+### Generate Coverage Report
+
+```bash
+bun run test-app:coverage
+```
+
+View report: `coverage/index.html`
+
+### Coverage Goals
+
+- **Critical paths**: 80%+ coverage
+- **Utilities**: 90%+ coverage
+- **UI components**: 70%+ coverage
+
+## Common Patterns
+
+### Testing Hooks
+
+```typescript
+import { renderHook } from '@testing-library/react';
+import { useCounter } from './useCounter';
+
+it('should increment counter', () => {
+  const { result } = renderHook(() => useCounter());
+  
+  expect(result.current.count).toBe(0);
+  
+  act(() => {
+    result.current.increment();
+  });
+  
+  expect(result.current.count).toBe(1);
+});
+```
+
+### Testing Context Providers
+
+```typescript
+import { render } from '@testing-library/react';
+import { ThemeProvider } from './ThemeProvider';
+import { MyComponent } from './MyComponent';
+
+function renderWithTheme(component: React.ReactElement) {
+  return render(
+    <ThemeProvider theme="dark">
+      {component}
+    </ThemeProvider>
+  );
+}
+
+it('should use theme', () => {
+  renderWithTheme(<MyComponent />);
+  expect(screen.getByRole('main')).toHaveClass('dark-theme');
+});
+```
+
+### Testing API Calls
+
+```typescript
+import { rest } from 'msw';
+import { setupServer } from 'msw/node';
+
+const server = setupServer(
+  rest.get('/api/user', (req, res, ctx) => {
+    return res(ctx.json({ id: '1', name: 'Alice' }));
+  })
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+it('should fetch user data', async () => {
+  const user = await fetchUser('1');
+  expect(user.name).toBe('Alice');
+});
+```
+
+## Debugging Tests
+
+### VS Code Debugging
+
+Add to `.vscode/launch.json`:
+
+```json
+{
+  "type": "node",
+  "request": "launch",
+  "name": "Debug Vitest",
+  "runtimeExecutable": "bun",
+  "runtimeArgs": ["x", "vitest", "run", "${file}"],
+  "console": "integratedTerminal"
+}
+```
+
+### Vitest UI
+
+```bash
+bunx vitest --ui
+```
+
+Opens interactive test explorer.
+
+### Console Logging
+
+```typescript
+it('should work', () => {
+  console.log('Debug:', value); // Shows in test output
+  expect(value).toBe(expected);
+});
+```
+
+## CI/CD Integration
+
+GitHub Actions automatically run:
+
+1. Linting
+2. Type checking
+3. Unit tests
+4. E2E tests
+5. Build verification
+
+All must pass before PR can merge.
+
+## Resources
+
+- [Vitest Documentation](https://vitest.dev/)
+- [Testing Library](https://testing-library.com/)
+- [Playwright](https://playwright.dev/)
+- [Cucumber](https://cucumber.io/)
+
+## Next Steps
+
+- [Code Style](/development/code-style)
+- [Contributing](/development/contributing)
+- [Architecture](/development/architecture)

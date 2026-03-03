@@ -1,0 +1,453 @@
+---
+title: 'Agent API'
+description: 'Create and manage AI agents'
+---
+
+## Overview
+
+The Agent API allows you to create, configure, and manage AI agents. Agents can be single conversational assistants or part of group conversations.
+
+## Create Agent
+
+Create a new agent with a session.
+
+```typescript
+const result = await client.agent.createAgent.mutate({
+  config: {
+    model: 'gpt-4',
+    provider: 'openai',
+    systemRole: 'You are a helpful assistant.',
+  },
+  groupId: 'group_123', // optional
+});
+```
+
+<ParamField path="config" type="object" optional>
+  Agent configuration
+  
+  <ParamField path="config.model" type="string">
+    AI model to use
+  </ParamField>
+  
+  <ParamField path="config.provider" type="string">
+    AI provider (openai, anthropic, etc.)
+  </ParamField>
+  
+  <ParamField path="config.systemRole" type="string">
+    System role/instructions for the agent
+  </ParamField>
+  
+  <ParamField path="config.temperature" type="number">
+    Temperature (0-2)
+  </ParamField>
+  
+  <ParamField path="config.maxTokens" type="number">
+    Maximum tokens in response
+  </ParamField>
+</ParamField>
+
+<ParamField path="groupId" type="string" optional>
+  Group ID to associate the agent with
+</ParamField>
+
+**Response:**
+
+<ResponseField name="agentId" type="string">
+  Created agent ID
+</ResponseField>
+
+<ResponseField name="sessionId" type="string">
+  Associated session ID
+</ResponseField>
+
+## Create Agent Only
+
+Create an agent without a session (for group agent builder).
+
+```typescript
+const result = await client.agent.createAgentOnly.mutate({
+  config: {},
+  groupId: 'group_123',
+});
+```
+
+<ParamField path="groupId" type="string" required>
+  Group ID to add the agent to
+</ParamField>
+
+<ParamField path="config" type="object" optional>
+  Agent configuration
+</ParamField>
+
+**Response:**
+
+<ResponseField name="agentId" type="string">
+  Created agent ID
+</ResponseField>
+
+## Get Agent Configuration
+
+Retrieve agent configuration by session ID.
+
+```typescript
+const config = await client.agent.getAgentConfig.query({
+  sessionId: 'session_123',
+});
+```
+
+<ParamField path="sessionId" type="string" required>
+  Session ID
+</ParamField>
+
+**Response:**
+
+<ResponseField name="id" type="string">
+  Agent ID
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  AI model name
+</ResponseField>
+
+<ResponseField name="provider" type="string">
+  AI provider
+</ResponseField>
+
+<ResponseField name="systemRole" type="string">
+  System role/instructions
+</ResponseField>
+
+<ResponseField name="temperature" type="number">
+  Temperature setting
+</ResponseField>
+
+<ResponseField name="plugins" type="array">
+  Enabled plugins
+</ResponseField>
+
+## Get Agent by ID
+
+Retrieve agent configuration by agent ID.
+
+```typescript
+const config = await client.agent.getAgentConfigById.query({
+  agentId: 'agent_123',
+});
+```
+
+<ParamField path="agentId" type="string" required>
+  Agent ID
+</ParamField>
+
+## Query Agents
+
+Search and filter agents.
+
+```typescript
+const agents = await client.agent.queryAgents.query({
+  keyword: 'assistant',
+  limit: 20,
+  offset: 0,
+});
+```
+
+<ParamField path="keyword" type="string" optional>
+  Search keyword
+</ParamField>
+
+<ParamField path="limit" type="number" optional>
+  Number of results (default: 20)
+</ParamField>
+
+<ParamField path="offset" type="number" optional>
+  Pagination offset (default: 0)
+</ParamField>
+
+**Response:**
+
+<ResponseField name="items" type="array">
+  Array of agents
+  
+  <ResponseField name="id" type="string">
+    Agent ID
+  </ResponseField>
+  
+  <ResponseField name="title" type="string">
+    Agent title
+  </ResponseField>
+  
+  <ResponseField name="description" type="string">
+    Agent description
+  </ResponseField>
+  
+  <ResponseField name="avatar" type="string">
+    Avatar URL
+  </ResponseField>
+  
+  <ResponseField name="backgroundColor" type="string">
+    Background color
+  </ResponseField>
+</ResponseField>
+
+## Update Agent Configuration
+
+Update agent settings.
+
+```typescript
+const result = await client.agent.updateAgentConfig.mutate({
+  agentId: 'agent_123',
+  value: {
+    model: 'gpt-4-turbo',
+    temperature: 0.7,
+    systemRole: 'Updated system role',
+  },
+});
+```
+
+<ParamField path="agentId" type="string" required>
+  Agent ID
+</ParamField>
+
+<ParamField path="value" type="object" required>
+  Configuration updates (partial)
+</ParamField>
+
+## Duplicate Agent
+
+Create a copy of an existing agent.
+
+```typescript
+const result = await client.agent.duplicateAgent.mutate({
+  agentId: 'agent_123',
+  newTitle: 'Copy of My Agent',
+});
+```
+
+<ParamField path="agentId" type="string" required>
+  Agent ID to duplicate
+</ParamField>
+
+<ParamField path="newTitle" type="string" optional>
+  Title for the duplicated agent
+</ParamField>
+
+**Response:**
+
+<ResponseField name="agentId" type="string">
+  New agent ID
+</ResponseField>
+
+<ResponseField name="sessionId" type="string">
+  New session ID
+</ResponseField>
+
+## Remove Agent
+
+Delete an agent and its associated session.
+
+```typescript
+await client.agent.removeAgent.mutate({
+  agentId: 'agent_123',
+});
+```
+
+<ParamField path="agentId" type="string" required>
+  Agent ID to delete
+</ParamField>
+
+## Pin/Unpin Agent
+
+Toggle agent pinned status.
+
+```typescript
+await client.agent.updateAgentPinned.mutate({
+  id: 'agent_123',
+  pinned: true,
+});
+```
+
+<ParamField path="id" type="string" required>
+  Agent ID
+</ParamField>
+
+<ParamField path="pinned" type="boolean" required>
+  Pin status
+</ParamField>
+
+## Knowledge Base Integration
+
+### Get Knowledge Bases and Files
+
+Get available knowledge bases and files for an agent.
+
+```typescript
+const knowledge = await client.agent.getKnowledgeBasesAndFiles.query({
+  agentId: 'agent_123',
+});
+```
+
+<ParamField path="agentId" type="string" required>
+  Agent ID
+</ParamField>
+
+**Response:**
+
+<ResponseField name="items" type="array">
+  Array of knowledge items
+  
+  <ResponseField name="id" type="string">
+    Item ID
+  </ResponseField>
+  
+  <ResponseField name="name" type="string">
+    Item name
+  </ResponseField>
+  
+  <ResponseField name="type" type="string">
+    'file' or 'knowledgeBase'
+  </ResponseField>
+  
+  <ResponseField name="enabled" type="boolean">
+    Whether enabled for this agent
+  </ResponseField>
+</ResponseField>
+
+### Add Knowledge Base
+
+Associate a knowledge base with an agent.
+
+```typescript
+await client.agent.createAgentKnowledgeBase.mutate({
+  agentId: 'agent_123',
+  knowledgeBaseId: 'kb_456',
+  enabled: true,
+});
+```
+
+<ParamField path="agentId" type="string" required>
+  Agent ID
+</ParamField>
+
+<ParamField path="knowledgeBaseId" type="string" required>
+  Knowledge base ID
+</ParamField>
+
+<ParamField path="enabled" type="boolean" optional>
+  Enable status (default: true)
+</ParamField>
+
+### Add Files
+
+Associate files with an agent.
+
+```typescript
+await client.agent.createAgentFiles.mutate({
+  agentId: 'agent_123',
+  fileIds: ['file_1', 'file_2'],
+  enabled: true,
+});
+```
+
+<ParamField path="agentId" type="string" required>
+  Agent ID
+</ParamField>
+
+<ParamField path="fileIds" type="array" required>
+  Array of file IDs
+</ParamField>
+
+<ParamField path="enabled" type="boolean" optional>
+  Enable status (default: true)
+</ParamField>
+
+### Toggle Knowledge Base
+
+Enable/disable a knowledge base for an agent.
+
+```typescript
+await client.agent.toggleKnowledgeBase.mutate({
+  agentId: 'agent_123',
+  knowledgeBaseId: 'kb_456',
+  enabled: false,
+});
+```
+
+### Toggle File
+
+Enable/disable a file for an agent.
+
+```typescript
+await client.agent.toggleFile.mutate({
+  agentId: 'agent_123',
+  fileId: 'file_789',
+  enabled: true,
+});
+```
+
+### Remove Knowledge Base
+
+Remove knowledge base association.
+
+```typescript
+await client.agent.deleteAgentKnowledgeBase.mutate({
+  agentId: 'agent_123',
+  knowledgeBaseId: 'kb_456',
+});
+```
+
+### Remove File
+
+Remove file association.
+
+```typescript
+await client.agent.deleteAgentFile.mutate({
+  agentId: 'agent_123',
+  fileId: 'file_789',
+});
+```
+
+## Builtin Agents
+
+Get or create a builtin agent by slug.
+
+```typescript
+const agent = await client.agent.getBuiltinAgent.query({
+  slug: 'inbox',
+});
+```
+
+<ParamField path="slug" type="string" required>
+  Builtin agent slug (e.g., 'inbox', 'page-copilot')
+</ParamField>
+
+## Market Integration
+
+### Check by Market Identifier
+
+Check if an agent from the market is already installed.
+
+```typescript
+const exists = await client.agent.checkByMarketIdentifier.query({
+  marketIdentifier: 'market/agent-slug',
+});
+```
+
+### Get Agent by Market Identifier
+
+Get agent ID by market identifier.
+
+```typescript
+const agent = await client.agent.getAgentByMarketIdentifier.query({
+  marketIdentifier: 'market/agent-slug',
+});
+```
+
+### Get Agent by Forked Identifier
+
+Get agent ID by forked identifier.
+
+```typescript
+const agent = await client.agent.getAgentByForkedFromIdentifier.query({
+  forkedFromIdentifier: 'original-agent-id',
+});
+```

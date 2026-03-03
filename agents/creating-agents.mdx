@@ -1,0 +1,235 @@
+---
+title: Creating Custom Agents
+description: Learn how to create and configure custom AI agents in LobeHub
+---
+
+# Creating Custom Agents
+
+LobeHub treats **agents as the unit of work**, allowing you to build personalized AI teammates that grow with you. This guide walks you through creating your first custom agent.
+
+## What is an Agent?
+
+An agent in LobeHub is an AI assistant with:
+
+- **Identity**: Title, description, avatar, and tags
+- **Intelligence**: AI model and provider configuration
+- **Capabilities**: Connected tools, plugins, and skills
+- **Behavior**: System prompt that defines personality and responses
+- **Knowledge**: Optional knowledge base for domain-specific information
+
+## Creating Your First Agent
+
+<Steps>
+
+### Choose Your Creation Method
+
+You can create agents in two ways:
+
+1. **Manual Creation**: Configure each aspect yourself for full control
+2. **Agent Builder**: Describe what you need and let AI configure it automatically
+
+For this guide, we'll use manual creation to understand all components.
+
+### Set Agent Identity
+
+Start by defining who your agent is:
+
+```typescript
+// Agent metadata example
+{
+  title: "Code Review Assistant",
+  description: "Expert at reviewing code for bugs, security issues, and best practices",
+  avatar: "👨‍💻",
+  tags: ["development", "code-review", "security"],
+  backgroundColor: "#2563eb"
+}
+```
+
+**Best Practices**:
+- Use clear, descriptive titles that indicate the agent's purpose
+- Write concise descriptions (1-2 sentences)
+- Choose relevant emojis or upload custom avatars
+- Add tags for easy categorization
+
+### Configure AI Model
+
+Select the model and provider that best fits your needs:
+
+```typescript
+// Model configuration
+{
+  model: "claude-sonnet-4-5-20250929",
+  provider: "anthropic",
+  params: {
+    temperature: 0.7,        // Creativity level (0-2)
+    top_p: 1,                // Sampling range (0-1)
+    frequency_penalty: 0,    // Reduce repetition (0-2)
+    presence_penalty: 0      // Topic diversity (0-2)
+  }
+}
+```
+
+**Model Selection Guide**:
+
+<CardGroup cols={2}>
+  <Card title="GPT-4o" icon="brain">
+    Fast, balanced performance for general tasks
+  </Card>
+  <Card title="Claude Sonnet" icon="sparkles">
+    Excellent for coding, analysis, and reasoning
+  </Card>
+  <Card title="Gemini 1.5 Pro" icon="globe">
+    Large context window, great for documents
+  </Card>
+  <Card title="GPT-4o Mini" icon="zap">
+    Cost-effective for simple tasks
+  </Card>
+</CardGroup>
+
+### Add Capabilities
+
+Enable tools and plugins to extend your agent's abilities:
+
+```typescript
+// Enable plugins
+{
+  plugins: [
+    "lobe-web-browsing",      // Internet search
+    "lobe-knowledge-base",    // Access knowledge base
+    "lobe-skills"             // Execute skills
+  ]
+}
+```
+
+See [Tool Integration](/agents/tools) for the complete catalog of available tools.
+
+### Write System Prompt
+
+Define how your agent behaves with a system prompt:
+
+```markdown
+You are a Code Review Assistant specializing in identifying bugs, 
+security vulnerabilities, and code quality issues.
+
+## Your Expertise
+- Security best practices and common vulnerabilities
+- Performance optimization techniques
+- Code readability and maintainability
+- Language-specific idioms and patterns
+
+## Review Process
+1. Analyze the code structure and organization
+2. Check for security vulnerabilities
+3. Identify potential bugs and edge cases
+4. Suggest performance improvements
+5. Recommend best practices
+
+## Communication Style
+- Be constructive and educational
+- Explain the "why" behind suggestions
+- Provide code examples when helpful
+- Prioritize issues by severity
+```
+
+**System Prompt Tips**:
+- Start with a clear role definition
+- Include specific expertise areas
+- Define workflows or processes
+- Set communication style guidelines
+- Use markdown for better structure
+
+### Configure Chat Settings
+
+Customize the conversation experience:
+
+```typescript
+{
+  chatConfig: {
+    historyCount: 20,              // Messages to include in context
+    enableHistoryCount: true,       // Limit context history
+    enableAutoCreateTopic: true,    // Auto-organize conversations
+    autoCreateTopicThreshold: 2,    // Messages before creating topic
+    enableCompressHistory: true,    // Compress long conversations
+    enableStreaming: true,          // Stream responses in real-time
+    enableReasoning: false          // Enable reasoning mode
+  },
+  openingMessage: "Hello! I'm ready to review your code. Share the code you'd like me to analyze.",
+  openingQuestions: [
+    "What type of code would you like me to review?",
+    "Are there specific concerns you'd like me to focus on?",
+    "Would you like general feedback or security-focused review?"
+  ]
+}
+```
+
+</Steps>
+
+## Agent Configuration API
+
+You can programmatically configure agents using the Agent Builder tool's API:
+
+```typescript
+// Update agent configuration
+await updateAgentConfig({
+  meta: {
+    title: "Code Review Assistant",
+    description: "Expert at code review",
+    avatar: "👨‍💻"
+  },
+  config: {
+    model: "claude-sonnet-4-5-20250929",
+    provider: "anthropic",
+    plugins: ["lobe-web-browsing"],
+    params: { temperature: 0.7 }
+  }
+});
+
+// Update system prompt
+await updatePrompt({
+  prompt: "You are a helpful code review assistant...",
+  streaming: true  // Typewriter effect
+});
+```
+
+Learn more about the [Agent Builder](/agents/agent-builder) tool.
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Start Simple, Iterate">
+    Begin with basic configuration and refine based on actual usage. Don't over-engineer your first agent.
+  </Accordion>
+  
+  <Accordion title="Test Your Prompts">
+    Test system prompts with various inputs to ensure consistent behavior. Refine based on responses.
+  </Accordion>
+  
+  <Accordion title="Use Appropriate Models">
+    Match model capabilities to your needs. Don't use expensive models for simple tasks.
+  </Accordion>
+  
+  <Accordion title="Enable Relevant Tools Only">
+    Only enable tools your agent actually needs. Too many tools can confuse the agent.
+  </Accordion>
+  
+  <Accordion title="Version Your Prompts">
+    Keep track of prompt changes. Document what works and what doesn't.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Builder" icon="wand-magic-sparkles" href="/agents/agent-builder">
+    Use AI to automatically configure agents
+  </Card>
+  <Card title="Add Skills" icon="puzzle-piece" href="/agents/skills">
+    Extend capabilities with reusable skills
+  </Card>
+  <Card title="Tool Integration" icon="wrench" href="/agents/tools">
+    Connect external tools and services
+  </Card>
+  <Card title="Knowledge Base" icon="book" href="/agents/knowledge-base">
+    Add domain-specific knowledge
+  </Card>
+</CardGroup>

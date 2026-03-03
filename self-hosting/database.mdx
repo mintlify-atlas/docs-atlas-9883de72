@@ -1,0 +1,400 @@
+---
+title: Database Configuration
+description: Configure PostgreSQL or PGLite database for your self-hosted LobeHub instance
+---
+
+# Database Configuration
+
+LobeHub uses PostgreSQL as its primary database, with support for PGLite for lightweight deployments. The database stores user data, sessions, conversations, files, and all application state.
+
+## Database Options
+
+### PostgreSQL (Recommended)
+
+Full-featured relational database suitable for production deployments.
+
+**Supported Providers:**
+- [Neon](https://neon.tech) - Serverless PostgreSQL
+- Self-hosted PostgreSQL
+- [Supabase](https://supabase.com)
+- [Railway](https://railway.app)
+- Amazon RDS
+- Google Cloud SQL
+- Any PostgreSQL 14+ compatible database
+
+### PGLite
+
+Lightweight embedded PostgreSQL for development or single-user deployments. Not recommended for production.
+
+## Configuration
+
+### Required Environment Variables
+
+<ParamField path="DATABASE_URL" type="string" required>
+  PostgreSQL connection string in the format:
+  ```
+  postgres://username:password@host:port/database
+  ```
+  
+  Examples:
+  - Local: `postgres://postgres:password@localhost:5432/lobehub`
+  - Neon: `postgres://user:pass@ep-cool-forest-123456.us-east-2.aws.neon.tech/lobehub`
+  - Docker: `postgres://postgres:password@postgres:5432/lobehub`
+</ParamField>
+
+<ParamField path="KEY_VAULTS_SECRET" type="string" required>
+  Secret key used to encrypt sensitive data in the database (user API keys, OAuth tokens).
+  
+  Generate using:
+  ```bash
+  openssl rand -base64 32
+  ```
+  
+  <Warning>Keep this secret safe. If lost, encrypted data cannot be recovered.</Warning>
+</ParamField>
+
+### Optional Environment Variables
+
+<ParamField path="DATABASE_DRIVER" type="string" default="neon">
+  Database driver to use:
+  - `neon` - Neon serverless driver (recommended for Neon)
+  - `node` - Standard PostgreSQL driver (for self-hosted/other providers)
+</ParamField>
+
+<ParamField path="DATABASE_TEST_URL" type="string">
+  Separate database URL for running tests. Useful to avoid polluting production data during development.
+</ParamField>
+
+## Database Schema
+
+LobeHub uses [Drizzle ORM](https://orm.drizzle.team) to manage database schemas. The schema is located in `packages/database/src/schemas/`.
+
+### Core Tables
+
+#### Users & Authentication
+
+**`users`** - User accounts
+- `id` (text, PK) - Unique user identifier
+- `email` (text, unique) - User email address
+- `username` (text, unique) - Username
+- `avatar` (text) - Avatar URL
+- `email_verified` (boolean) - Email verification status
+- `preference` (jsonb) - User preferences
+- `role` (text) - User role (for admin features)
+- `banned` (boolean) - Ban status
+- `created_at`, `updated_at` (timestamp)
+
+**`user_settings`** - User configuration
+- `id` (text, PK, FK to users.id)
+- `key_vaults` (text, encrypted) - API keys and secrets
+- `tts` (jsonb) - Text-to-speech settings
+- `language_model` (jsonb) - LLM provider settings
+- `system_agent` (jsonb) - System agent configuration
+- `general` (jsonb) - General settings
+- `tool` (jsonb) - Tool settings
+- `image` (jsonb) - Image generation settings
+
+**`auth_sessions`** - Better Auth sessions
+
+See [Authentication](/self-hosting/authentication#database-schema) for auth table details.
+
+#### Conversations & Messages
+
+**`sessions`** - Chat sessions (conversations)
+- `id` (text, PK) - Session identifier
+- `user_id` (text, FK to users.id) - Owner
+- `type` (text) - Session type (agent, group)
+- `slug` (text, unique per user) - URL-friendly identifier
+- `title` (text) - Session title
+- `description` (text)
+- `avatar` (text) - Session avatar
+- `background_color` (text)
+- `group_id` (text, FK) - Parent group
+- `pinned_at` (timestamp) - Pin status
+- `created_at`, `updated_at` (timestamp)
+
+**`messages`** - Chat messages
+- `id` (text, PK) - Message identifier
+- `session_id` (text, FK to sessions.id) - Parent session
+- `topic_id` (text, FK to topics.id) - Parent topic
+- `role` (text) - Message role (user, assistant, system)
+- `content` (text) - Message content
+- `model` (text) - LLM model used
+- `parent_id` (text) - Parent message for threading
+- `tools` (jsonb) - Tool calls in message
+- `tool_call_id` (text) - Tool call identifier
+- `trace_id` (text) - Observability trace ID
+- `created_at`, `updated_at` (timestamp)
+
+**`topics`** - Conversation topics
+- `id` (text, PK) - Topic identifier
+- `session_id` (text, FK to sessions.id)
+- `user_id` (text, FK to users.id)
+- `title` (text) - Topic title
+- `favorite` (boolean) - Favorite status
+- `metadata` (jsonb) - Additional metadata
+- `created_at`, `updated_at` (timestamp)
+
+#### Files & Knowledge
+
+**`files`** - Uploaded files
+- `id` (text, PK) - File identifier
+- `user_id` (text, FK to users.id) - Owner
+- `name` (text) - File name
+- `file_type` (varchar) - MIME type
+- `size` (integer) - File size in bytes
+- `url` (text) - S3 key or URL
+- `file_hash` (varchar, FK) - SHA256 hash (for deduplication)
+- `parent_id` (varchar, FK to documents.id) - Parent folder
+- `chunk_task_id` (uuid, FK) - Chunking task
+- `embedding_task_id` (uuid, FK) - Embedding task
+- `metadata` (jsonb)
+- `created_at`, `updated_at` (timestamp)
+
+**`global_files`** - Deduplicated file storage
+- `hash_id` (varchar, PK) - SHA256 hash
+- `file_type` (varchar) - MIME type
+- `size` (integer) - File size
+- `url` (text) - S3 storage key
+- `creator` (text, FK to users.id)
+- `metadata` (jsonb)
+- `created_at`, `accessed_at` (timestamp)
+
+**`documents`** - File content and folders
+- `id` (varchar, PK) - Document identifier
+- `user_id` (text, FK to users.id) - Owner
+- `title` (text) - Document title
+- `content` (text) - Document content
+- `file_type` (varchar) - Type (folder, custom, pdf, etc.)
+- `source_type` (text) - Source (file, web, api, topic)
+- `source` (text) - File path or URL
+- `file_id` (text, FK to files.id) - Associated file
+- `knowledge_base_id` (text, FK) - Parent knowledge base
+- `parent_id` (varchar, FK to documents.id) - Parent folder
+- `pages` (jsonb) - Document pages/chunks
+- `total_char_count`, `total_line_count` (integer)
+- `metadata` (jsonb)
+- `created_at`, `updated_at` (timestamp)
+
+**`knowledge_bases`** - Knowledge base collections
+- `id` (text, PK) - Knowledge base identifier
+- `user_id` (text, FK to users.id) - Owner
+- `name` (text) - Knowledge base name
+- `description` (text)
+- `avatar` (text)
+- `type` (text) - Knowledge base type
+- `is_public` (boolean) - Public access
+- `settings` (jsonb) - Configuration
+- `created_at`, `updated_at` (timestamp)
+
+#### RAG & Embeddings
+
+**`chunks`** - Text chunks for RAG
+- `id` (text, PK) - Chunk identifier
+- `file_id` (text, FK to files.id) - Source file
+- `user_id` (text, FK to users.id) - Owner
+- `index` (integer) - Chunk position
+- `text` (text) - Chunk content
+- `composite` (text) - Composite text for retrieval
+- `metadata` (jsonb) - Chunk metadata
+- `embedding` (vector) - Text embedding (pgvector)
+- `created_at`, `updated_at` (timestamp)
+
+**`embeddings`** - Text embeddings
+- `id` (uuid, PK) - Embedding identifier
+- `chunk_id` (text, FK to chunks.id) - Source chunk
+- `embeddings` (vector) - Vector embedding
+- `model` (text) - Embedding model
+- `created_at` (timestamp)
+
+#### Async Tasks
+
+**`async_tasks`** - Background job tracking
+- `id` (uuid, PK) - Task identifier
+- `type` (text) - Task type (chunking, embedding, etc.)
+- `status` (text) - Status (pending, processing, success, error)
+- `error` (text) - Error message
+- `duration` (integer) - Execution time (ms)
+- `created_at`, `updated_at` (timestamp)
+
+### Schema Management
+
+Migrations are stored in `packages/database/migrations/` and automatically applied on deployment.
+
+Configuration in `drizzle.config.ts`:
+
+```typescript
+{
+  dialect: 'postgresql',
+  schema: './packages/database/src/schemas',
+  out: './packages/database/migrations',
+  dbCredentials: {
+    url: process.env.DATABASE_URL
+  }
+}
+```
+
+## Setup Guide
+
+### Option 1: Neon (Recommended)
+
+1. Create account at [neon.tech](https://neon.tech)
+2. Create a new project
+3. Copy the connection string from the dashboard
+4. Set environment variables:
+
+```bash
+DATABASE_URL=postgres://user:pass@ep-xxx.us-east-2.aws.neon.tech/lobehub
+DATABASE_DRIVER=neon
+KEY_VAULTS_SECRET=$(openssl rand -base64 32)
+```
+
+### Option 2: Docker (Local Development)
+
+1. Start PostgreSQL container:
+
+```bash
+docker run -d \
+  --name lobehub-postgres \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=lobehub \
+  -p 5432:5432 \
+  postgres:16
+```
+
+2. Set environment variables:
+
+```bash
+DATABASE_URL=postgres://postgres:password@localhost:5432/lobehub
+DATABASE_DRIVER=node
+KEY_VAULTS_SECRET=$(openssl rand -base64 32)
+```
+
+### Option 3: Self-Hosted PostgreSQL
+
+1. Install PostgreSQL 14+ on your server
+2. Create database and user:
+
+```sql
+CREATE DATABASE lobehub;
+CREATE USER lobehub_user WITH ENCRYPTED PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE lobehub TO lobehub_user;
+```
+
+3. Enable required extensions:
+
+```sql
+\c lobehub
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+4. Set environment variables:
+
+```bash
+DATABASE_URL=postgres://lobehub_user:your_password@localhost:5432/lobehub
+DATABASE_DRIVER=node
+KEY_VAULTS_SECRET=$(openssl rand -base64 32)
+```
+
+## Database Maintenance
+
+### Running Migrations
+
+Migrations are automatically applied on application startup. To run manually:
+
+```bash
+cd packages/database
+pnpm run migrate
+```
+
+### Backup & Restore
+
+**Backup:**
+
+```bash
+pg_dump -h localhost -U lobehub_user -d lobehub > backup.sql
+```
+
+**Restore:**
+
+```bash
+psql -h localhost -U lobehub_user -d lobehub < backup.sql
+```
+
+### Performance Optimization
+
+<Note>
+  For production deployments:
+  - Enable connection pooling (Neon provides this automatically)
+  - Configure appropriate `max_connections` for your workload
+  - Set up regular backups
+  - Monitor database size and performance
+  - Consider read replicas for high-traffic deployments
+</Note>
+
+## Embedding Configuration
+
+LobeHub supports vector embeddings for RAG (Retrieval Augmented Generation).
+
+<ParamField path="DEFAULT_FILES_CONFIG" type="string">
+  Configure embedding and reranker models:
+  ```
+  embedding_model=openai/text-embedding-3-small,reranker_model=cohere/rerank-english-v3.0,query_mode=full_text
+  ```
+</ParamField>
+
+<ParamField path="EMBEDDING_BATCH_SIZE" type="number" default="50">
+  Number of chunks to process in each embedding batch
+</ParamField>
+
+<ParamField path="EMBEDDING_CONCURRENCY" type="number" default="10">
+  Number of parallel embedding operations
+</ParamField>
+
+<ParamField path="CHUNKS_AUTO_EMBEDDING" type="boolean" default="true">
+  Automatically generate embeddings for new chunks. Set to `0` to disable.
+</ParamField>
+
+<ParamField path="CHUNKS_AUTO_GEN_METADATA" type="boolean" default="true">
+  Automatically generate metadata for chunks. Set to `0` to disable.
+</ParamField>
+
+## Troubleshooting
+
+### Connection Issues
+
+**Error: "DATABASE_URL is not set correctly"**
+
+Ensure `DATABASE_URL` is set and in the correct format:
+```
+postgres://username:password@host:port/database
+```
+
+**Error: Connection timeout**
+
+Check:
+- Database server is running
+- Firewall allows connections
+- Credentials are correct
+- Network connectivity
+
+### Migration Issues
+
+**Error: Migration failed**
+
+1. Check database user has necessary permissions
+2. Ensure database supports required extensions (pgvector)
+3. Review migration logs for specific errors
+
+### Performance Issues
+
+- Enable connection pooling
+- Add indexes on frequently queried columns
+- Monitor slow queries
+- Consider upgrading database instance size
+
+## Next Steps
+
+- [Authentication Setup](/self-hosting/authentication) - Configure user authentication
+- [Storage Configuration](/self-hosting/storage) - Set up S3 file storage
+- [Observability](/self-hosting/observability) - Monitor database performance

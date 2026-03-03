@@ -1,0 +1,591 @@
+---
+title: MCP Server Development
+description: Build Model Context Protocol servers to extend LobeHub agent capabilities.
+---
+
+# MCP Server Development
+
+Model Context Protocol (MCP) is a standardized protocol for AI tool integration. This guide covers building MCP servers for LobeHub.
+
+## What is MCP?
+
+**MCP (Model Context Protocol)** is an open standard that enables AI models to:
+
+- **Access tools** - Execute functions and retrieve data
+- **Read resources** - Access files, databases, APIs
+- **Manage prompts** - Dynamic prompt templates
+- **Sample completions** - Request AI generations
+
+**Benefits:**
+
+- Standardized interface across AI platforms
+- Better security and sandboxing
+- Reusable servers across applications
+- Growing ecosystem
+
+## MCP Server Basics
+
+### Server Components
+
+An MCP server provides:
+
+1. **Tools** - Functions the AI can call
+2. **Resources** (optional) - Data sources
+3. **Prompts** (optional) - Template prompts
+
+### Protocol Flow
+
+```plaintext
+AI Agent → Request tool list
+MCP Server → Return available tools
+
+AI Agent → Call tool with arguments
+MCP Server → Execute tool
+MCP Server → Return result
+
+AI Agent → Process result
+```
+
+## Creating an MCP Server
+
+### Installation
+
+```bash
+npm install @modelcontextprotocol/sdk
+```
+
+### Basic Server
+
+```typescript
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
+
+// Create server
+const server = new Server(
+  {
+    name: 'example-server',
+    version: '1.0.0',
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Define tools
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  tools: [
+    {
+      name: 'echo',
+      description: 'Echoes back the input message',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          message: {
+            type: 'string',
+            description: 'Message to echo',
+          },
+        },
+        required: ['message'],
+      },
+    },
+  ],
+}));
+
+// Handle tool calls
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  if (name === 'echo') {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Echo: ${args.message}`,
+        },
+      ],
+    };
+  }
+
+  throw new Error(`Unknown tool: ${name}`);
+});
+
+// Start server
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}
+
+main();
+```
+
+### Tool Schema
+
+Define tool parameters using JSON Schema:
+
+```typescript
+{
+  name: 'weather_lookup',
+  description: 'Get current weather for a location',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      location: {
+        type: 'string',
+        description: 'City name or zip code',
+      },
+      units: {
+        type: 'string',
+        enum: ['celsius', 'fahrenheit'],
+        description: 'Temperature units',
+        default: 'celsius',
+      },
+    },
+    required: ['location'],
+  },
+}
+```
+
+## Advanced Features
+
+### Resources
+
+Provide read-only data sources:
+
+```typescript
+import {
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
+
+server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+  resources: [
+    {
+      uri: 'file:///docs/readme.md',
+      name: 'README',
+      description: 'Project documentation',
+      mimeType: 'text/markdown',
+    },
+  ],
+}));
+
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const { uri } = request.params;
+
+  if (uri === 'file:///docs/readme.md') {
+    const content = await readFile('./README.md', 'utf-8');
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: 'text/markdown',
+          text: content,
+        },
+      ],
+    };
+  }
+
+  throw new Error(`Unknown resource: ${uri}`);
+});
+```
+
+### Prompts
+
+Provide dynamic prompt templates:
+
+```typescript
+import {
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
+
+server.setRequestHandler(ListPromptsRequestSchema, async () => ({
+  prompts: [
+    {
+      name: 'code_review',
+      description: 'Generate code review prompt',
+      arguments: [
+        {
+          name: 'language',
+          description: 'Programming language',
+          required: true,
+        },
+      ],
+    },
+  ],
+}));
+
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  if (name === 'code_review') {
+    return {
+      messages: [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Review this ${args.language} code for:
+- Security issues
+- Performance problems
+- Best practices
+- Code style`,
+          },
+        },
+      ],
+    };
+  }
+
+  throw new Error(`Unknown prompt: ${name}`);
+});
+```
+
+### Error Handling
+
+```typescript
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  try {
+    const { name, arguments: args } = request.params;
+
+    // Validate arguments
+    if (!args.location) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: 'Error: location parameter is required',
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    // Execute tool
+    const result = await getWeather(args.location);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`,
+        },
+      ],
+      isError: true,
+    };
+  }
+});
+```
+
+## Built-in MCP Servers in LobeHub
+
+LobeHub includes several built-in MCP servers:
+
+### Web Browsing
+
+Package: `@lobechat/builtin-tool-web-browsing`
+
+**Tools:**
+- `web_search` - Search the internet
+- `web_scrape` - Extract content from URLs
+
+### Knowledge Base
+
+Package: `@lobechat/builtin-tool-knowledge-base`
+
+**Tools:**
+- `kb_search` - Search knowledge base
+- `kb_create` - Create knowledge entry
+
+### Cloud Sandbox
+
+Package: `@lobechat/builtin-tool-cloud-sandbox`
+
+**Tools:**
+- `execute_code` - Run Python/JS code
+- `install_package` - Install dependencies
+
+### Memory
+
+Package: `@lobechat/builtin-tool-memory`
+
+**Tools:**
+- `remember` - Store user information
+- `recall` - Retrieve memories
+
+## Integrating with LobeHub
+
+### Method 1: Built-in Tool
+
+Add to `packages/builtin-tools/`:
+
+```bash
+mkdir -p packages/builtin-tool-myserver
+cd packages/builtin-tool-myserver
+```
+
+Create server, then register in `packages/builtin-tools/src/index.ts`
+
+### Method 2: External Server
+
+Users can add external MCP servers via config:
+
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "command": "node",
+      "args": ["/path/to/server.js"],
+      "env": {
+        "API_KEY": "xxx"
+      }
+    }
+  }
+}
+```
+
+## Testing MCP Servers
+
+### Unit Tests
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { createMyServer } from '../src';
+
+describe('MyMCPServer', () => {
+  it('should list tools', async () => {
+    const server = createMyServer();
+
+    const response = await server.handleRequest({
+      method: 'tools/list',
+      params: {},
+    });
+
+    expect(response.tools).toHaveLength(2);
+    expect(response.tools[0].name).toBe('my_tool');
+  });
+
+  it('should execute tool', async () => {
+    const server = createMyServer();
+
+    const response = await server.handleRequest({
+      method: 'tools/call',
+      params: {
+        name: 'my_tool',
+        arguments: { input: 'test' },
+      },
+    });
+
+    expect(response.content[0].text).toContain('test');
+  });
+});
+```
+
+### Manual Testing
+
+Use the MCP Inspector:
+
+```bash
+npx @modelcontextprotocol/inspector node server.js
+```
+
+Or test directly in LobeHub:
+
+1. Add server to agent tools
+2. Start chat
+3. Trigger tool usage
+4. Check server logs
+
+## Best Practices
+
+### 1. Tool Design
+
+**Single Responsibility:**
+
+```typescript
+// ✅ Good - Focused tools
+{ name: 'create_file', ... }
+{ name: 'read_file', ... }
+{ name: 'delete_file', ... }
+
+// ❌ Bad - One tool does everything
+{ name: 'file_operations', ... }
+```
+
+**Clear Descriptions:**
+
+```typescript
+// ✅ Good
+description: 'Create a new file at the specified path with the given content. Returns the file path on success.'
+
+// ❌ Bad
+description: 'Create file'
+```
+
+### 2. Schema Validation
+
+```typescript
+import { z } from 'zod';
+
+const ArgsSchema = z.object({
+  path: z.string().min(1),
+  content: z.string(),
+  overwrite: z.boolean().optional(),
+});
+
+const args = ArgsSchema.parse(request.params.arguments);
+```
+
+### 3. Security
+
+**Validate paths:**
+
+```typescript
+import path from 'path';
+
+function validatePath(userPath: string, basePath: string) {
+  const resolved = path.resolve(basePath, userPath);
+  if (!resolved.startsWith(basePath)) {
+    throw new Error('Path traversal detected');
+  }
+  return resolved;
+}
+```
+
+**Rate limiting:**
+
+```typescript
+import { RateLimiter } from 'limiter';
+
+const limiter = new RateLimiter({ tokensPerInterval: 10, interval: 'minute' });
+
+await limiter.removeTokens(1);
+```
+
+### 4. Logging
+
+```typescript
+const logger = createLogger('my-mcp-server');
+
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  logger.info('Tool called', { name: request.params.name });
+
+  try {
+    const result = await executeTool(request.params);
+    logger.info('Tool succeeded', { name: request.params.name });
+    return result;
+  } catch (error) {
+    logger.error('Tool failed', { name: request.params.name, error });
+    throw error;
+  }
+});
+```
+
+### 5. Documentation
+
+Provide clear documentation:
+
+```typescript
+{
+  name: 'database_query',
+  description: `Execute a SQL query against the database.
+
+  Supports:
+  - SELECT queries (read-only)
+  - Parameterized queries for safety
+  - Returns up to 100 rows
+
+  Example:
+  \`\`\`sql
+  SELECT * FROM users WHERE id = ?
+  \`\`\``,
+  inputSchema: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'SQL query to execute',
+      },
+      params: {
+        type: 'array',
+        description: 'Query parameters',
+        items: { type: 'string' },
+      },
+    },
+    required: ['query'],
+  },
+}
+```
+
+## Publishing
+
+### NPM Package
+
+```json
+{
+  "name": "@myorg/mcp-server-example",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "example-mcp": "./dist/index.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  }
+}
+```
+
+### MCP Marketplace
+
+Submit to [lobehub.com/mcp](https://lobehub.com/mcp):
+
+1. Publish to npm
+2. Create `mcp.json` manifest
+3. Submit PR to marketplace
+
+## Examples
+
+Official MCP servers:
+
+- [Filesystem](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)
+- [GitHub](https://github.com/modelcontextprotocol/servers/tree/main/src/github)
+- [PostgreSQL](https://github.com/modelcontextprotocol/servers/tree/main/src/postgres)
+
+LobeHub servers:
+
+```bash
+packages/builtin-tools/
+├── builtin-tool-web-browsing/
+├── builtin-tool-knowledge-base/
+├── builtin-tool-cloud-sandbox/
+└── ...
+```
+
+## Resources
+
+- [MCP Specification](https://modelcontextprotocol.io/)
+- [MCP SDK](https://github.com/modelcontextprotocol/typescript-sdk)
+- [MCP Servers](https://github.com/modelcontextprotocol/servers)
+- [LobeHub MCP Marketplace](https://lobehub.com/mcp)
+
+## Next Steps
+
+- [Building Plugins](/development/plugins)
+- [Agent Development](/development/agents)
+- [Creating Skills](/development/skills)

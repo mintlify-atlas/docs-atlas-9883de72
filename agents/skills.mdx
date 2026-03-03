@@ -1,0 +1,462 @@
+---
+title: Skills
+description: Extend agent capabilities with reusable instruction packages
+---
+
+# Skills
+
+Skills are reusable instruction packages that extend your agent's capabilities. They provide pre-defined workflows, guidelines, and specialized knowledge for handling specific types of tasks.
+
+## What are Skills?
+
+Skills in LobeHub are structured packages containing:
+
+- **Instructions**: Step-by-step workflows and guidelines
+- **Reference Files**: Additional context and resources
+- **Scripts**: Executable commands and automation
+- **Templates**: Reusable patterns and examples
+
+Think of skills as plug-and-play expertise modules that agents can activate on demand.
+
+## Built-in Skills
+
+LobeHub includes powerful built-in skills:
+
+<CardGroup cols={2}>
+  <Card title="Artifacts" icon="compass-drafting">
+    Generate visual and interactive content like SVG graphics, HTML pages, and React components
+  </Card>
+  <Card title="Find Skills" icon="magnifying-glass">
+    Discover and activate available skills from your skill library
+  </Card>
+</CardGroup>
+
+### Artifacts Skill
+
+The Artifacts skill enables agents to create rich, interactive content:
+
+```typescript
+// Artifacts skill configuration
+{
+  identifier: "lobe-artifacts",
+  name: "Artifacts",
+  description: "Generate visual and interactive artifacts",
+  capabilities: [
+    "SVG graphics generation",
+    "HTML page creation",
+    "React component development",
+    "Interactive visualizations"
+  ]
+}
+```
+
+**Use Cases**:
+- Generate charts and diagrams
+- Create interactive demos
+- Build UI components
+- Visualize data
+
+Learn more in the [Artifacts documentation](https://lobehub.com/docs/usage/features/artifacts).
+
+## Enabling Skills
+
+<Steps>
+
+### Enable Skills Tool
+
+First, enable the Skills tool (`lobe-skills`) for your agent:
+
+```typescript
+// Via Agent Builder
+"Enable the skills tool for this agent"
+
+// Or programmatically
+updateAgentConfig({
+  config: {
+    plugins: ["lobe-skills"]
+  }
+})
+```
+
+### Activate a Skill
+
+Agents can activate skills during conversation:
+
+```typescript
+// Agent calls runSkill
+runSkill({ name: "lobe-artifacts" })
+
+// Returns skill instructions and context
+{
+  id: "skill_abc123",
+  name: "lobe-artifacts",
+  content: "You can now generate artifacts...",
+  references: ["/templates/react-component.tsx"]
+}
+```
+
+### Follow Skill Instructions
+
+The agent receives and follows the skill's instructions to complete the task.
+
+</Steps>
+
+## Skills Tool API
+
+The Skills tool provides four core operations:
+
+### runSkill
+
+Activate a skill by name to load its instructions:
+
+```typescript
+runSkill({
+  name: string  // Exact skill name
+})
+
+// Returns
+{
+  id: string,
+  name: string,
+  content: string,        // Instructions to follow
+  references: string[]    // Available reference files
+}
+```
+
+### readReference
+
+Read reference files attached to a skill:
+
+```typescript
+readReference({
+  id: string,    // Skill ID from runSkill
+  path: string   // Virtual path from skill content
+})
+
+// Returns file content
+```
+
+### execScript
+
+Execute shell commands specified in skill instructions:
+
+```typescript
+execScript({
+  command: string,
+  description: string,  // What the command does
+  config: {             // REQUIRED: Current skill context
+    id: string,
+    name: string,
+    description?: string
+  },
+  runInClient?: boolean  // Desktop app only: run locally
+})
+
+// Returns command output
+{
+  stdout: string,
+  stderr: string,
+  exitCode: number
+}
+```
+
+**Important**: Always include the `config` parameter with the skill's ID and name. This allows the system to locate skill resources (files, dependencies) in the execution environment.
+
+### exportFile
+
+Export files generated during skill execution:
+
+```typescript
+exportFile({
+  path: string,      // File path in execution environment
+  filename: string   // Name for exported file
+})
+
+// Returns permanent download URL
+{
+  url: string,
+  filename: string,
+  size: number
+}
+```
+
+## Creating Custom Skills
+
+You can create custom skills for your agents:
+
+<Steps>
+
+### Define Skill Structure
+
+```typescript
+interface CustomSkill {
+  identifier: string;     // Unique ID
+  name: string;          // Display name
+  description: string;   // What it does
+  content: string;       // Instructions (markdown)
+  avatar?: string;       // Icon or image
+  source: 'builtin' | 'custom';
+}
+```
+
+### Write Skill Instructions
+
+Create clear, actionable instructions:
+
+```markdown
+# Data Analysis Skill
+
+You can now perform advanced data analysis tasks.
+
+## Capabilities
+- Load and parse CSV, JSON, Excel files
+- Statistical analysis and correlation
+- Data visualization with charts
+- Export results and insights
+
+## Workflow
+1. Ask user for the data file
+2. Load and validate the data
+3. Perform requested analysis
+4. Generate visualizations if needed
+5. Provide insights and export results
+
+## Available Scripts
+- `python scripts/analyze.py <file>` - Run analysis
+- `python scripts/visualize.py <data>` - Create charts
+
+## Reference Files
+- `/templates/analysis-template.py` - Analysis template
+- `/examples/sample-report.md` - Report format
+```
+
+### Package Skill Resources
+
+Include reference files and scripts:
+
+```
+my-skill/
+├── skill.json           # Skill metadata
+├── content.md          # Main instructions
+├── scripts/
+│   ├── analyze.py
+│   └── visualize.py
+├── templates/
+│   └── analysis-template.py
+└── examples/
+    └── sample-report.md
+```
+
+### Register Skill
+
+Add your skill to the agent's skill library:
+
+```typescript
+import type { BuiltinSkill } from '@lobechat/types';
+
+export const DataAnalysisSkill: BuiltinSkill = {
+  identifier: 'data-analysis',
+  name: 'Data Analysis',
+  description: 'Advanced data analysis and visualization',
+  content: '...', // Your instructions
+  avatar: '📊',
+  source: 'custom'
+};
+```
+
+</Steps>
+
+## Skill Execution Environments
+
+Skills can execute in different environments:
+
+<Tabs>
+  <Tab title="Cloud Sandbox">
+    **Default execution environment**
+    
+    - Isolated cloud environment
+    - Pre-installed common tools
+    - Safe for general CLI commands
+    - No local file access
+    
+    ```typescript
+    execScript({
+      command: "npm search lodash",
+      description: "Search for lodash package",
+      config: { id: skillId, name: skillName }
+      // runInClient not specified = cloud sandbox
+    })
+    ```
+  </Tab>
+  
+  <Tab title="Desktop Client">
+    **Local execution (Desktop app only)**
+    
+    - Runs on user's machine
+    - Full local file system access
+    - Access to local tools and env
+    - Requires user approval
+    
+    ```typescript
+    execScript({
+      command: "python analyze.py data.csv",
+      description: "Analyze local CSV file",
+      config: { id: skillId, name: skillName },
+      runInClient: true  // Run locally
+    })
+    ```
+  </Tab>
+</Tabs>
+
+**When to use `runInClient: true`**:
+- Accessing local files or directories
+- Installing packages globally
+- Operations requiring local system access
+
+**When to use cloud sandbox (default)**:
+- General CLI tools (npx, npm)
+- Commands that don't need file access
+- Safe, isolated execution
+
+## Skill Best Practices
+
+<AccordionGroup>
+  <Accordion title="Clear Instructions">
+    Write clear, step-by-step instructions that agents can follow. Include:
+    - What the skill enables
+    - When to use it
+    - How to use it
+    - Expected outcomes
+  </Accordion>
+  
+  <Accordion title="Include Examples">
+    Provide concrete examples in reference files. Show successful usage patterns.
+  </Accordion>
+  
+  <Accordion title="Handle Errors Gracefully">
+    Include error handling guidance in instructions. Tell agents what to do when things fail.
+  </Accordion>
+  
+  <Accordion title="Document Scripts">
+    Clearly document what each script does, its parameters, and expected output.
+  </Accordion>
+  
+  <Accordion title="Version Your Skills">
+    Track skill changes and maintain backward compatibility when possible.
+  </Accordion>
+  
+  <Accordion title="Test Thoroughly">
+    Test skills with different agents and scenarios before deploying.
+  </Accordion>
+</AccordionGroup>
+
+## Skill vs Tool vs Plugin
+
+Understand the differences:
+
+| Feature | Skills | Tools | Plugins |
+|---------|--------|-------|----------|
+| **Type** | Instructions | Built-in capabilities | External integrations |
+| **Content** | Workflows, guidelines | Executable functions | MCP servers, OAuth services |
+| **Activation** | On-demand by agent | Always available | Must be installed |
+| **Examples** | Artifacts, custom workflows | Knowledge Base, Memory | Tavily Search, Linear |
+| **Source** | Built-in or custom | LobeHub core | Marketplace or official |
+
+## Advanced Skill Patterns
+
+### Multi-Step Workflows
+
+```markdown
+# Report Generation Skill
+
+## Workflow
+1. Gather requirements from user
+2. Use readReference to load report template
+3. Use searchKnowledgeBase to find relevant data
+4. Use execScript to run analysis scripts
+5. Generate report using Artifacts skill
+6. Use exportFile to save final report
+```
+
+### Skill Composition
+
+```markdown
+# Full-Stack Development Skill
+
+This skill combines multiple capabilities:
+
+1. Activate Artifacts skill for UI components
+2. Use Cloud Sandbox for backend testing
+3. Use Knowledge Base for best practices
+4. Use exportFile for project files
+```
+
+### Conditional Execution
+
+```markdown
+# Smart Analysis Skill
+
+## Decision Tree
+- If data < 1MB: Analyze in cloud sandbox
+- If data > 1MB: Recommend runInClient for performance
+- If visualization needed: Activate Artifacts skill
+- If export needed: Use exportFile
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Skill Not Found">
+    **Problem**: `runSkill` returns "skill not found"
+    
+    **Solutions**:
+    - Verify exact skill name (case-sensitive)
+    - Check if skill is registered in your library
+    - Use the Find Skills skill to list available skills
+  </Accordion>
+  
+  <Accordion title="Script Execution Fails">
+    **Problem**: `execScript` fails or times out
+    
+    **Solutions**:
+    - Ensure `config` parameter is included with skill ID and name
+    - Check if command requires local access (use `runInClient: true`)
+    - Verify script exists in skill package
+    - Try Cloud Sandbox's `runCommand` as fallback
+  </Accordion>
+  
+  <Accordion title="Reference File Not Found">
+    **Problem**: `readReference` can't find file
+    
+    **Solutions**:
+    - Use exact path from skill content
+    - Verify file exists in skill package
+    - Check path format (use `/` not `\`)
+  </Accordion>
+  
+  <Accordion title="Export File Failed">
+    **Problem**: `exportFile` fails to save
+    
+    **Solutions**:
+    - Verify file was created by previous steps
+    - Check file path is correct
+    - Ensure file is in execution environment
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Tool Integration" icon="wrench" href="/agents/tools">
+    Connect external tools and services
+  </Card>
+  <Card title="Knowledge Base" icon="book" href="/agents/knowledge-base">
+    Add domain-specific knowledge
+  </Card>
+  <Card title="Agent Builder" icon="wand-magic-sparkles" href="/agents/agent-builder">
+    Use AI to configure agents
+  </Card>
+  <Card title="Marketplace" icon="store" href="/agents/marketplace">
+    Share your agents and skills
+  </Card>
+</CardGroup>

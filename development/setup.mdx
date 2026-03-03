@@ -1,0 +1,216 @@
+---
+title: Local Development Setup
+description: Complete guide to setting up LobeHub development environment on your local machine.
+---
+
+# Local Development Setup
+
+This guide walks you through setting up LobeHub for local development.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v18 or later) - [Download](https://nodejs.org/)
+- **pnpm** (v10.20.0 or later) - [Install guide](https://pnpm.io/installation)
+- **Bun** (latest version) - [Install guide](https://bun.sh/docs/installation)
+- **Git** - [Download](https://git-scm.com/)
+- **Docker** - [Get Docker](https://www.docker.com/get-started)
+- **IDE** - We recommend [VS Code](https://code.visualstudio.com/) or [WebStorm](https://www.jetbrains.com/webstorm/)
+
+## Quick Start
+
+<Steps>
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/lobehub/lobe-chat.git
+cd lobe-chat
+```
+
+### Install Dependencies
+
+Use pnpm to install all project dependencies:
+
+```bash
+pnpm install
+```
+
+### Configure Environment
+
+Copy the example environment files:
+
+<CodeGroup>
+
+```bash Docker Services
+cp docker-compose/dev/.env.example docker-compose/dev/.env
+```
+
+```bash Next.js Server
+cp .env.example.development .env
+```
+
+</CodeGroup>
+
+Edit these files to configure:
+- `docker-compose/dev/.env` - PostgreSQL, Redis, RustFS, SearXNG settings
+- `.env` - Database connection, S3 storage, authentication, API keys
+
+### Start Docker Services
+
+Start all required backend services:
+
+```bash
+bun run dev:docker
+```
+
+This starts:
+- **PostgreSQL** (port 5432) - Primary database
+- **Redis** (port 6379) - Cache and session storage
+- **RustFS** (ports 9000/9001) - S3-compatible file storage
+- **SearXNG** (port 8180) - Search engine
+
+Verify services are running:
+
+```bash
+docker compose -f docker-compose/dev/docker-compose.yml ps
+```
+
+### Run Database Migrations
+
+Create all necessary database tables:
+
+```bash
+pnpm db:migrate
+```
+
+You should see: `✅ database migration pass.`
+
+### Start Development Server
+
+Launch LobeHub:
+
+<CodeGroup>
+
+```bash Full Stack
+bun run dev
+```
+
+```bash SPA Only
+bun run dev:spa
+```
+
+```bash Next.js Only
+bun run dev:next
+```
+
+</CodeGroup>
+
+Open [http://localhost:3010](http://localhost:3010) in your browser.
+
+</Steps>
+
+## Service URLs
+
+When running the development environment:
+
+| Service | URL |
+|---------|-----|
+| Application | http://localhost:3010 |
+| SPA Dev Server | http://localhost:9876 |
+| PostgreSQL | postgres://postgres@localhost:5432/lobechat |
+| Redis | redis://localhost:6379 |
+| RustFS API | http://localhost:9000 |
+| RustFS Console | http://localhost:9001 |
+| SearXNG | http://localhost:8180 |
+
+## VS Code Setup
+
+For the best development experience with VS Code:
+
+1. Install recommended extensions from `.vscode/extensions.json`
+2. VS Code will prompt you automatically when you open the project
+3. Key extensions include:
+   - ESLint
+   - Prettier
+   - TypeScript and JavaScript Language Features
+   - Tailwind CSS IntelliSense
+
+## Alternative Development Modes
+
+### GitHub Codespaces
+
+Develop in the cloud with one click:
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/lobehub/lobe-chat)
+
+### Desktop App Development
+
+To work on the Electron desktop app:
+
+```bash
+cd apps/desktop
+pnpm run dev
+```
+
+See [Desktop App Development](/development/desktop) for details.
+
+### Mobile SPA Development
+
+```bash
+bun run dev:spa:mobile
+```
+
+Access at http://localhost:3012
+
+## Troubleshooting
+
+### Reset Everything
+
+If you encounter issues, reset the entire stack:
+
+```bash
+# Completely reset Docker environment (deletes all data)
+bun run dev:docker:reset
+```
+
+### Port Conflicts
+
+Check what's using a port:
+
+```bash
+lsof -i :5432  # PostgreSQL
+lsof -i :6379  # Redis
+lsof -i :3010  # App
+```
+
+### Database Connection Issues
+
+Ensure Docker services are running:
+
+```bash
+docker compose -f docker-compose/dev/docker-compose.yml ps
+```
+
+Re-run migrations if needed:
+
+```bash
+pnpm db:migrate
+```
+
+### Clean Install
+
+Remove all node_modules and reinstall:
+
+```bash
+bun run clean:node_modules
+pnpm install
+```
+
+## Next Steps
+
+- Read the [Architecture Overview](/development/architecture)
+- Learn about the [Tech Stack](/development/tech-stack)
+- Review [Code Style Guidelines](/development/code-style)
+- Check out [Contributing Guide](/development/contributing)

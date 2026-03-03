@@ -1,0 +1,380 @@
+---
+title: 'Knowledge Base API'
+description: 'Manage knowledge bases and documents for RAG'
+---
+
+## Overview
+
+The Knowledge Base API allows you to create and manage collections of documents and files for Retrieval-Augmented Generation (RAG).
+
+## Create Knowledge Base
+
+Create a new knowledge base.
+
+```typescript
+const id = await client.knowledgeBase.createKnowledgeBase.mutate({
+  name: 'Product Documentation',
+  description: 'All product documentation and guides',
+  avatar: 'https://example.com/avatar.png',
+});
+```
+
+<ParamField path="name" type="string" required>
+  Knowledge base name
+</ParamField>
+
+<ParamField path="description" type="string" optional>
+  Description of the knowledge base
+</ParamField>
+
+<ParamField path="avatar" type="string" optional>
+  Avatar URL or emoji
+</ParamField>
+
+**Response:**
+
+<ResponseField name="id" type="string">
+  Created knowledge base ID
+</ResponseField>
+
+## Get Knowledge Base
+
+Retrieve knowledge base information.
+
+```typescript
+const kb = await client.knowledgeBase.getKnowledgeBaseById.query({
+  id: 'kb_123',
+});
+```
+
+<ParamField path="id" type="string" required>
+  Knowledge base ID
+</ParamField>
+
+**Response:**
+
+<ResponseField name="id" type="string">
+  Knowledge base ID
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Name
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Description
+</ResponseField>
+
+<ResponseField name="avatar" type="string">
+  Avatar URL or emoji
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  Creation timestamp
+</ResponseField>
+
+<ResponseField name="updatedAt" type="string">
+  Last update timestamp
+</ResponseField>
+
+## List Knowledge Bases
+
+Get all knowledge bases.
+
+```typescript
+const knowledgeBases = await client.knowledgeBase.getKnowledgeBases.query();
+```
+
+**Response:**
+
+<ResponseField name="items" type="array">
+  Array of knowledge base objects
+</ResponseField>
+
+## Update Knowledge Base
+
+Update knowledge base properties.
+
+```typescript
+await client.knowledgeBase.updateKnowledgeBase.mutate({
+  id: 'kb_123',
+  value: {
+    name: 'Updated Name',
+    description: 'Updated description',
+  },
+});
+```
+
+<ParamField path="id" type="string" required>
+  Knowledge base ID
+</ParamField>
+
+<ParamField path="value" type="object" required>
+  Properties to update
+  
+  <ParamField path="name" type="string">
+    Updated name
+  </ParamField>
+  
+  <ParamField path="description" type="string">
+    Updated description
+  </ParamField>
+  
+  <ParamField path="avatar" type="string">
+    Updated avatar
+  </ParamField>
+</ParamField>
+
+## Delete Knowledge Base
+
+Remove a knowledge base.
+
+```typescript
+await client.knowledgeBase.removeKnowledgeBase.mutate({
+  id: 'kb_123',
+});
+```
+
+<ParamField path="id" type="string" required>
+  Knowledge base ID
+</ParamField>
+
+<ParamField path="removeFiles" type="boolean" optional>
+  Whether to remove associated files (default: false)
+</ParamField>
+
+## Delete All Knowledge Bases
+
+Remove all knowledge bases.
+
+```typescript
+await client.knowledgeBase.removeAllKnowledgeBases.mutate();
+```
+
+## Add Files to Knowledge Base
+
+Add existing files to a knowledge base.
+
+```typescript
+await client.knowledgeBase.addFilesToKnowledgeBase.mutate({
+  knowledgeBaseId: 'kb_123',
+  ids: ['file_1', 'file_2', 'file_3'],
+});
+```
+
+<ParamField path="knowledgeBaseId" type="string" required>
+  Knowledge base ID
+</ParamField>
+
+<ParamField path="ids" type="array" required>
+  Array of file IDs to add
+</ParamField>
+
+**Error Codes:**
+
+<ResponseField name="CONFLICT" type="error">
+  File already exists in this knowledge base
+</ResponseField>
+
+## Remove Files from Knowledge Base
+
+Remove files from a knowledge base (files are not deleted).
+
+```typescript
+await client.knowledgeBase.removeFilesFromKnowledgeBase.mutate({
+  knowledgeBaseId: 'kb_123',
+  ids: ['file_1', 'file_2'],
+});
+```
+
+<ParamField path="knowledgeBaseId" type="string" required>
+  Knowledge base ID
+</ParamField>
+
+<ParamField path="ids" type="array" required>
+  Array of file IDs to remove
+</ParamField>
+
+## File Upload to Knowledge Base
+
+Upload a file directly to a knowledge base.
+
+```typescript
+// 1. Upload file to storage service
+const uploadUrl = await yourStorageService.upload(file);
+
+// 2. Create file record in knowledge base
+const fileResult = await client.file.createFile.mutate({
+  name: file.name,
+  fileType: file.type,
+  size: file.size,
+  url: uploadUrl,
+  hash: await calculateHash(file),
+  knowledgeBaseId: 'kb_123',
+});
+
+// 3. File is automatically processed for RAG
+```
+
+## Document Management
+
+### Create Document
+
+Create a document (page) in a knowledge base.
+
+```typescript
+const doc = await client.document.createDocument.mutate({
+  title: 'Getting Started Guide',
+  content: '# Getting Started\n\nWelcome to...',
+  knowledgeBaseId: 'kb_123',
+});
+```
+
+### Query Documents
+
+Get documents in a knowledge base.
+
+```typescript
+const docs = await client.document.queryDocuments.query({
+  knowledgeBaseId: 'kb_123',
+});
+```
+
+## Chunk Management
+
+### Get Chunks
+
+Retrieve chunks from files in a knowledge base.
+
+```typescript
+const chunks = await client.chunk.getChunks.query({
+  fileId: 'file_123',
+});
+```
+
+<ParamField path="fileId" type="string" required>
+  File ID
+</ParamField>
+
+**Response:**
+
+<ResponseField name="items" type="array">
+  Array of chunks
+  
+  <ResponseField name="id" type="string">
+    Chunk ID
+  </ResponseField>
+  
+  <ResponseField name="text" type="string">
+    Chunk text content
+  </ResponseField>
+  
+  <ResponseField name="index" type="number">
+    Chunk index in file
+  </ResponseField>
+  
+  <ResponseField name="metadata" type="object">
+    Chunk metadata
+  </ResponseField>
+</ResponseField>
+
+## Embedding Management
+
+### Check Embedding Status
+
+Monitor embedding generation progress.
+
+```typescript
+const file = await client.file.getFileItemById.query({ id: 'file_123' });
+
+if (file.embeddingStatus === 'processing') {
+  console.log('Generating embeddings...');
+} else if (file.finishEmbedding) {
+  console.log('Ready for semantic search');
+}
+```
+
+## RAG Configuration
+
+### Agent Knowledge Base Settings
+
+Configure RAG for an agent.
+
+```typescript
+// Enable knowledge base for agent
+await client.agent.createAgentKnowledgeBase.mutate({
+  agentId: 'agent_123',
+  knowledgeBaseId: 'kb_456',
+  enabled: true,
+});
+
+// Configure RAG settings in agent config
+await client.agent.updateAgentConfig.mutate({
+  agentId: 'agent_123',
+  value: {
+    ragConfig: {
+      topK: 5,
+      similarityThreshold: 0.7,
+      enableRerank: true,
+    },
+  },
+});
+```
+
+## Semantic Search
+
+Knowledge bases are automatically indexed for semantic search:
+
+1. Files are chunked into semantic segments
+2. Embeddings are generated using configured model
+3. Vector similarity search retrieves relevant chunks
+4. Retrieved chunks are added to agent context
+
+### Search Configuration
+
+<ParamField path="topK" type="number">
+  Number of chunks to retrieve (default: 5)
+</ParamField>
+
+<ParamField path="similarityThreshold" type="number">
+  Minimum similarity score (0-1, default: 0.7)
+</ParamField>
+
+<ParamField path="enableRerank" type="boolean">
+  Enable reranking of results (default: false)
+</ParamField>
+
+## Best Practices
+
+### Organizing Knowledge Bases
+
+- Create separate knowledge bases for different domains
+- Use descriptive names and descriptions
+- Add relevant files to multiple knowledge bases when needed
+
+### File Preparation
+
+- Use clear, well-structured documents
+- Remove unnecessary formatting
+- Keep file sizes reasonable (< 10MB recommended)
+- Use markdown for best chunking results
+
+### Monitoring Processing
+
+- Check embedding status before using in production
+- Monitor chunk count to ensure proper processing
+- Review chunking errors and adjust file format if needed
+
+### Performance Optimization
+
+- Start with fewer chunks (lower topK) for faster responses
+- Increase similarityThreshold to reduce irrelevant results
+- Use reranking for better quality when needed
+- Cache frequently accessed knowledge bases
+
+## Limitations
+
+- Maximum file size: Depends on deployment configuration
+- Supported embedding models: Varies by provider
+- Chunk size: Configurable (default: 1000 tokens)
+- Maximum chunks per file: 10,000

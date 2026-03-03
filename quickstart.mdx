@@ -1,80 +1,293 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get started with LobeHub in minutes - from account creation to your first agent conversation
 ---
 
-## Get started in three steps
+# Quickstart guide
 
-Get your documentation site running locally and make your first customization.
+This guide will walk you through getting started with LobeHub, from creating your account to having your first conversation with an AI agent.
 
-### Step 1: Set up your local environment
+<Note>
+You'll be up and running in less than 5 minutes. No technical knowledge required.
+</Note>
+
+## Choose your deployment method
+
+You have three options to access LobeHub:
+
+<CardGroup cols={3}>
+  <Card title="Cloud (recommended)" icon="cloud">
+    Use the hosted version at lobehub.com - no setup required
+  </Card>
+  <Card title="Self-hosted" icon="server">
+    Deploy on Vercel, Docker, or other platforms for full control
+  </Card>
+  <Card title="Desktop app" icon="desktop">
+    Download the native app for peak performance without browser limitations
+  </Card>
+</CardGroup>
+
+<Tip>
+For this quickstart, we'll use the cloud version. You can migrate to self-hosted later without losing your data.
+</Tip>
+
+## Step 1: Create your account
+
+<Steps>
+  <Step title="Visit LobeHub">
+    Navigate to [lobehub.com](https://lobehub.com) in your web browser
+  </Step>
+  <Step title="Sign up">
+    Click "Sign Up" and choose your authentication method:
+    - Email and password
+    - OAuth (GitHub, Google, Discord)
+    - Magic link (passwordless)
+    - Passkey (biometric authentication)
+  </Step>
+  <Step title="Verify your account">
+    Complete the verification process based on your chosen authentication method
+  </Step>
+</Steps>
+
+## Step 2: Configure your first AI model
+
+Before you can start chatting, you need to configure at least one AI model provider.
+
+<Steps>
+  <Step title="Open settings">
+    Click your avatar in the top right corner and select "Settings"
+  </Step>
+  <Step title="Navigate to providers">
+    Go to **Settings → Language Models → Model Providers**
+  </Step>
+  <Step title="Add your API key">
+    Choose a provider (OpenAI, Anthropic, Google, etc.) and add your API key:
+
+    <Accordion title="Where to get API keys">
+      - **OpenAI**: Visit [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+      - **Anthropic**: Visit [console.anthropic.com](https://console.anthropic.com)
+      - **Google AI**: Visit [makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
+      - **Local models**: Install [Ollama](https://ollama.ai) for free local LLMs
+    </Accordion>
+  </Step>
+  <Step title="Select a model">
+    Choose a default model from your configured provider (e.g., GPT-4, Claude 3.5 Sonnet)
+  </Step>
+</Steps>
+
+<Note>
+LobeHub supports over 40 AI model providers. You can configure multiple providers and switch between them anytime.
+</Note>
+
+## Step 3: Start your first conversation
+
+Now you're ready to chat with AI!
+
+<Steps>
+  <Step title="Return to chat">
+    Click the chat icon in the left sidebar or press `⌘+1` (Mac) / `Ctrl+1` (Windows)
+  </Step>
+  <Step title="Send your first message">
+    Type a message in the input box at the bottom and press Enter. Try something like:
+    
+    ```
+    Hello! Can you explain what LobeHub is and how I can use it effectively?
+    ```
+  </Step>
+  <Step title="Review the response">
+    Watch as the AI responds in real-time. You can:
+    - Copy the response
+    - Regenerate if you want a different answer
+    - Edit your message and retry
+    - Continue the conversation naturally
+  </Step>
+</Steps>
+
+<Tip>
+You can switch models mid-conversation by clicking the model name at the top of the chat window.
+</Tip>
+
+## Step 4: Create your first agent
+
+Agents are specialized AI assistants configured for specific tasks. Let's create one!
+
+<Steps>
+  <Step title="Open the agent builder">
+    Click the **+ New Agent** button in the left sidebar
+  </Step>
+  <Step title="Describe your agent">
+    Simply describe what you want your agent to do. For example:
+    
+    ```
+    Create a writing assistant that helps me write clear, 
+    concise technical documentation. It should focus on 
+    clarity, use active voice, and follow best practices 
+    for developer documentation.
+    ```
+    
+    The Agent Builder will automatically configure the agent based on your description.
+  </Step>
+  <Step title="Customize (optional)">
+    You can further customize:
+    - **Name and avatar**: Give your agent a unique identity
+    - **System prompt**: Refine the instructions
+    - **Model selection**: Choose the best model for this task
+    - **Skills**: Add plugins and MCP integrations
+    - **Knowledge base**: Upload relevant documents
+  </Step>
+  <Step title="Start using your agent">
+    Click "Create" and start chatting with your new specialized agent
+  </Step>
+</Steps>
+
+## Step 5: Explore key features
+
+Now that you've had your first conversation, explore these powerful features:
+
+### Upload files and create knowledge bases
+
+<Steps>
+  <Step>
+    Click the paperclip icon in the chat input to upload files
+  </Step>
+  <Step>
+    Drag and drop documents (PDF, DOCX, TXT), images, audio, or video files
+  </Step>
+  <Step>
+    Ask questions about your uploaded content - the AI can read and analyze it
+  </Step>
+</Steps>
+
+### Use voice conversations
+
+<Steps>
+  <Step>
+    Click the microphone icon in the chat input
+  </Step>
+  <Step>
+    Speak your message - it will be automatically transcribed (Speech-to-Text)
+  </Step>
+  <Step>
+    Enable TTS in settings to hear responses read aloud (Text-to-Speech)
+  </Step>
+</Steps>
+
+### Try branching conversations
+
+<Steps>
+  <Step>
+    Hover over any message in your conversation
+  </Step>
+  <Step>
+    Click the branch icon to create an alternative conversation path
+  </Step>
+  <Step>
+    Choose between Continuation Mode (keeps context) or Standalone Mode (fresh start)
+  </Step>
+</Steps>
+
+### Add plugins and skills
+
+<Steps>
+  <Step>
+    Go to **Settings → Skills & Plugins**
+  </Step>
+  <Step>
+    Browse the marketplace with 40+ plugins and thousands of MCP integrations
+  </Step>
+  <Step>
+    Install skills for web search, code execution, API integrations, and more
+  </Step>
+  <Step>
+    Enable plugins in your agent's settings to extend its capabilities
+  </Step>
+</Steps>
+
+## Common workflows
 
 <AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
+  <Accordion title="Research and analysis">
+    1. Create a research agent with web search enabled
+    2. Upload relevant documents to the knowledge base
+    3. Ask the agent to analyze and synthesize information
+    4. Export findings as PDF or Markdown
   </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
+  
+  <Accordion title="Content creation">
+    1. Create a writing agent with your preferred style
+    2. Use branching to explore different writing approaches
+    3. Leverage artifacts to preview generated content
+    4. Iterate with the agent until you're satisfied
+  </Accordion>
+  
+  <Accordion title="Code assistance">
+    1. Create a programming agent with code execution skills
+    2. Upload your project files or codebase context
+    3. Use Chain of Thought to see the reasoning process
+    4. Copy code snippets with syntax highlighting
+  </Accordion>
+  
+  <Accordion title="Team collaboration">
+    1. Create an agent group for complex projects
+    2. Assign different agents to different roles
+    3. Use Pages to collaborate with multiple agents on documents
+    4. Schedule automated tasks to run while you're away
   </Accordion>
 </AccordionGroup>
 
-### Step 2: Deploy your changes
+## Tips for getting the most out of LobeHub
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+<CardGroup cols={2}>
+  <Card title="Be specific" icon="bullseye">
+    The more specific your instructions, the better the results. Include context, desired format, and tone.
+  </Card>
+  <Card title="Use agents" icon="robot">
+    Create specialized agents for recurring tasks instead of re-explaining every time.
+  </Card>
+  <Card title="Organize conversations" icon="folder">
+    Use topics and tags to organize conversations by project or theme.
+  </Card>
+  <Card title="Leverage memory" icon="brain">
+    LobeHub's personal memory learns from your interactions to provide better responses over time.
+  </Card>
+  <Card title="Try different models" icon="arrow-right-arrow-left">
+    Different models excel at different tasks. GPT-4 for reasoning, Claude for writing, etc.
+  </Card>
+  <Card title="Export your work" icon="download">
+    Export conversations as Markdown, PDF, or JSON to save your work externally.
+  </Card>
+</CardGroup>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Keyboard shortcuts
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+Speed up your workflow with these keyboard shortcuts:
 
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+| Shortcut | Action |
+|----------|--------|
+| `⌘/Ctrl + K` | Quick command palette |
+| `⌘/Ctrl + 1` | Go to chat |
+| `⌘/Ctrl + Enter` | Send message |
+| `⌘/Ctrl + /` | Show all shortcuts |
+| `⌘/Ctrl + N` | New conversation |
+| `⌘/Ctrl + B` | Toggle sidebar |
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Explore all features" icon="compass" href="/features">
+    Discover the full power of LobeHub's capabilities
+  </Card>
+  <Card title="Browse the agent market" icon="store">
+    Find pre-built agents created by the community
+  </Card>
+  <Card title="Install MCP plugins" icon="plug">
+    Connect LobeHub to thousands of external tools and services
+  </Card>
+  <Card title="Join Discord" icon="discord">
+    Connect with the community and get help from other users
+  </Card>
 </CardGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+Need help? Join our [Discord community](https://discord.gg/AYFPHvv2jT) or check the [GitHub discussions](https://github.com/lobehub/lobe-chat/discussions).
 </Note>

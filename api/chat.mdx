@@ -1,0 +1,582 @@
+---
+title: 'Chat API'
+description: 'Send messages and manage conversations'
+---
+
+## Overview
+
+The Chat API enables you to send messages, manage conversations, and execute AI agents. It supports both traditional chat and advanced agent workflows.
+
+## Execute Agent
+
+Execute a single agent with a prompt.
+
+### REST API
+
+```bash
+curl -X POST https://your-domain.com/api/agent \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "userId": "user_123",
+    "agentId": "agent_456",
+    "prompt": "Hello, how can you help me?",
+    "autoStart": true
+  }'
+```
+
+<ParamField path="userId" type="string" required>
+  User ID
+</ParamField>
+
+<ParamField path="agentId" type="string">
+  Agent ID (either agentId or slug required)
+</ParamField>
+
+<ParamField path="slug" type="string">
+  Agent slug (either agentId or slug required)
+</ParamField>
+
+<ParamField path="prompt" type="string" required>
+  User prompt/message
+</ParamField>
+
+<ParamField path="autoStart" type="boolean">
+  Auto-start execution (default: true)
+</ParamField>
+
+<ParamField path="appContext" type="object">
+  Application context
+  
+  <ParamField path="appContext.sessionId" type="string">
+    Session ID
+  </ParamField>
+  
+  <ParamField path="appContext.topicId" type="string">
+    Topic ID
+  </ParamField>
+  
+  <ParamField path="appContext.threadId" type="string">
+    Thread ID
+  </ParamField>
+  
+  <ParamField path="appContext.groupId" type="string">
+    Group ID
+  </ParamField>
+</ParamField>
+
+<ParamField path="existingMessageIds" type="array">
+  Existing message IDs to include in context
+</ParamField>
+
+**Response:**
+
+<ResponseField name="operationId" type="string">
+  Operation ID for tracking execution
+</ResponseField>
+
+<ResponseField name="autoStarted" type="boolean">
+  Whether execution started automatically
+</ResponseField>
+
+<ResponseField name="executionTime" type="number">
+  Execution time in milliseconds
+</ResponseField>
+
+### tRPC API
+
+```typescript
+const result = await client.aiAgent.execAgent.mutate({
+  agentId: 'agent_123',
+  prompt: 'What is the weather today?',
+  autoStart: true,
+});
+```
+
+## Execute Group Agent
+
+Execute a supervisor agent in a group chat.
+
+```typescript
+const result = await client.aiAgent.execGroupAgent.mutate({
+  agentId: 'supervisor_123',
+  groupId: 'group_456',
+  message: 'Analyze this data',
+  files: ['file_1', 'file_2'],
+  topicId: 'topic_789',
+});
+```
+
+<ParamField path="agentId" type="string" required>
+  Supervisor agent ID
+</ParamField>
+
+<ParamField path="groupId" type="string" required>
+  Group ID
+</ParamField>
+
+<ParamField path="message" type="string" required>
+  User message content
+</ParamField>
+
+<ParamField path="files" type="array" optional>
+  File IDs attached to the message
+</ParamField>
+
+<ParamField path="topicId" type="string" optional>
+  Existing topic ID
+</ParamField>
+
+<ParamField path="newTopic" type="object" optional>
+  Create new topic
+  
+  <ParamField path="newTopic.title" type="string">
+    Topic title
+  </ParamField>
+  
+  <ParamField path="newTopic.topicMessageIds" type="array">
+    Message IDs to include in topic
+  </ParamField>
+</ParamField>
+
+**Response:**
+
+<ResponseField name="operationId" type="string">
+  Operation ID
+</ResponseField>
+
+<ResponseField name="topicId" type="string">
+  Topic ID
+</ResponseField>
+
+<ResponseField name="userMessageId" type="string">
+  User message ID
+</ResponseField>
+
+<ResponseField name="assistantMessageId" type="string">
+  Assistant message ID
+</ResponseField>
+
+<ResponseField name="messages" type="array">
+  Updated message list
+</ResponseField>
+
+<ResponseField name="topics" type="object">
+  Updated topics
+</ResponseField>
+
+## Agent Stream (SSE)
+
+Connect to real-time agent execution stream.
+
+```javascript
+const eventSource = new EventSource(
+  `https://your-domain.com/api/agent/stream?operationId=${operationId}&includeHistory=true`
+);
+
+eventSource.addEventListener('message', (event) => {
+  const data = JSON.parse(event.data);
+  
+  switch (data.type) {
+    case 'agent_runtime_start':
+      console.log('Agent started');
+      break;
+    case 'agent_step_start':
+      console.log('Step started:', data.stepIndex);
+      break;
+    case 'tool_call':
+      console.log('Tool called:', data.tool);
+      break;
+    case 'agent_runtime_end':
+      console.log('Agent completed');
+      eventSource.close();
+      break;
+  }
+});
+```
+
+<ParamField path="operationId" type="string" required>
+  Operation ID from execAgent response
+</ParamField>
+
+<ParamField path="lastEventId" type="string" optional>
+  Resume from specific event ID (default: '0')
+</ParamField>
+
+<ParamField path="includeHistory" type="boolean" optional>
+  Include historical events (default: false)
+</ParamField>
+
+### Stream Events
+
+<ResponseField name="agent_runtime_start" type="event">
+  Agent execution started
+  
+  <ResponseField name="operationId" type="string">
+    Operation ID
+  </ResponseField>
+  
+  <ResponseField name="timestamp" type="number">
+    Event timestamp
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="agent_step_start" type="event">
+  Agent step started
+  
+  <ResponseField name="stepIndex" type="number">
+    Step index
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="tool_call" type="event">
+  Tool called by agent
+  
+  <ResponseField name="tool" type="object">
+    Tool information
+  </ResponseField>
+  
+  <ResponseField name="arguments" type="object">
+    Tool arguments
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="tool_result" type="event">
+  Tool execution result
+  
+  <ResponseField name="result" type="any">
+    Tool result
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="agent_runtime_end" type="event">
+  Agent execution completed
+  
+  <ResponseField name="status" type="string">
+    Completion status ('done', 'error', 'interrupted')
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="heartbeat" type="event">
+  Keep-alive heartbeat (every 30 seconds)
+</ResponseField>
+
+## Send Message
+
+Create messages and trigger AI response.
+
+```typescript
+const result = await client.aiChat.sendMessageInServer.mutate({
+  agentId: 'agent_123',
+  sessionId: 'session_456',
+  topicId: 'topic_789',
+  newUserMessage: {
+    content: 'Hello, how are you?',
+    files: ['file_1'],
+  },
+  newAssistantMessage: {
+    model: 'gpt-4',
+    provider: 'openai',
+  },
+});
+```
+
+<ParamField path="agentId" type="string" required>
+  Agent ID
+</ParamField>
+
+<ParamField path="sessionId" type="string" optional>
+  Session ID
+</ParamField>
+
+<ParamField path="topicId" type="string" optional>
+  Topic ID
+</ParamField>
+
+<ParamField path="threadId" type="string" optional>
+  Thread ID for isolated conversations
+</ParamField>
+
+<ParamField path="groupId" type="string" optional>
+  Group ID for group chats
+</ParamField>
+
+<ParamField path="newUserMessage" type="object" required>
+  User message
+  
+  <ParamField path="content" type="string" required>
+    Message content
+  </ParamField>
+  
+  <ParamField path="files" type="array" optional>
+    Attached file IDs
+  </ParamField>
+  
+  <ParamField path="parentId" type="string" optional>
+    Parent message ID
+  </ParamField>
+</ParamField>
+
+<ParamField path="newAssistantMessage" type="object" required>
+  Assistant message placeholder
+  
+  <ParamField path="model" type="string" required>
+    AI model
+  </ParamField>
+  
+  <ParamField path="provider" type="string" required>
+    AI provider
+  </ParamField>
+  
+  <ParamField path="metadata" type="object" optional>
+    Message metadata
+  </ParamField>
+</ParamField>
+
+<ParamField path="newTopic" type="object" optional>
+  Create new topic
+  
+  <ParamField path="title" type="string">
+    Topic title
+  </ParamField>
+  
+  <ParamField path="topicMessageIds" type="array">
+    Message IDs
+  </ParamField>
+</ParamField>
+
+<ParamField path="newThread" type="object" optional>
+  Create new thread
+  
+  <ParamField path="sourceMessageId" type="string">
+    Source message ID
+  </ParamField>
+  
+  <ParamField path="type" type="string">
+    Thread type
+  </ParamField>
+  
+  <ParamField path="title" type="string">
+    Thread title
+  </ParamField>
+</ParamField>
+
+**Response:**
+
+<ResponseField name="userMessageId" type="string">
+  Created user message ID
+</ResponseField>
+
+<ResponseField name="assistantMessageId" type="string">
+  Created assistant message ID
+</ResponseField>
+
+<ResponseField name="topicId" type="string">
+  Topic ID
+</ResponseField>
+
+<ResponseField name="messages" type="array">
+  Updated message list
+</ResponseField>
+
+<ResponseField name="topics" type="object">
+  Updated topics
+</ResponseField>
+
+## Get Messages
+
+Retrieve messages from a conversation.
+
+```typescript
+const messages = await client.message.getMessages.query({
+  agentId: 'agent_123',
+  topicId: 'topic_456',
+  pageSize: 50,
+  current: 1,
+});
+```
+
+<ParamField path="agentId" type="string" optional>
+  Agent ID
+</ParamField>
+
+<ParamField path="sessionId" type="string" optional>
+  Session ID
+</ParamField>
+
+<ParamField path="topicId" type="string" optional>
+  Topic ID
+</ParamField>
+
+<ParamField path="threadId" type="string" optional>
+  Thread ID
+</ParamField>
+
+<ParamField path="groupId" type="string" optional>
+  Group ID
+</ParamField>
+
+<ParamField path="pageSize" type="number" optional>
+  Number of messages per page (default: 50)
+</ParamField>
+
+<ParamField path="current" type="number" optional>
+  Page number (default: 1)
+</ParamField>
+
+**Response:**
+
+<ResponseField name="items" type="array">
+  Array of messages
+  
+  <ResponseField name="id" type="string">
+    Message ID
+  </ResponseField>
+  
+  <ResponseField name="role" type="string">
+    Message role ('user', 'assistant', 'tool')
+  </ResponseField>
+  
+  <ResponseField name="content" type="string">
+    Message content
+  </ResponseField>
+  
+  <ResponseField name="createdAt" type="string">
+    Creation timestamp
+  </ResponseField>
+  
+  <ResponseField name="tools" type="array">
+    Tool calls in message
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="total" type="number">
+  Total message count
+</ResponseField>
+
+## Create Message
+
+Create a single message.
+
+```typescript
+const message = await client.message.createMessage.mutate({
+  agentId: 'agent_123',
+  topicId: 'topic_456',
+  role: 'user',
+  content: 'Hello',
+});
+```
+
+<ParamField path="agentId" type="string">
+  Agent ID
+</ParamField>
+
+<ParamField path="sessionId" type="string">
+  Session ID
+</ParamField>
+
+<ParamField path="topicId" type="string">
+  Topic ID
+</ParamField>
+
+<ParamField path="role" type="string" required>
+  Message role ('user', 'assistant', 'tool', 'system')
+</ParamField>
+
+<ParamField path="content" type="string" required>
+  Message content
+</ParamField>
+
+<ParamField path="files" type="array" optional>
+  File IDs
+</ParamField>
+
+<ParamField path="parentId" type="string" optional>
+  Parent message ID
+</ParamField>
+
+## Update Message
+
+Update message content or metadata.
+
+```typescript
+await client.message.update.mutate({
+  id: 'message_123',
+  agentId: 'agent_456',
+  value: {
+    content: 'Updated content',
+  },
+});
+```
+
+<ParamField path="id" type="string" required>
+  Message ID
+</ParamField>
+
+<ParamField path="value" type="object" required>
+  Update values
+  
+  <ParamField path="content" type="string">
+    Updated content
+  </ParamField>
+</ParamField>
+
+## Remove Message
+
+Delete a message.
+
+```typescript
+await client.message.removeMessage.mutate({
+  id: 'message_123',
+  agentId: 'agent_456',
+});
+```
+
+## Search Messages
+
+Search messages by keyword.
+
+```typescript
+const results = await client.message.searchMessages.query({
+  keywords: 'important topic',
+});
+```
+
+<ParamField path="keywords" type="string" required>
+  Search keywords
+</ParamField>
+
+**Response:**
+
+<ResponseField name="items" type="array">
+  Array of matching messages with context
+</ResponseField>
+
+## Message Statistics
+
+### Count Messages
+
+Get message count.
+
+```typescript
+const count = await client.message.count.query({
+  startDate: '2024-01-01',
+  endDate: '2024-12-31',
+});
+```
+
+### Count Words
+
+Get total word count.
+
+```typescript
+const wordCount = await client.message.countWords.query();
+```
+
+### Get Heatmaps
+
+Get message activity heatmap.
+
+```typescript
+const heatmaps = await client.message.getHeatmaps.query();
+```

@@ -1,0 +1,379 @@
+---
+title: Contribution Guide
+description: How to contribute to LobeHub - from setup to submitting your first PR.
+---
+
+# Contribution Guide
+
+Welcome! This guide will help you make your first contribution to LobeHub.
+
+## Quick Links
+
+- [GitHub Repository](https://github.com/lobehub/lobe-chat)
+- [Issues](https://github.com/lobehub/lobe-chat/issues)
+- [Discussions](https://github.com/lobehub/lobe-chat/discussions)
+- [Discord](https://discord.gg/AYFPHvv2jT)
+
+## Getting Started
+
+<Steps>
+
+### Fork the Repository
+
+Click the "Fork" button at the top right of [lobehub/lobe-chat](https://github.com/lobehub/lobe-chat)
+
+### Clone Your Fork
+
+```bash
+git clone https://github.com/YOUR_USERNAME/lobe-chat.git
+cd lobe-chat
+```
+
+### Set Up Development Environment
+
+Follow the [Local Setup Guide](/development/setup):
+
+```bash
+pnpm install
+cp docker-compose/dev/.env.example docker-compose/dev/.env
+cp .env.example.development .env
+bun run dev:docker
+pnpm db:migrate
+bun run dev
+```
+
+### Create a Branch
+
+**Branch naming:** `username/type/description`
+
+```bash
+git checkout -b yourname/feat/add-feature
+git checkout -b yourname/fix/bug-description
+```
+
+**Types:**
+- `feat` - New feature
+- `fix` - Bug fix
+- `docs` - Documentation
+- `refactor` - Code refactoring
+- `test` - Tests
+- `chore` - Maintenance
+
+</Steps>
+
+## Development Workflow
+
+### 1. Make Changes
+
+Edit files following our [Code Style](/development/code-style)
+
+### 2. Run Linters
+
+```bash
+pnpm lint:ts        # TypeScript/JavaScript
+pnpm lint:style     # CSS
+pnpm type-check     # Type checking
+```
+
+Fix issues:
+
+```bash
+pnpm lint:ts --fix
+pnpm lint:style --fix
+```
+
+### 3. Write Tests
+
+See [Testing Guide](/development/testing)
+
+```bash
+# Run specific test
+bunx vitest run --silent='passed-only' 'path/to/test.test.ts'
+```
+
+### 4. Commit Changes
+
+**Use gitmoji + semantic commits:**
+
+```bash
+git add .
+git commit -m "✨ feat: add new feature"
+```
+
+**Gitmoji prefixes:**
+
+| Emoji | Code | Type | Description |
+|-------|------|------|-------------|
+| ✨ | `:sparkles:` | feat | New feature |
+| 🐛 | `:bug:` | fix | Bug fix |
+| 📝 | `:memo:` | docs | Documentation |
+| 💄 | `:lipstick:` | style | UI/styling |
+| ♻️ | `:recycle:` | refactor | Refactoring |
+| ✅ | `:white_check_mark:` | test | Tests |
+| 🔨 | `:hammer:` | chore | Maintenance |
+| 🚀 | `:rocket:` | perf | Performance |
+
+**Commit message format:**
+
+```
+<gitmoji> <type>: <description>
+
+[optional body]
+
+[optional footer]
+```
+
+Examples:
+
+```bash
+✨ feat: add voice input support
+🐛 fix: resolve message duplication issue
+📝 docs: update installation guide
+♻️ refactor: extract chat logic to hooks
+```
+
+### 5. Push Changes
+
+```bash
+git push origin yourname/feat/add-feature
+```
+
+## Creating a Pull Request
+
+### 1. Open PR
+
+Go to your fork on GitHub and click "Compare & pull request"
+
+### 2. Fill PR Template
+
+Use the template in `.github/PULL_REQUEST_TEMPLATE.md`:
+
+```markdown
+## Description
+
+Clear description of what this PR does.
+
+## Type of Change
+
+- [ ] ✨ New feature
+- [ ] 🐛 Bug fix
+- [ ] 📝 Documentation
+- [ ] ♻️ Refactoring
+
+## Checklist
+
+- [ ] Code follows project style guidelines
+- [ ] Tests added/updated
+- [ ] Documentation updated
+- [ ] All tests pass
+- [ ] No console.log statements
+
+## Screenshots (if applicable)
+
+[Add screenshots for UI changes]
+
+## Related Issues
+
+Fixes #123
+```
+
+### 3. PR Title
+
+**Format:** Same as commit messages
+
+```
+✨ feat: add voice input support
+🐛 fix(chat): resolve message duplication
+```
+
+**Important:**
+- `✨ feat:` or `🐛 fix:` in title triggers auto-release
+- Other prefixes won't trigger releases
+
+### 4. Target Branch
+
+**Always target `canary` branch** - This is the development branch
+
+## Code Review Process
+
+### 1. Automated Checks
+
+GitHub Actions will run:
+- Linting
+- Type checking
+- Unit tests
+- E2E tests
+- Build verification
+
+All must pass before merge.
+
+### 2. Manual Review
+
+Maintainers will review:
+- Code quality
+- Architecture
+- Testing coverage
+- Documentation
+
+### 3. Address Feedback
+
+If changes requested:
+
+```bash
+# Make changes
+git add .
+git commit -m "🔨 chore: address review comments"
+git push
+```
+
+PR updates automatically.
+
+### 4. Merge
+
+Once approved, maintainers will merge your PR!
+
+## Development Guidelines
+
+### Code Style
+
+See [Code Style Guide](/development/code-style)
+
+**Key points:**
+- Use TypeScript
+- Prefer interfaces over types
+- Use `pnpm` for dependencies
+- Use `bun` for scripts
+- Follow ESLint rules
+
+### Git Workflow
+
+**Branches:**
+- `main` - Production releases
+- `canary` - Development (target this!)
+- `yourname/feat/...` - Your feature branch
+
+**Commits:**
+- Use gitmoji
+- Small, focused commits
+- Clear messages
+
+**Syncing:**
+
+```bash
+# Add upstream
+git remote add upstream https://github.com/lobehub/lobe-chat.git
+
+# Sync with upstream
+git fetch upstream
+git rebase upstream/canary
+```
+
+### Testing
+
+**Run before submitting PR:**
+
+```bash
+pnpm lint              # All linters
+pnpm type-check        # TypeScript
+bunx vitest run        # Unit tests (specific files only!)
+```
+
+**Never run full test suite locally** (`bun run test`) - Takes ~10 minutes. CI will run it.
+
+### i18n
+
+**Add translation keys:**
+
+1. Add to `src/locales/default/{namespace}.ts`
+2. Export in `src/locales/default/index.ts`
+3. For dev preview, translate `locales/zh-CN/{namespace}.json` and `locales/en-US/{namespace}.json`
+4. **Don't run `pnpm i18n`** - CI handles it
+
+See [i18n Guide](/development/internationalization)
+
+## Contribution Ideas
+
+### Good First Issues
+
+Look for issues labeled:
+- `good first issue`
+- `help wanted`
+- `documentation`
+
+[Browse issues](https://github.com/lobehub/lobe-chat/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+
+### Areas to Contribute
+
+**Features:**
+- New agent capabilities
+- Tool integrations
+- UI improvements
+- Mobile experience
+
+**Bug Fixes:**
+- Check [bug reports](https://github.com/lobehub/lobe-chat/labels/bug)
+- Reproduce and fix
+
+**Documentation:**
+- Improve guides
+- Add examples
+- Translate docs
+
+**Testing:**
+- Add test coverage
+- E2E tests
+- Bug reproduction
+
+**Performance:**
+- Optimize rendering
+- Reduce bundle size
+- Database queries
+
+## Community
+
+### Communication
+
+- **GitHub Issues** - Bug reports, feature requests
+- **GitHub Discussions** - Questions, ideas
+- **Discord** - Real-time chat, help
+
+### Code of Conduct
+
+- Be respectful and inclusive
+- Help others learn
+- Give constructive feedback
+- Follow community guidelines
+
+### Recognition
+
+Contributors are listed in:
+- [Contributors page](https://github.com/lobehub/lobe-chat/graphs/contributors)
+- Release notes
+- README
+
+Thank you for contributing!
+
+## Maintainers
+
+**Principal Maintainers:**
+- [@arvinxx](https://github.com/arvinxx)
+- [@canisminor1990](https://github.com/canisminor1990)
+
+## Resources
+
+- [Development Setup](/development/setup)
+- [Architecture Guide](/development/architecture)
+- [Code Style](/development/code-style)
+- [Testing Guide](/development/testing)
+- [GitHub Repository](https://github.com/lobehub/lobe-chat)
+
+## Next Steps
+
+Ready to contribute?
+
+1. [Find an issue](https://github.com/lobehub/lobe-chat/issues)
+2. [Set up your environment](/development/setup)
+3. Start coding!
+4. Submit your PR
+
+Welcome to the LobeHub community! 🎉

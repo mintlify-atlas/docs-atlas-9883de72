@@ -1,0 +1,318 @@
+---
+title: 'Authentication'
+description: 'API authentication methods and session management'
+---
+
+## Overview
+
+LobeHub uses [Better Auth](https://better-auth.com) for authentication. The API supports multiple authentication methods including email/password, magic links, OAuth providers, and passkeys.
+
+## Authentication Methods
+
+### Email and Password
+
+Register a new user or sign in with email and password.
+
+```bash
+# Sign up
+curl -X POST https://your-domain.com/api/auth/sign-up/email \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securepassword123",
+    "name": "John Doe"
+  }'
+
+# Sign in
+curl -X POST https://your-domain.com/api/auth/sign-in/email \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securepassword123"
+  }'
+```
+
+**Response:**
+
+<ResponseField name="session" type="object">
+  Session information
+  
+  <ResponseField name="token" type="string">
+    Session token for API authentication
+  </ResponseField>
+  
+  <ResponseField name="userId" type="string">
+    User ID
+  </ResponseField>
+  
+  <ResponseField name="expiresAt" type="string">
+    Session expiration timestamp
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="user" type="object">
+  User information
+  
+  <ResponseField name="id" type="string">
+    User ID
+  </ResponseField>
+  
+  <ResponseField name="email" type="string">
+    User email address
+  </ResponseField>
+  
+  <ResponseField name="fullName" type="string">
+    User's full name
+  </ResponseField>
+  
+  <ResponseField name="avatar" type="string" optional>
+    Avatar URL
+  </ResponseField>
+</ResponseField>
+
+### Magic Link
+
+Send a magic link to user's email for passwordless authentication.
+
+```bash
+curl -X POST https://your-domain.com/api/auth/magic-link \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com"
+  }'
+```
+
+The user receives an email with a magic link that automatically signs them in when clicked.
+
+### OAuth Providers
+
+Supported OAuth providers include:
+
+- Google
+- GitHub
+- Microsoft
+- Discord
+- Generic OAuth (configurable)
+
+**Initiate OAuth Flow:**
+
+```bash
+# Redirect user to OAuth provider
+https://your-domain.com/api/auth/oauth/google
+```
+
+After successful authentication, the user is redirected back to your application with a session token.
+
+### Email OTP (Mobile)
+
+For mobile applications, use email-based OTP verification.
+
+```bash
+# Send OTP
+curl -X POST https://your-domain.com/api/auth/otp/send \
+  -H "Content-Type: application/json" \
+  -H "x-client-type: mobile" \
+  -d '{
+    "email": "user@example.com"
+  }'
+
+# Verify OTP
+curl -X POST https://your-domain.com/api/auth/otp/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "otp": "123456"
+  }'
+```
+
+<ParamField path="email" type="string" required>
+  User's email address
+</ParamField>
+
+<ParamField path="otp" type="string" required>
+  6-digit OTP code received via email
+</ParamField>
+
+### Passkeys (WebAuthn)
+
+Register and authenticate using WebAuthn/passkeys for passwordless authentication.
+
+```javascript
+// Register passkey
+const credential = await navigator.credentials.create({
+  publicKey: passkeyOptions
+});
+
+// Authenticate with passkey
+const assertion = await navigator.credentials.get({
+  publicKey: authOptions
+});
+```
+
+## Session Management
+
+### Get Current Session
+
+Retrieve the current authenticated session.
+
+```bash
+curl https://your-domain.com/api/auth/get-session \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN"
+```
+
+**Response:**
+
+<ResponseField name="session" type="object">
+  <ResponseField name="id" type="string">
+    Session ID
+  </ResponseField>
+  
+  <ResponseField name="userId" type="string">
+    User ID
+  </ResponseField>
+  
+  <ResponseField name="expiresAt" type="string">
+    Session expiration timestamp
+  </ResponseField>
+  
+  <ResponseField name="token" type="string">
+    Session token
+  </ResponseField>
+</ResponseField>
+
+### Sign Out
+
+Invalidate the current session.
+
+```bash
+curl -X POST https://your-domain.com/api/auth/sign-out \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN"
+```
+
+## API Key Authentication
+
+For server-to-server communication, you can use API keys.
+
+### Using tRPC
+
+```typescript
+const apiKey = await client.apiKey.createKey.mutate({
+  name: 'Production API Key',
+});
+```
+
+<ParamField path="name" type="string" required>
+  API key name for identification
+</ParamField>
+
+**Response:**
+
+<ResponseField name="id" type="string">
+  API key ID
+</ResponseField>
+
+<ResponseField name="key" type="string">
+  API key value (only shown once)
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  API key name
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  Creation timestamp
+</ResponseField>
+
+### Making Authenticated Requests
+
+Include the API key or session token in the Authorization header:
+
+```bash
+curl https://your-domain.com/api/agent \
+  -H "Authorization: Bearer YOUR_API_KEY_OR_SESSION_TOKEN"
+```
+
+## Email Verification
+
+When email verification is enabled, users must verify their email before accessing the API.
+
+```bash
+# Resend verification email
+curl -X POST https://your-domain.com/api/auth/verify-email \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com"
+  }'
+```
+
+## Change Email
+
+Update user email address with verification.
+
+```bash
+curl -X POST https://your-domain.com/api/auth/change-email \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "newEmail": "newemail@example.com"
+  }'
+```
+
+A verification email is sent to the new email address.
+
+## Reset Password
+
+Request a password reset link.
+
+```bash
+curl -X POST https://your-domain.com/api/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com"
+  }'
+```
+
+## Session Security
+
+### Session Duration
+
+- Default session duration: 10 minutes (cached)
+- Sessions are stored in the database with Redis secondary storage for performance
+
+### Cookie Settings
+
+- HttpOnly cookies for web sessions
+- Secure flag in production
+- SameSite=Lax for CSRF protection
+
+## Error Codes
+
+<ResponseField name="INVALID_CREDENTIALS" type="error">
+  Email or password is incorrect
+</ResponseField>
+
+<ResponseField name="EMAIL_ALREADY_EXISTS" type="error">
+  Email address is already registered
+</ResponseField>
+
+<ResponseField name="EMAIL_NOT_VERIFIED" type="error">
+  Email verification required
+</ResponseField>
+
+<ResponseField name="INVALID_OTP" type="error">
+  OTP code is invalid or expired
+</ResponseField>
+
+<ResponseField name="SESSION_EXPIRED" type="error">
+  Session has expired, please sign in again
+</ResponseField>
+
+## Configuration
+
+Authentication behavior is controlled by environment variables:
+
+- `AUTH_SECRET`: Secret key for signing tokens
+- `AUTH_DISABLE_EMAIL_PASSWORD`: Disable email/password authentication
+- `AUTH_EMAIL_VERIFICATION`: Require email verification
+- `AUTH_ENABLE_MAGIC_LINK`: Enable magic link authentication
+- `AUTH_SSO_PROVIDERS`: Comma-separated list of enabled OAuth providers

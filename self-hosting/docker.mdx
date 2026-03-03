@@ -1,0 +1,415 @@
+---
+title: Docker deployment
+description: Deploy LobeHub with Docker Compose for complete control and easy updates
+---
+
+Docker Compose is the recommended self-hosting method for LobeHub. It provides a complete stack with PostgreSQL, Redis, RustFS (S3-compatible storage), and Searxng in a single command.
+
+## Quick start
+
+<Steps>
+  <Step title="Create deployment directory">
+    ```bash
+    mkdir lobe-chat-db && cd lobe-chat-db
+    ```
+  </Step>
+
+  <Step title="Initialize infrastructure">
+    Run the setup script to generate configuration files:
+    
+    ```bash
+    bash <(curl -fsSL https://lobe.li/setup.sh)
+    ```
+    
+    This creates:
+    - `docker-compose.yml` - Service definitions
+    - `.env` - Environment variables
+    - `bucket.config.json` - S3 bucket configuration
+    - `searxng-settings.yml` - Search engine configuration
+  </Step>
+
+  <Step title="Configure environment variables">
+    Edit `.env` file with your API keys:
+    
+    ```bash
+    # Required: At least one AI provider
+    OPENAI_API_KEY=sk-xxxxxx
+    
+    # Optional: Additional providers
+    ANTHROPIC_API_KEY=sk-ant-xxxxxx
+    GOOGLE_API_KEY=xxxxxx
+    ```
+    
+    See [Environment Variables](/self-hosting/environment-variables) for the complete list.
+  </Step>
+
+  <Step title="Start services">
+    ```bash
+    docker compose up -d
+    ```
+    
+    This starts all services in the background.
+  </Step>
+
+  <Step title="Access LobeHub">
+    Open your browser to:
+    
+    - **LobeHub**: http://localhost:3210
+    - **RustFS Console**: http://localhost:9001
+    
+    Default RustFS credentials (change in `.env`):
+    - Access Key: `lobehub_access_key`
+    - Secret Key: `lobehub_secret_key`
+  </Step>
+</Steps>
+
+## Architecture
+
+The Docker Compose stack includes:
+
+### Core services
+
+<AccordionGroup>
+  <Accordion title="LobeHub - Main application">
+    **Image**: `lobehub/lobehub:latest`
+    
+    **Port**: 3210
+    
+    The Next.js application serving the web interface and API.
+  </Accordion>
+
+  <Accordion title="PostgreSQL - Database">
+    **Image**: `paradedb/paradedb:latest-pg17`
+    
+    **Port**: 5432
+    
+    **Features**:
+    - PostgreSQL 17 with ParadeDB extensions
+    - Vector search support for RAG
+    - Full-text search capabilities
+    
+    **Data**: Stored in `./data` volume
+  </Accordion>
+
+  <Accordion title="Redis - Caching and sessions">
+    **Image**: `redis:7-alpine`
+    
+    **Port**: 6379
+    
+    **Features**:
+    - Session storage
+    - Rate limiting
+    - Cache layer
+    - AOF persistence enabled
+  </Accordion>
+
+  <Accordion title="RustFS - S3-compatible storage">
+    **Image**: `rustfs/rustfs:latest`
+    
+    **Ports**: 9000 (API), 9001 (Console)
+    
+    **Features**:
+    - S3-compatible object storage
+    - Web console for file management
+    - Local filesystem backend
+    
+    **Data**: Stored in `rustfs-data` volume
+  </Accordion>
+
+  <Accordion title="Searxng - Privacy-focused search">
+    **Image**: `searxng/searxng`
+    
+    **Port**: 8080 (internal)
+    
+    **Features**:
+    - Meta-search engine
+    - No tracking
+    - Aggregates results from multiple sources
+  </Accordion>
+</AccordionGroup>
+
+## Configuration
+
+### Environment variables
+
+Key configuration in `.env`:
+
+```bash
+# Ports
+LOBE_PORT=3210          # LobeHub web interface
+RUSTFS_PORT=9000        # RustFS API
+
+# Database
+LOBE_DB_NAME=lobechat
+POSTGRES_PASSWORD=uWNZugjBqixf8dxC
+
+# Security
+KEY_VAULTS_SECRET=jgwsK28dspyVQoIf8/M3IIHl1h6LYYceSYNXeLpy6uk=
+AUTH_SECRET=NX2kaPE923dt6BL2U8e9oSre5RfoT7hg
+
+# S3 Storage
+RUSTFS_ACCESS_KEY=lobehub_access_key
+RUSTFS_SECRET_KEY=lobehub_secret_key
+RUSTFS_LOBE_BUCKET=lobe
+
+# AI Providers
+OPENAI_API_KEY=sk-xxxxxx
+```
+
+### Custom domain and HTTPS
+
+For production deployments, use a reverse proxy:
+
+<Tabs>
+  <Tab title="Nginx">
+    ```nginx
+    server {
+        listen 443 ssl http2;
+        server_name lobehub.example.com;
+        
+        ssl_certificate /path/to/cert.pem;
+        ssl_certificate_key /path/to/key.pem;
+        
+        location / {
+            proxy_pass http://localhost:3210;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Caddy">
+    ```caddyfile
+    lobehub.example.com {
+        reverse_proxy localhost:3210
+    }
+    ```
+    
+    Caddy automatically handles HTTPS with Let's Encrypt.
+  </Tab>
+  
+  <Tab title="Traefik">
+    Add labels to the `lobe` service in `docker-compose.yml`:
+    
+    ```yaml
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lobehub.rule=Host(`lobehub.example.com`)"
+      - "traefik.http.routers.lobehub.entrypoints=websecure"
+      - "traefik.http.routers.lobehub.tls.certresolver=letsencrypt"
+    ```
+  </Tab>
+</Tabs>
+
+## Management
+
+### View logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f lobe
+```
+
+### Restart services
+
+```bash
+# All services
+docker compose restart
+
+# Specific service
+docker compose restart lobe
+```
+
+### Stop services
+
+```bash
+docker compose stop
+```
+
+### Update to latest version
+
+```bash
+# Pull latest images
+docker compose pull
+
+# Restart with new images
+docker compose up -d
+```
+
+### Backup data
+
+<Tabs>
+  <Tab title="Database">
+    ```bash
+    docker compose exec postgresql pg_dump -U postgres lobechat > backup.sql
+    ```
+    
+    Restore:
+    ```bash
+    docker compose exec -T postgresql psql -U postgres lobechat < backup.sql
+    ```
+  </Tab>
+  
+  <Tab title="Files (RustFS)">
+    ```bash
+    docker compose exec rustfs tar czf /tmp/backup.tar.gz /data
+    docker cp lobe-rustfs:/tmp/backup.tar.gz ./rustfs-backup.tar.gz
+    ```
+  </Tab>
+  
+  <Tab title="Redis">
+    Redis automatically persists data with AOF. To manually save:
+    
+    ```bash
+    docker compose exec redis redis-cli BGSAVE
+    ```
+  </Tab>
+</Tabs>
+
+## Advanced configuration
+
+### External PostgreSQL
+
+To use an external database instead of the containerized one:
+
+1. Remove the `postgresql` service from `docker-compose.yml`
+2. Update `DATABASE_URL` in `.env`:
+   ```bash
+   DATABASE_URL=postgresql://user:password@external-host:5432/lobechat
+   ```
+3. Remove the PostgreSQL dependency from the `lobe` service
+
+### External Redis
+
+To use a managed Redis service:
+
+1. Remove the `redis` service from `docker-compose.yml`
+2. Update `REDIS_URL` in `.env`:
+   ```bash
+   REDIS_URL=redis://user:password@external-host:6379
+   ```
+
+### Custom S3 storage
+
+To use AWS S3, Cloudflare R2, or another provider:
+
+1. Remove `rustfs` and `rustfs-init` services
+2. Configure S3 environment variables:
+   ```bash
+   S3_ENDPOINT=https://s3.amazonaws.com
+   S3_BUCKET=my-lobehub-bucket
+   S3_ACCESS_KEY_ID=AKIAXXXXXXXX
+   S3_SECRET_ACCESS_KEY=xxxxxxxx
+   S3_REGION=us-east-1
+   ```
+
+See [Storage Configuration](/self-hosting/storage) for details.
+
+## Resource requirements
+
+### Minimum (light usage)
+
+- **CPU**: 2 cores
+- **RAM**: 4 GB
+- **Storage**: 20 GB
+
+### Recommended (production)
+
+- **CPU**: 4+ cores
+- **RAM**: 8+ GB
+- **Storage**: 50+ GB (depending on file uploads)
+
+### Scaling considerations
+
+<Note>
+  For high-traffic deployments, consider:
+  - Using managed database (RDS, Neon, Supabase)
+  - Horizontal scaling with load balancer
+  - CDN for static assets
+  - Redis cluster for caching
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Service won't start">
+    Check service health:
+    ```bash
+    docker compose ps
+    docker compose logs [service-name]
+    ```
+    
+    Common issues:
+    - Port already in use (change `LOBE_PORT` in `.env`)
+    - Insufficient disk space
+    - Database connection failed (check credentials)
+  </Accordion>
+
+  <Accordion title="Database connection error">
+    Verify PostgreSQL is healthy:
+    ```bash
+    docker compose exec postgresql pg_isready -U postgres
+    ```
+    
+    If unhealthy, check logs:
+    ```bash
+    docker compose logs postgresql
+    ```
+  </Accordion>
+
+  <Accordion title="File upload fails">
+    Check RustFS service:
+    ```bash
+    docker compose logs rustfs
+    docker compose logs rustfs-init
+    ```
+    
+    Verify bucket was created:
+    ```bash
+    docker compose exec rustfs ls /data/lobe
+    ```
+  </Accordion>
+
+  <Accordion title="Out of disk space">
+    Check disk usage:
+    ```bash
+    docker system df
+    ```
+    
+    Clean up unused resources:
+    ```bash
+    docker system prune -a --volumes
+    ```
+    
+    <Warning>
+      This removes all unused containers, images, and volumes. Make sure to backup first.
+    </Warning>
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Environment variables" icon="code" href="/self-hosting/environment-variables">
+    Complete reference of all configuration options
+  </Card>
+  <Card title="Authentication" icon="lock" href="/self-hosting/authentication">
+    Set up user authentication and SSO
+  </Card>
+  <Card title="Database" icon="database" href="/self-hosting/database">
+    Database configuration and migrations
+  </Card>
+  <Card title="Upgrading" icon="arrow-up" href="/self-hosting/advanced/upgrading">
+    How to upgrade to new versions
+  </Card>
+</CardGroup>

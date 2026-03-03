@@ -1,0 +1,302 @@
+---
+title: Adding Custom AI Models to LobeHub
+description: Learn how to configure custom AI models in your LobeHub deployment using environment variables and model list syntax.
+tags:
+  - Custom Models
+  - Model Configuration
+  - AI Providers
+  - Environment Variables
+---
+
+# Adding Custom AI Models
+
+LobeHub supports extensive customization of AI models through environment variables. This guide covers how to add custom models, configure model providers, and extend model capabilities for your self-hosted deployment.
+
+## Model List Configuration
+
+### Basic Syntax
+
+LobeHub uses a flexible syntax to customize the model list for each provider. The configuration is done via environment variables for each [model provider](/docs/self-hosting/environment-variables/model-provider).
+
+```text
+id->deploymentName=displayName<maxToken:vision:reasoning:search:fc:file:imageOutput>
+```
+
+**Syntax breakdown:**
+
+- `id` - The model identifier
+- `->deploymentName` - Optional custom deployment name (supports Azure, Volcengine, Qwen)
+- `=displayName` - Custom display name shown in the UI
+- `<extensions>` - Model capabilities and token limits
+
+### Model List Operations
+
+You can modify the default model list using these operators:
+
+- `+` - Add a new model to the list
+- `-` - Remove/hide a model from the list
+- `-all` - Hide all built-in models first
+- `,` - Separate multiple model configurations
+
+**Example configurations:**
+
+```bash
+# Add custom models
+OPENAI_MODEL_LIST="+qwen-7b-chat,+glm-6b"
+
+# Remove unwanted models
+OPENAI_MODEL_LIST="-gpt-3.5-turbo"
+
+# Rename a model
+OPENAI_MODEL_LIST="gpt-4-0125-preview=gpt-4-turbo"
+
+# Combined operations
+OPENAI_MODEL_LIST="+qwen-7b-chat,+glm-6b,-gpt-3.5-turbo,gpt-4-0125-preview=gpt-4-turbo"
+
+# Only enable specific models
+OPENAI_MODEL_LIST="-all,+gpt-3.5-turbo,+gpt-4"
+```
+
+## Model Extension Capabilities
+
+<Callout type="info">
+  Extension capabilities were introduced in version 0.147.8 to provide fine-grained control over model features.
+</Callout>
+
+### Available Extension Flags
+
+| Flag | Description | Use Case |
+| --- | --- | --- |
+| `fc` | Function Calling | Enable tool/plugin support |
+| `vision` | Image Recognition | Allow image inputs |
+| `imageOutput` | Image Generation | Enable image creation (DALL-E, Stable Diffusion) |
+| `reasoning` | Reasoning Support | Advanced reasoning models (o1, o3) |
+| `search` | Web Search | Built-in web search capability |
+| `file` | File Upload | Document/file processing (experimental) |
+
+### Configuration Examples
+
+<Tabs>
+  <Tab title="Basic Model">
+    ```bash
+    # ChatGLM 6B with 4k context, no advanced features
+    CUSTOM_MODEL_LIST="chatglm-6b=ChatGLM 6B<4096>"
+    ```
+  </Tab>
+  
+  <Tab title="Function Calling">
+    ```bash
+    # Xunfei Spark 3.5 with 8k context and Function Call support
+    CUSTOM_MODEL_LIST="spark-v3.5=讯飞星火 v3.5<8192:fc>"
+    ```
+  </Tab>
+  
+  <Tab title="Vision Model">
+    ```bash
+    # Google Gemini 1.5 Flash with vision support
+    CUSTOM_MODEL_LIST="gemini-1.5-flash-latest=Gemini 1.5 Flash<16000:vision>"
+    ```
+  </Tab>
+  
+  <Tab title="Reasoning Model">
+    ```bash
+    # OpenAI o3-mini with reasoning and Function Call
+    CUSTOM_MODEL_LIST="o3-mini=OpenAI o3-mini<200000:reasoning:fc>"
+    ```
+  </Tab>
+  
+  <Tab title="Multi-Capability">
+    ```bash
+    # GPT-4 with vision, function calling, and file upload
+    CUSTOM_MODEL_LIST="gpt-4-all=ChatGPT Plus<128000:fc:vision:file>"
+    ```
+  </Tab>
+  
+  <Tab title="Image Generation">
+    ```bash
+    # Gemini 2.0 Flash with image generation and recognition
+    CUSTOM_MODEL_LIST="gemini-2.0-flash-exp-image-generation=Gemini 2.0 Flash (Image Generation)<32768:imageOutput:vision>"
+    ```
+  </Tab>
+</Tabs>
+
+## Provider-Specific Configuration
+
+### OpenAI Compatible Providers
+
+For OpenAI-compatible APIs, use the `OPENAI_MODEL_LIST` variable:
+
+```bash
+OPENAI_PROXY_URL="https://api.your-provider.com/v1"
+OPENAI_API_KEY="your-api-key"
+OPENAI_MODEL_LIST="+custom-model-1=Custom Model<8192:fc>,+custom-model-2=Another Model<16000:vision>"
+```
+
+### Azure OpenAI
+
+Azure requires deployment name mapping:
+
+```bash
+AZURE_ENDPOINT="https://your-resource.openai.azure.com"
+AZURE_API_KEY="your-api-key"
+AZURE_API_VERSION="2024-02-01"
+# Format: id->deploymentName=displayName<capabilities>
+AZURE_MODEL_LIST="gpt-35-turbo->my-gpt35-deployment=GPT 3.5 Turbo<16000:fc>,gpt-4->my-gpt4-deployment=GPT 4<128000:fc:vision>"
+```
+
+### Custom Provider with Ollama
+
+```bash
+ENABLED_OLLAMA=1
+OLLAMA_PROXY_URL="http://localhost:11434"
+OLLAMA_MODEL_LIST="+llama2:13b=Llama 2 13B<4096>,+mistral:latest=Mistral Latest<8192:fc>,+codellama:34b=Code Llama 34B<16000>"
+```
+
+## Advanced Configurations
+
+### Multiple Provider Setup
+
+Configure multiple AI providers simultaneously:
+
+```bash
+# OpenAI
+ENABLED_OPENAI=1
+OPENAI_API_KEY="sk-..."
+OPENAI_MODEL_LIST="-all,+gpt-4,+gpt-4-turbo"
+
+# Anthropic
+ENABLED_ANTHROPIC=1
+ANTHROPIC_API_KEY="sk-ant-..."
+ANTHROPIC_MODEL_LIST="+claude-3-opus=Claude 3 Opus<200000:vision:fc>,+claude-3-sonnet=Claude 3 Sonnet<200000:vision:fc>"
+
+# Google AI
+ENABLED_GOOGLE=1
+GOOGLE_API_KEY="..."
+GOOGLE_MODEL_LIST="+gemini-pro=Gemini Pro<32000:fc>,+gemini-pro-vision=Gemini Pro Vision<16000:vision>"
+```
+
+### Hide Default Models, Show Custom Only
+
+To create a curated model list:
+
+```bash
+# Start with -all, then add only your custom models
+OPENAI_MODEL_LIST="-all,+custom-gpt-4=My GPT-4<128000:fc:vision>,+custom-gpt-3.5=My GPT-3.5<16000:fc>"
+```
+
+### Model Aliases for Different Contexts
+
+```bash
+# Create user-friendly aliases
+OPENAI_MODEL_LIST="gpt-4-0125-preview=GPT-4 Turbo (Fast)<128000:fc:vision>,gpt-4=GPT-4 (Accurate)<8192:fc>,gpt-3.5-turbo=GPT-3.5 (Budget)<16000:fc>"
+```
+
+## Troubleshooting
+
+<Accordion title="Model doesn't appear in the list">
+  **Possible causes:**
+  
+  1. **Syntax error** - Check for missing commas or incorrect format
+  2. **Provider not enabled** - Ensure `ENABLED_[PROVIDER]=1` is set
+  3. **Hidden by -all** - If using `-all`, make sure to explicitly add the model with `+`
+  
+  **Solution:**
+  ```bash
+  # Verify syntax
+  OPENAI_MODEL_LIST="-all,+your-model-id=Display Name<8192>"
+  
+  # Check logs for parsing errors
+  docker logs lobe-chat | grep -i "model"
+  ```
+</Accordion>
+
+<Accordion title="Model returns empty responses">
+  **Common issues:**
+  
+  1. **Missing `/v1` suffix** - Some proxies require `/v1` in the URL
+  2. **Incorrect API endpoint** - Verify the proxy URL
+  3. **Model ID mismatch** - The model ID must match what the API expects
+  
+  **Solution:**
+  ```bash
+  # Try adding /v1 to proxy URL
+  OPENAI_PROXY_URL="https://api.your-proxy.com/v1"
+  
+  # Or without /v1 if proxy already includes it
+  OPENAI_PROXY_URL="https://api.your-proxy.com"
+  ```
+</Accordion>
+
+<Accordion title="Extension capabilities not working">
+  **Verification steps:**
+  
+  1. Check model actually supports the capability
+  2. Ensure syntax is correct: `<maxToken:capability1:capability2>`
+  3. Verify LobeHub version supports the capability
+  
+  **Example:**
+  ```bash
+  # Correct format
+  MODEL_LIST="gpt-4=GPT-4<8192:fc:vision>"
+  
+  # Incorrect - missing max token
+  MODEL_LIST="gpt-4=GPT-4<fc:vision>"  # ❌ Wrong
+  ```
+</Accordion>
+
+## Best Practices
+
+<Steps>
+  ### Start with -all for Clean Slate
+  
+  Use `-all` to hide all default models, then explicitly add only the models you need:
+  
+  ```bash
+  OPENAI_MODEL_LIST="-all,+gpt-4-turbo,+gpt-3.5-turbo"
+  ```
+  
+  ### Use Descriptive Display Names
+  
+  Make model names user-friendly and descriptive:
+  
+  ```bash
+  OPENAI_MODEL_LIST="gpt-4-0125-preview=GPT-4 Turbo (Latest),gpt-3.5-turbo-16k=GPT-3.5 16K (Budget)"
+  ```
+  
+  ### Document Your Configuration
+  
+  Keep a commented configuration file:
+  
+  ```bash
+  # Production Model Configuration
+  # Updated: 2026-03-01
+  
+  # OpenAI - Primary provider
+  OPENAI_MODEL_LIST="-all,+gpt-4-turbo=GPT-4 Turbo<128000:fc:vision>,+gpt-3.5-turbo=GPT-3.5<16000:fc>"
+  
+  # Anthropic - Backup for extended context
+  ANTHROPIC_MODEL_LIST="+claude-3-opus=Claude 3 Opus<200000:vision:fc>"
+  ```
+  
+  ### Test Before Production
+  
+  Always test new model configurations in a development environment:
+  
+  ```bash
+  # Test configuration
+  docker run -d \
+    -p 3210:3210 \
+    -e OPENAI_API_KEY="sk-test..." \
+    -e OPENAI_MODEL_LIST="-all,+gpt-4" \
+    --name lobe-chat-test \
+    lobehub/lobe-chat
+  ```
+</Steps>
+
+## Reference
+
+For complete environment variable documentation, see:
+
+- [Model Provider Variables](/docs/self-hosting/environment-variables/model-provider)
+- [Feature Flags](/docs/self-hosting/advanced/feature-flags)
+- [Environment Variables Overview](/docs/self-hosting/environment-variables)

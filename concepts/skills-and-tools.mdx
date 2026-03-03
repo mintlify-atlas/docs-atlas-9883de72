@@ -1,0 +1,614 @@
+---
+title: "Skills and Tools"
+description: "Enhance your agents with skills and tools in LobeHub"
+---
+
+## Overview
+
+Skills and tools are what transform agents from conversational interfaces into productive teammates. While agents can chat and reason, **skills** give them expertise and **tools** give them capabilities to take action.
+
+<CardGroup cols={2}>
+  <Card title="Skills" icon="sparkles">
+    Reusable knowledge, prompts, and context that enhance agent expertise.
+  </Card>
+  <Card title="Tools" icon="wrench">
+    Functions agents can call to perform actions beyond conversation.
+  </Card>
+</CardGroup>
+
+<Note>
+  Think of skills as what an agent **knows** and tools as what an agent **can do**.
+</Note>
+
+## Skills
+
+### What are skills?
+
+Skills are structured knowledge packages that enhance an agent's capabilities. They typically include:
+
+- Expert prompts and instructions
+- Domain-specific knowledge
+- Best practices and methodologies  
+- Templates and frameworks
+- Reference materials and examples
+
+### Types of skills
+
+<AccordionGroup>
+  <Accordion title="Built-in skills">
+    Pre-installed skills that ship with LobeHub:
+    
+    - **Artifacts Skill**: Enables creation of interactive content, visualizations, and documents
+    - **Core reasoning skills**: Enhance problem-solving and analysis
+    
+    Built-in skills are maintained by the LobeHub team and automatically updated.
+  </Accordion>
+  <Accordion title="Market skills">
+    Community-created skills available from the LobeHub marketplace:
+    
+    - Code review methodologies
+    - Writing style guides
+    - Industry-specific frameworks
+    - Language and translation guides
+    
+    Browse, install, and share skills with the community.
+  </Accordion>
+  <Accordion title="User skills">
+    Custom skills you create for your specific needs:
+    
+    - Company-specific knowledge
+    - Personal methodologies
+    - Team guidelines
+    - Project templates
+    
+    User skills give you complete control over agent expertise.
+  </Accordion>
+</AccordionGroup>
+
+### Creating skills
+
+You can create custom skills to inject specialized knowledge into your agents:
+
+<Steps>
+  <Step title="Navigate to Skill Store">
+    Open the **Community** section and select **Skills** from the sidebar.
+  </Step>
+  <Step title="Create new skill">
+    Click **Create Skill** and provide:
+    - **Name**: Clear, descriptive name
+    - **Description**: What the skill does
+    - **Content**: The skill's knowledge (Markdown format)
+  </Step>
+  <Step title="Add resources (optional)">
+    Attach additional files:
+    - Reference documents
+    - Images and diagrams
+    - Example code
+    - Templates
+  </Step>
+  <Step title="Save and attach">
+    Save the skill and attach it to one or more agents.
+  </Step>
+</Steps>
+
+### Skill structure
+
+Skills use Markdown with frontmatter metadata:
+
+<CodeGroup>
+```markdown Basic Skill
+---
+name: "SEO Writing Guide"
+author: "Your Name"
+description: "Best practices for SEO-optimized content"
+version: "1.0.0"
+---
+
+# SEO Writing Guidelines
+
+## Keyword Strategy
+- Use primary keyword in title
+- Include secondary keywords naturally
+- Maintain 1-2% keyword density
+
+## Content Structure  
+- Start with compelling introduction
+- Use H2 and H3 headings
+- Include bullet points and lists
+- Add internal and external links
+
+## Meta Elements
+- Title: 50-60 characters
+- Meta description: 150-160 characters
+- Use action-oriented language
+```
+
+```markdown Advanced Skill with Resources
+---
+name: "Product Requirements Framework"
+author: "Product Team"
+description: "Template for writing PRDs"
+repository: "https://github.com/yourteam/prd-template"
+---
+
+# Product Requirements Document Framework
+
+## Template Structure
+
+Use this template for all PRDs:
+
+1. Problem Statement
+2. User Stories
+3. Requirements (Functional & Non-functional)
+4. Success Metrics
+5. Technical Considerations
+6. Timeline and Milestones
+
+## Examples
+
+See attached resources:
+- `prd-example-feature.md`
+- `prd-example-epic.md`
+
+![PRD Workflow](prd-workflow.png)
+```
+</CodeGroup>
+
+### Using skills
+
+Once created, attach skills to agents:
+
+1. **Open agent settings**
+2. **Go to Skills tab**
+3. **Browse and select skills** to attach
+4. **Skills are automatically injected** into agent context
+
+<Tip>
+  Skills are injected into the agent's context at runtime. This means agents always use the latest version of the skill.
+</Tip>
+
+### Importing skills
+
+Import skills from external sources:
+
+<Accordion title="From GitHub repository">
+  ```bash
+  Import URL: https://github.com/username/repo/tree/main/skill-directory
+  ```
+  
+  LobeHub will:
+  - Clone the repository
+  - Extract skill content and resources
+  - Create local skill package
+</Accordion>
+
+<Accordion title="From Markdown URL">
+  ```bash
+  Import URL: https://example.com/my-skill.md
+  ```
+  
+  Direct import from any public Markdown file.
+</Accordion>
+
+<Accordion title="From ZIP file">
+  Upload a ZIP file containing:
+  - `skill.md` (main content)
+  - `manifest.json` (metadata)
+  - Resource files (images, documents, etc.)
+</Accordion>
+
+## Tools
+
+### What are tools?
+
+Tools are functions that agents can call to perform actions. When you ask an agent to do something beyond conversation, it uses tools:
+
+- "Search for the latest news on AI" → **Web Search tool**
+- "Calculate 15% of $1,250" → **Calculator tool**
+- "Create an image of a sunset" → **Image Generation tool**
+- "Save this to my notes" → **File Management tool**
+
+### How tools work
+
+<Steps>
+  <Step title="Agent receives request">
+    User asks the agent to perform an action.
+  </Step>
+  <Step title="Tool selection">
+    The agent determines which tool(s) to use based on the request.
+  </Step>
+  <Step title="Function calling">
+    The agent calls the tool with appropriate parameters.
+  </Step>
+  <Step title="Tool execution">
+    The tool performs the action and returns results.
+  </Step>
+  <Step title="Response generation">
+    The agent incorporates tool results into its response.
+  </Step>
+</Steps>
+
+<Note>
+  Tool usage is automatic. You don't need to tell the agent which tool to use—it figures it out based on your request.
+</Note>
+
+### Built-in tools
+
+LobeHub includes several powerful built-in tools:
+
+<CardGroup cols={2}>
+  <Card title="Web Search" icon="magnifying-glass">
+    Search the internet for current information, news, and data.
+  </Card>
+  <Card title="Calculator" icon="calculator">
+    Perform mathematical calculations and conversions.
+  </Card>
+  <Card title="Image Generation" icon="image">
+    Create images using DALL-E, Midjourney, or Pollinations.
+  </Card>
+  <Card title="Code Interpreter" icon="code">
+    Execute code and perform data analysis.
+  </Card>
+  <Card title="File Management" icon="folder">
+    Read, write, and manage files.
+  </Card>
+  <Card title="Memory Management" icon="brain">
+    Store and retrieve information from personal memory.
+  </Card>
+  <Card title="Page Agent Tools" icon="file-pen">
+    Initialize and edit documents in the page editor.
+  </Card>
+  <Card title="Agent Builder Tools" icon="user-plus">
+    Create and configure new agents.
+  </Card>
+</CardGroup>
+
+### Plugin system
+
+Extend agent capabilities with plugins:
+
+<Accordion title="LobeHub Plugin Marketplace">
+  Browse over 40 community plugins:
+  
+  - **Shopping tools**: eBay, AliExpress integration
+  - **Video tools**: YouTube transcript extraction
+  - **Weather**: Current weather information
+  - **SEO Assistant**: Keyword research and optimization
+  - And many more...
+  
+  <Card title="Plugin Marketplace" icon="puzzle-piece" href="https://lobehub.com/discover/plugins">
+    Browse available plugins
+  </Card>
+</Accordion>
+
+<Accordion title="Custom plugins">
+  Create your own plugins using the LobeHub Plugin SDK:
+  
+  1. Define plugin manifest
+  2. Implement tool functions
+  3. Test locally
+  4. Deploy and install
+  
+  <Card title="Plugin Development" icon="code" href="/development/plugins">
+    Learn how to build plugins
+  </Card>
+</Accordion>
+
+### Tool configuration
+
+Configure which tools are available to each agent:
+
+<AccordionGroup>
+  <Accordion title="Enable/disable tools">
+    In agent settings, toggle tools on or off:
+    
+    - Enable only tools the agent needs
+    - Too many tools can slow responses
+    - Some tools have API costs
+  </Accordion>
+  <Accordion title="Tool parameters">
+    Configure tool behavior:
+    
+    - **Web Search**: Number of results, search region
+    - **Image Generation**: Model, size, quality
+    - **Memory**: Retention period, categories
+  </Accordion>
+  <Accordion title="Tool permissions">
+    Some tools require permissions:
+    
+    - File access
+    - API keys
+    - External services
+    
+    Review and approve before enabling.
+  </Accordion>
+</AccordionGroup>
+
+## Model Context Protocol (MCP)
+
+MCP is LobeHub's system for connecting agents to external tools and data sources.
+
+### What is MCP?
+
+The **Model Context Protocol** is an open standard that enables:
+
+- Seamless connections between AI agents and external tools
+- Secure, standardized communication
+- Dynamic context injection
+- Real-time data access
+
+<Card title="Learn more about MCP" icon="plug" href="/concepts/mcp">
+  Deep dive into Model Context Protocol
+</Card>
+
+### MCP plugins
+
+MCP plugins connect agents to:
+
+- **Databases**: PostgreSQL, MySQL, MongoDB
+- **APIs**: REST, GraphQL, custom endpoints
+- **File systems**: Local, cloud storage, version control
+- **Development tools**: IDEs, build systems, package managers
+- **Business tools**: CRM, project management, analytics
+
+### Installing MCP plugins
+
+<Steps>
+  <Step title="Browse MCP Marketplace">
+    Navigate to **Community** → **MCP** to browse available plugins.
+  </Step>
+  <Step title="Check requirements">
+    Review:
+    - System dependencies
+    - Required configuration
+    - Permissions needed
+  </Step>
+  <Step title="One-click install">
+    Click **Install** and LobeHub handles:
+    - Dependency checks
+    - Installation
+    - Configuration prompts
+  </Step>
+  <Step title="Configure and connect">
+    Provide required settings:
+    - API keys
+    - Connection strings
+    - Authentication tokens
+  </Step>
+</Steps>
+
+<Card title="MCP Marketplace" icon="store" href="https://lobehub.com/mcp">
+  Explore MCP plugins
+</Card>
+
+## Advanced features
+
+### Skill versioning
+
+Manage skill versions:
+
+- View version history
+- Roll back to previous versions
+- Compare changes between versions
+- Fork and modify community skills
+
+### Skill resources
+
+Attach supplementary materials to skills:
+
+<CodeGroup>
+```plaintext File Structure
+my-skill/
+├── skill.md              # Main content
+├── manifest.json         # Metadata
+├── examples/
+│   ├── example1.md
+│   └── example2.md
+├── images/
+│   ├── diagram.png
+│   └── workflow.svg
+└── templates/
+    └── template.md
+```
+
+```json manifest.json
+{
+  "name": "My Skill",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "description": "Skill description",
+  "resources": [
+    "examples/example1.md",
+    "images/diagram.png",
+    "templates/template.md"
+  ]
+}
+```
+</CodeGroup>
+
+Agents can reference these resources:
+
+- "Show me example 1"
+- "Use the template"
+- "Display the workflow diagram"
+
+### Tool chaining
+
+Agents can use multiple tools in sequence:
+
+<Steps>
+  <Step title="User request">
+    "Find recent research papers on quantum computing and summarize the key findings"
+  </Step>
+  <Step title="Web Search tool">
+    Searches for research papers
+  </Step>
+  <Step title="File Management tool">
+    Downloads PDF papers
+  </Step>
+  <Step title="Code Interpreter tool">
+    Extracts text and analyzes content
+  </Step>
+  <Step title="Response">
+    Agent synthesizes summary from processed data
+  </Step>
+</Steps>
+
+### Chain of Thought with tools
+
+Enable **Chain of Thought** visualization to see:
+
+- Which tools the agent selects
+- Tool parameters and inputs
+- Tool execution results
+- Agent reasoning process
+
+<Tip>
+  Chain of Thought is invaluable for debugging tool usage and understanding agent decision-making.
+</Tip>
+
+## Best practices
+
+### Skills
+
+<AccordionGroup>
+  <Accordion title="Keep skills focused">
+    Each skill should address one area of expertise:
+    
+    ❌ **Too broad**: "Complete Marketing Guide"
+    
+    ✅ **Focused**: "Email Marketing Subject Line Best Practices"
+  </Accordion>
+  <Accordion title="Use clear, structured content">
+    - Use headings and lists
+    - Include examples
+    - Provide step-by-step instructions
+    - Add visual aids when helpful
+  </Accordion>
+  <Accordion title="Update regularly">
+    - Review skills periodically
+    - Update with new knowledge
+    - Remove outdated information
+    - Version control for tracking changes
+  </Accordion>
+  <Accordion title="Share valuable skills">
+    - Publish to marketplace
+    - Help the community
+    - Get feedback for improvement
+  </Accordion>
+</AccordionGroup>
+
+### Tools
+
+<AccordionGroup>
+  <Accordion title="Enable only necessary tools">
+    More tools = slower responses and potential confusion.
+    
+    Enable tools the agent actually uses regularly.
+  </Accordion>
+  <Accordion title="Configure tool parameters">
+    Set sensible defaults:
+    - Search result limits
+    - Image quality settings
+    - Timeout values
+  </Accordion>
+  <Accordion title="Monitor tool usage">
+    Track:
+    - Which tools are used most
+    - Tool success/failure rates
+    - API costs and quotas
+  </Accordion>
+  <Accordion title="Test tools before production">
+    Verify:
+    - Tools work as expected
+    - Permissions are correct
+    - Error handling is appropriate
+  </Accordion>
+</AccordionGroup>
+
+## Skill and tool marketplace
+
+### Discovering content
+
+Browse community contributions:
+
+- **Skills**: Expert knowledge packages
+- **Plugins**: Tool integrations
+- **MCP Servers**: External service connectors
+
+### Sharing your creations
+
+Contribute to the ecosystem:
+
+<Steps>
+  <Step title="Create quality content">
+    Develop well-documented, tested skills or tools.
+  </Step>
+  <Step title="Submit to marketplace">
+    Use the submission process in LobeHub.
+  </Step>
+  <Step title="Automated i18n">
+    LobeHub automatically translates to multiple languages.
+  </Step>
+  <Step title="Community feedback">
+    Receive ratings, reviews, and improvement suggestions.
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="Submit Agents" icon="user-plus" href="https://lobehub.com/discover/assistants">
+    Share agent configurations
+  </Card>
+  <Card title="Submit Plugins" icon="puzzle-piece" href="https://lobehub.com/discover/plugins">
+    Contribute plugin integrations
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Skill not appearing in agent">
+    **Solutions**:
+    - Verify skill is attached in agent settings
+    - Check skill content is not empty
+    - Restart the agent session
+    - Review skill manifest for errors
+  </Accordion>
+  <Accordion title="Tool not being used">
+    **Solutions**:
+    - Confirm tool is enabled in agent settings
+    - Make request more explicit: "Use web search to find..."
+    - Check tool permissions are granted
+    - Verify API keys are configured
+  </Accordion>
+  <Accordion title="Tool errors">
+    **Solutions**:
+    - Review error message in Chain of Thought
+    - Check API quotas and rate limits
+    - Verify authentication credentials
+    - Test tool configuration
+  </Accordion>
+  <Accordion title="Skill resources not loading">
+    **Solutions**:
+    - Verify resources are included in skill package
+    - Check file paths in skill content
+    - Re-upload skill if imported from external source
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Agents" icon="robot" href="/concepts/agents">
+    Learn about agents and how they use skills and tools
+  </Card>
+  <Card title="MCP Integration" icon="plug" href="/concepts/mcp">
+    Connect to external services with MCP
+  </Card>
+  <Card title="Agent Builder" icon="hammer" href="/agents/agent-builder">
+    Create agents with custom skills and tools
+  </Card>
+  <Card title="Plugin Development" icon="code" href="/development/plugins">
+    Build your own plugins and tools
+  </Card>
+</CardGroup>

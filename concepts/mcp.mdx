@@ -1,0 +1,660 @@
+---
+title: "Model Context Protocol (MCP)"
+description: "Connect your agents to external tools and services with MCP"
+---
+
+## What is MCP?
+
+The **Model Context Protocol (MCP)** is an open standard that enables seamless, secure connections between AI agents and external tools, data sources, and services.
+
+Think of MCP as a universal adapter that lets your agents interact with:
+
+- Databases (PostgreSQL, MySQL, MongoDB)
+- APIs (REST, GraphQL, custom endpoints)
+- File systems (local, cloud storage, Git repositories)
+- Development tools (IDEs, build systems, package managers)
+- Business applications (CRM, project management, analytics)
+- And virtually any other external service
+
+<Note>
+  MCP breaks down the barriers between AI and the digital ecosystem, transforming agents from isolated chatbots into connected teammates that can actually do work.
+</Note>
+
+## Why MCP matters
+
+### Before MCP
+
+Traditional AI assistants are limited:
+
+- **Isolated**: Can only chat, can't interact with your tools
+- **Static**: No access to real-time data or external services
+- **Manual**: You must copy/paste data between systems
+- **Fragmented**: Each tool needs custom integration
+
+### With MCP
+
+<CardGroup cols={2}>
+  <Card title="Universal connectivity" icon="plug">
+    One protocol connects agents to thousands of services.
+  </Card>
+  <Card title="Real-time data" icon="bolt">
+    Agents access current information from live systems.
+  </Card>
+  <Card title="Action-oriented" icon="hand-pointer">
+    Agents can read, write, and modify data in external tools.
+  </Card>
+  <Card title="Secure & controlled" icon="shield-check">
+    Fine-grained permissions and authentication.
+  </Card>
+</CardGroup>
+
+## How MCP works
+
+### Architecture overview
+
+<Steps>
+  <Step title="MCP Server">
+    An MCP server is a program that exposes tools and resources:
+    - Runs as a separate process
+    - Implements the MCP protocol
+    - Provides tools (functions agents can call)
+    - Offers resources (data agents can access)
+  </Step>
+  <Step title="MCP Client (LobeHub)">
+    LobeHub acts as an MCP client:
+    - Discovers available MCP servers
+    - Manages connections
+    - Routes agent requests to appropriate servers
+    - Handles authentication and permissions
+  </Step>
+  <Step title="Agent interaction">
+    When an agent needs external capabilities:
+    - Agent determines which MCP tool to use
+    - LobeHub sends request to MCP server
+    - Server executes and returns results
+    - Agent incorporates results into response
+  </Step>
+</Steps>
+
+### Connection types
+
+MCP supports two connection methods:
+
+<Accordion title="STDIO (Standard Input/Output)">
+  **How it works**: MCP server runs as a local process, communicates via stdin/stdout
+  
+  **Use cases**:
+  - Local tools and scripts
+  - Desktop applications
+  - File system access
+  - Development tools
+  
+  **Example**:
+  ```json
+  {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/workspace"]
+  }
+  ```
+</Accordion>
+
+<Accordion title="HTTP/HTTPS">
+  **How it works**: MCP server runs as a web service, communicates over HTTP
+  
+  **Use cases**:
+  - Cloud services
+  - Remote APIs
+  - Multi-user tools
+  - Web applications
+  
+  **Example**:
+  ```json
+  {
+    "type": "http",
+    "url": "https://api.example.com/mcp",
+    "auth": {
+      "type": "bearer",
+      "token": "your-api-token"
+    }
+  }
+  ```
+</Accordion>
+
+### Authentication
+
+MCP supports multiple authentication methods:
+
+<AccordionGroup>
+  <Accordion title="None (public access)">
+    No authentication required—suitable for public data sources.
+  </Accordion>
+  <Accordion title="Bearer token">
+    Simple token-based authentication:
+    ```json
+    {
+      "auth": {
+        "type": "bearer",
+        "token": "your-api-token"
+      }
+    }
+    ```
+  </Accordion>
+  <Accordion title="OAuth 2.0">
+    Full OAuth flow for services like Google, GitHub, Microsoft:
+    ```json
+    {
+      "auth": {
+        "type": "oauth2",
+        "accessToken": "obtained-from-oauth-flow"
+      }
+    }
+    ```
+  </Accordion>
+  <Accordion title="Custom headers">
+    API key or custom authentication:
+    ```json
+    {
+      "headers": {
+        "X-API-Key": "your-api-key",
+        "X-Custom-Auth": "custom-value"
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## MCP Marketplace
+
+LobeHub features a curated marketplace of MCP plugins:
+
+### Browsing the marketplace
+
+<Steps>
+  <Step title="Navigate to MCP section">
+    Click **Community** → **MCP** in the sidebar.
+  </Step>
+  <Step title="Explore categories">
+    Browse by category:
+    - Databases & Storage
+    - Development Tools
+    - Business Applications
+    - Data & Analytics
+    - Communication
+    - And more...
+  </Step>
+  <Step title="View details">
+    Click any plugin to see:
+    - Description and capabilities
+    - System requirements
+    - Configuration needs
+    - User ratings and reviews
+  </Step>
+</Steps>
+
+<Card title="Browse MCP Marketplace" icon="store" href="https://lobehub.com/mcp">
+  Discover available MCP plugins
+</Card>
+
+### Popular MCP plugins
+
+<CardGroup cols={2}>
+  <Card title="File System" icon="folder">
+    Access local files and directories. Read, write, search, and manage files on your computer.
+  </Card>
+  <Card title="GitHub" icon="github">
+    Interact with repositories, issues, pull requests, and GitHub workflows.
+  </Card>
+  <Card title="PostgreSQL" icon="database">
+    Query and manage PostgreSQL databases. Execute SQL, browse tables, analyze data.
+  </Card>
+  <Card title="Slack" icon="slack">
+    Send messages, read channels, manage conversations in Slack workspaces.
+  </Card>
+  <Card title="Google Drive" icon="google-drive">
+    Access, search, and manage files in Google Drive.
+  </Card>
+  <Card title="Notion" icon="n">
+    Read and write Notion pages, databases, and blocks.
+  </Card>
+  <Card title="Jira" icon="jira">
+    Manage issues, projects, and workflows in Jira.
+  </Card>
+  <Card title="Figma" icon="figma">
+    Access design files, inspect components, extract assets from Figma.
+  </Card>
+</CardGroup>
+
+## Installing MCP plugins
+
+### One-click installation
+
+LobeHub makes MCP installation simple:
+
+<Steps>
+  <Step title="Find plugin in marketplace">
+    Browse or search for the plugin you need.
+  </Step>
+  <Step title="Click Install">
+    LobeHub automatically:
+    - Checks system dependencies
+    - Detects installation options
+    - Identifies configuration requirements
+  </Step>
+  <Step title="Install dependencies (if needed)">
+    If system dependencies are missing, LobeHub provides:
+    - Installation commands for your OS
+    - Manual installation instructions
+    - Alternative installation methods
+  </Step>
+  <Step title="Configure connection">
+    Provide required settings:
+    - API keys or tokens
+    - Connection URLs
+    - Authentication credentials
+    - Custom parameters
+  </Step>
+  <Step title="Test connection">
+    LobeHub verifies:
+    - Server is reachable
+    - Authentication works
+    - Tools are available
+  </Step>
+  <Step title="Enable for agents">
+    Choose which agents can use the MCP plugin.
+  </Step>
+</Steps>
+
+### Installation example: File System MCP
+
+<CodeGroup>
+```bash Check Installation
+# LobeHub checks for Node.js
+node --version
+# v18.0.0 or higher required
+```
+
+```json Configuration
+{
+  "identifier": "filesystem",
+  "connection": {
+    "type": "stdio",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-filesystem",
+      "/Users/you/Documents/workspace"
+    ]
+  },
+  "metadata": {
+    "name": "File System Access",
+    "description": "Access to workspace files"
+  }
+}
+```
+
+```plaintext Usage
+User: "List all Python files in my workspace"
+
+Agent: *Uses filesystem MCP server*
+        *Executes list_files tool with .py filter*
+        
+        "Found 23 Python files:
+        - main.py
+        - utils.py
+        - models/user.py
+        ..."
+```
+</CodeGroup>
+
+## Using MCP with agents
+
+### Automatic tool selection
+
+Agents automatically use MCP tools when relevant:
+
+<CodeGroup>
+```plaintext Database Query
+User: "How many users signed up last month?"
+
+Agent: *Detects need for database access*
+        *Uses PostgreSQL MCP to execute query*
+        
+        SELECT COUNT(*) FROM users 
+        WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
+        AND created_at < DATE_TRUNC('month', CURRENT_DATE)
+        
+        "247 users signed up last month."
+```
+
+```plaintext File Operations
+User: "Create a new Python file called utils.py with a function to validate emails"
+
+Agent: *Uses File System MCP*
+        *Creates file with content*
+        
+        "Created utils.py with email validation function."
+```
+
+```plaintext External API
+User: "Create a Jira ticket for this bug"
+
+Agent: *Uses Jira MCP*
+        *Creates issue with details*
+        
+        "Created ticket PROJ-123: Bug in login flow"
+```
+</CodeGroup>
+
+### MCP in agent workflows
+
+Combine multiple MCP tools in sequences:
+
+<Steps>
+  <Step title="User request">
+    "Analyze the GitHub issues from last week and create a summary document"
+  </Step>
+  <Step title="GitHub MCP">
+    Fetches issues created in the past 7 days
+  </Step>
+  <Step title="Agent processing">
+    Analyzes issues, categorizes, identifies patterns
+  </Step>
+  <Step title="File System MCP">
+    Creates summary document with findings
+  </Step>
+  <Step title="Notion MCP (optional)">
+    Publishes summary to team Notion page
+  </Step>
+</Steps>
+
+### Chain of Thought with MCP
+
+Enable **Chain of Thought** to see MCP tool usage:
+
+```plaintext
+💭 Thinking: User wants to query the database for user statistics
+
+🔧 Tool: postgres_query
+   Parameters:
+   - query: "SELECT COUNT(*) FROM users WHERE created_at >= '2026-02-01'"
+   - database: "production"
+
+✅ Result: 247 users
+
+💬 Response: "247 users signed up in February."
+```
+
+## Creating MCP servers
+
+### When to create custom MCP servers
+
+Build your own MCP server to:
+
+- Connect to proprietary internal tools
+- Integrate custom APIs or databases
+- Expose domain-specific functionality
+- Create reusable tools for your team
+
+### MCP server basics
+
+An MCP server provides:
+
+<Accordion title="Tools (functions)">
+  Callable functions agents can execute:
+  
+  ```typescript
+  {
+    name: "create_ticket",
+    description: "Create a new support ticket",
+    parameters: {
+      title: { type: "string", required: true },
+      description: { type: "string", required: true },
+      priority: { type: "string", enum: ["low", "medium", "high"] }
+    }
+  }
+  ```
+</Accordion>
+
+<Accordion title="Resources (data)">
+  Data sources agents can read:
+  
+  ```typescript
+  {
+    uri: "database://tickets/recent",
+    name: "Recent Tickets",
+    description: "Tickets from the last 7 days",
+    mimeType: "application/json"
+  }
+  ```
+</Accordion>
+
+<Accordion title="Prompts (templates)">
+  Pre-defined prompt templates:
+  
+  ```typescript
+  {
+    name: "analyze_ticket",
+    description: "Analyze a support ticket",
+    arguments: [{ name: "ticket_id", required: true }]
+  }
+  ```
+</Accordion>
+
+### Development guide
+
+<Card title="Build MCP Servers" icon="code" href="/development/mcp-servers">
+  Complete guide to creating custom MCP servers
+</Card>
+
+## Advanced features
+
+### Environment variables
+
+Use environment variables for sensitive configuration:
+
+<CodeGroup>
+```json Connection Config
+{
+  "type": "stdio",
+  "command": "python",
+  "args": ["mcp_server.py"],
+  "env": {
+    "API_KEY": "${MCP_API_KEY}",
+    "DATABASE_URL": "${MCP_DATABASE_URL}"
+  }
+}
+```
+
+```bash Environment Setup
+# In your .env file
+MCP_API_KEY=your-secret-key
+MCP_DATABASE_URL=postgresql://localhost/db
+```
+</CodeGroup>
+
+### Resource subscriptions
+
+Agents can subscribe to resource changes:
+
+```typescript
+// Agent subscribes to new tickets
+subscribe("database://tickets/new")
+
+// When new ticket is created:
+→ Agent is notified automatically
+→ Can process immediately
+```
+
+### Sampling and prompts
+
+MCP servers can provide:
+
+- **Sampling**: Request agent to process specific prompts
+- **Prompt templates**: Pre-configured prompts for common tasks
+
+## Security and permissions
+
+### Permission model
+
+<AccordionGroup>
+  <Accordion title="Connection-level permissions">
+    Control whether an MCP server can connect:
+    - Approved servers only
+    - Review before first connection
+    - Revoke access anytime
+  </Accordion>
+  <Accordion title="Tool-level permissions">
+    Control which tools agents can use:
+    - Enable/disable specific tools
+    - Read-only vs. read-write access
+    - Require approval for destructive operations
+  </Accordion>
+  <Accordion title="Resource-level permissions">
+    Control access to resources:
+    - Limit to specific directories/databases
+    - Restrict sensitive data
+    - Audit access logs
+  </Accordion>
+</AccordionGroup>
+
+### Best practices
+
+<CardGroup cols={2}>
+  <Card title="Principle of least privilege" icon="key">
+    Grant minimum permissions needed. Only enable tools agents actually use.
+  </Card>
+  <Card title="Use environment variables" icon="lock">
+    Never hardcode secrets. Store in environment variables or secure vaults.
+  </Card>
+  <Card title="Review before approving" icon="eye">
+    Carefully review MCP server capabilities before installation.
+  </Card>
+  <Card title="Monitor usage" icon="chart-line">
+    Track which tools are used and how often. Audit for unexpected activity.
+  </Card>
+</CardGroup>
+
+### Security checklist
+
+<Steps>
+  <Step title="Verify source">
+    Only install MCP plugins from trusted sources.
+  </Step>
+  <Step title="Review permissions">
+    Check what access the MCP server requests.
+  </Step>
+  <Step title="Test in isolation">
+    Test new MCP servers with non-production data first.
+  </Step>
+  <Step title="Use read-only mode">
+    Start with read-only access, upgrade only if needed.
+  </Step>
+  <Step title="Rotate credentials">
+    Regularly update API keys and tokens.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Connection failed">
+    **STDIO servers**:
+    - Verify command exists: `which npx` or `which python`
+    - Check file paths are absolute
+    - Ensure dependencies are installed
+    
+    **HTTP servers**:
+    - Verify URL is reachable
+    - Check authentication credentials
+    - Review CORS settings
+  </Accordion>
+  <Accordion title="Tools not appearing">
+    **Solutions**:
+    - Reconnect to MCP server
+    - Check server logs for errors
+    - Verify server implements MCP protocol correctly
+    - Review tool manifest
+  </Accordion>
+  <Accordion title="Authentication errors">
+    **Solutions**:
+    - Verify API key is correct
+    - Check token hasn't expired
+    - Review authentication type matches server requirements
+    - Test credentials manually
+  </Accordion>
+  <Accordion title="Permission denied">
+    **Solutions**:
+    - Check file/database permissions
+    - Verify agent has appropriate access level
+    - Review MCP server permission settings
+    - Ensure environment variables are set
+  </Accordion>
+</AccordionGroup>
+
+## Example workflows
+
+### Development workflow
+
+<Steps>
+  <Step title="GitHub MCP">
+    "Show me open pull requests"
+  </Step>
+  <Step title="File System MCP">
+    "Review the code in src/components/"
+  </Step>
+  <Step title="Agent analysis">
+    Analyzes code quality, suggests improvements
+  </Step>
+  <Step title="GitHub MCP">
+    "Add review comments to PR #123"
+  </Step>
+</Steps>
+
+### Business operations
+
+<Steps>
+  <Step title="PostgreSQL MCP">
+    "How many support tickets are unresolved?"
+  </Step>
+  <Step title="Slack MCP">
+    "Send summary to #support channel"
+  </Step>
+  <Step title="Notion MCP">
+    "Create a ticket analysis report"
+  </Step>
+</Steps>
+
+### Content management
+
+<Steps>
+  <Step title="Google Drive MCP">
+    "Find all blog post drafts from last month"
+  </Step>
+  <Step title="Agent processing">
+    Reviews drafts, suggests edits
+  </Step>
+  <Step title="File System MCP">
+    "Save edited versions locally"
+  </Step>
+  <Step title="WordPress MCP">
+    "Publish approved posts"
+  </Step>
+</Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="MCP Marketplace" icon="store" href="https://lobehub.com/mcp">
+    Browse and install MCP plugins
+  </Card>
+  <Card title="Skills and Tools" icon="wrench" href="/concepts/skills-and-tools">
+    Learn about other ways to extend agents
+  </Card>
+  <Card title="Build MCP Servers" icon="code" href="/development/mcp-servers">
+    Create custom MCP integrations
+  </Card>
+  <Card title="Agent Configuration" icon="gear" href="/agents/tools">
+    Configure tools and MCP for your agents
+  </Card>
+</CardGroup>

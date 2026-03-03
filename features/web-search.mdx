@@ -1,0 +1,414 @@
+---
+title: Web Search Integration
+description: Enable AI agents to search the internet for real-time information
+---
+
+LobeHub's web search integration allows AI agents to access current information from the internet, providing up-to-date answers beyond their training data cutoff.
+
+## Overview
+
+With web search enabled, AI agents can:
+
+- **Access real-time information** - Get current news, data, and facts
+- **Verify information** - Check latest developments and updates
+- **Cite sources** - Provide links to original information
+- **Research topics** - Gather information from multiple sources
+- **Stay current** - Answer questions about recent events
+
+## How It Works
+
+When you ask a question that requires current information:
+
+1. **Query generation** - AI formulates optimized search queries
+2. **Web search** - Searches are performed across the internet
+3. **Source gathering** - Relevant sources are retrieved and analyzed
+4. **Information synthesis** - AI reads and synthesizes findings
+5. **Cited response** - Answer includes source citations
+
+All of this happens automatically when the AI determines web search would be helpful.
+
+## Search Grounding Display
+
+When web search is used, you'll see a **search grounding** section showing:
+
+### Grounding Indicator
+
+A collapsible card appears above the AI's response:
+
+- **Source count** - Number of web sources consulted
+- **Favicon preview** - Icons from source websites
+- **Expandable details** - Click to see full search information
+
+### Search Details
+
+Expand the grounding section to view:
+
+**Search queries:**
+- See the exact queries used to find information
+- Multiple queries may be generated for comprehensive coverage
+- Queries are optimized for finding relevant results
+
+**Citations:**
+- Source titles and URLs
+- Website favicons for quick recognition
+- Click to visit original sources
+- Preview snippets showing relevant content
+
+## Enabling Web Search
+
+<Tabs>
+  <Tab title="Via Plugins">
+    **Search Engine Plugins**
+
+    Install search plugins from the plugin marketplace:
+
+    **Available options:**
+    - Web search plugins (various providers)
+    - News search plugins
+    - Academic search plugins
+    - Domain-specific search tools
+
+    **Setup:**
+    1. Go to Plugin Settings
+    2. Browse search plugins
+    3. Install your preferred search plugin
+    4. Configure API keys if required
+    5. Enable for specific agents
+  </Tab>
+
+  <Tab title="Via MCP Servers">
+    **Model Context Protocol**
+
+    Connect search capabilities via MCP:
+
+    **MCP search servers:**
+    - Brave Search MCP
+    - Google Search MCP
+    - DuckDuckGo MCP
+    - Custom search implementations
+
+    **Setup:**
+    1. Navigate to MCP settings
+    2. Add search MCP server
+    3. Configure server connection
+    4. Provide necessary credentials
+    5. Activate for agents
+
+    **Advantages:**
+    - More flexible integration
+    - Custom search implementations
+    - Advanced search features
+  </Tab>
+
+  <Tab title="Per-Agent Configuration">
+    **Agent-Specific Search**
+
+    Configure search for individual agents:
+
+    1. Open agent settings
+    2. Navigate to Tools/Plugins section
+    3. Enable web search capability
+    4. Choose search provider
+    5. Set search preferences
+
+    **Custom settings:**
+    - Auto-search vs. explicit requests
+    - Number of sources to check
+    - Preferred search engines
+    - Domain restrictions
+  </Tab>
+</Tabs>
+
+## Using Web Search
+
+### Automatic Search
+
+Web search activates automatically for questions like:
+
+```
+"What's the current price of Bitcoin?"
+"Who won the World Cup in 2024?"
+"What are the latest developments in AI?"
+"What's the weather forecast for New York?"
+```
+
+The AI recognizes these require current data and searches automatically.
+
+### Explicit Search Requests
+
+You can also explicitly request web search:
+
+```
+"Search the web for recent reviews of the iPhone 15"
+"Look up the latest research on climate change"
+"Find current mortgage rates in California"
+"Search for tutorials on Next.js 14"
+```
+
+### Search Refinement
+
+Refine searches with follow-up questions:
+
+```
+Initial: "What are the top programming languages in 2024?"
+Follow-up: "Search for job market trends for Python developers"
+Follow-up: "Find salary data for senior Python engineers"
+```
+
+Each search builds on the conversation context.
+
+## Use Cases
+
+<Tabs>
+  <Tab title="Research & News">
+    **Stay Informed**
+
+    Get current information on any topic:
+
+    **News & current events:**
+    - "What's happening with [company/topic] today?"
+    - "Latest news on [subject]"
+    - "Recent developments in [industry]"
+
+    **Market & finance:**
+    - Stock prices and trends
+    - Cryptocurrency values
+    - Economic indicators
+    - Company earnings reports
+
+    **Academic research:**
+    - Recent papers on [topic]
+    - Latest scientific discoveries
+    - Current consensus on [subject]
+    - Updated statistics and data
+
+    **Benefits:**
+    - Always current information
+    - Multiple source verification
+    - Direct source citations
+  </Tab>
+
+  <Tab title="Technical Information">
+    **Up-to-Date Tech Knowledge**
+
+    Access current technical information:
+
+    **Documentation:**
+    - Latest API changes
+    - Current framework versions
+    - Updated best practices
+    - Recent package releases
+
+    **Troubleshooting:**
+    - Recent solutions to errors
+    - Updated workarounds
+    - Community discussions
+    - Bug reports and fixes
+
+    **Learning:**
+    - Current tutorials
+    - Recent blog posts
+    - Updated courses
+    - Latest tool comparisons
+
+    **Example queries:**
+    ```
+    "What's new in React 19?"
+    "Search for solutions to [specific error]"
+    "Find the latest TypeScript best practices"
+    "What are the current deployment options for Next.js?"
+    ```
+  </Tab>
+
+  <Tab title="Shopping & Products">
+    **Product Research**
+
+    Find and compare products:
+
+    **Product information:**
+    - Current prices and availability
+    - Recent reviews and ratings
+    - Product comparisons
+    - Specification updates
+
+    **Shopping assistance:**
+    - Best deals and discounts
+    - Where to buy items
+    - Alternative products
+    - Price history and trends
+
+    **Example queries:**
+    ```
+    "Compare the latest MacBook models"
+    "Find reviews for noise-cancelling headphones under $200"
+    "What's the best smartphone camera in 2024?"
+    "Search for ergonomic office chairs with good reviews"
+    ```
+  </Tab>
+
+  <Tab title="Planning & Recommendations">
+    **Real-World Information**
+
+    Plan activities with current data:
+
+    **Travel planning:**
+    - Current travel restrictions
+    - Hotel and flight availability
+    - Recent destination reviews
+    - Local events and attractions
+
+    **Local information:**
+    - Business hours and locations
+    - Restaurant recommendations
+    - Event schedules
+    - Service availability
+
+    **Recommendations:**
+    - Current best options
+    - Recent user reviews
+    - Updated rankings and lists
+    - Trending choices
+
+    **Example queries:**
+    ```
+    "What are the best restaurants in Austin right now?"
+    "Find current museum exhibits in Paris"
+    "What movies are in theaters this weekend?"
+    "Search for upcoming tech conferences in 2024"
+    ```
+  </Tab>
+</Tabs>
+
+## Search Quality
+
+### Optimized Queries
+
+The AI automatically optimizes search queries:
+
+- **Reformulation** - Converts questions into effective search terms
+- **Multiple angles** - Generates several queries for comprehensive coverage
+- **Specificity** - Balances broad and specific search terms
+- **Recency** - Includes time-relevant terms when needed
+
+### Source Selection
+
+Not all search results are used:
+
+- **Relevance filtering** - Only pertinent sources analyzed
+- **Quality assessment** - Prioritizes authoritative sources
+- **Diversity** - Includes multiple perspectives
+- **Recency weighting** - Favors current information when appropriate
+
+### Information Synthesis
+
+The AI processes search results intelligently:
+
+- **Cross-referencing** - Verifies info across sources
+- **Conflict resolution** - Handles contradicting information
+- **Context integration** - Combines search results with existing knowledge
+- **Citation tracking** - Links claims to specific sources
+
+## Understanding Citations
+
+When web search is used, responses include citations:
+
+### Citation Format
+
+Citations typically show:
+- **Source title** - Page or article name
+- **Domain** - Website hosting the information
+- **URL** - Direct link to source
+- **Relevance snippet** - Preview of relevant content
+
+### Verifying Sources
+
+<AccordionGroup>
+  <Accordion title="Check source credibility">
+    Click through to sources to verify credibility. Look for authoritative, reputable domains.
+  </Accordion>
+
+  <Accordion title="Cross-reference information">
+    If critical, verify claims across multiple cited sources for consistency.
+  </Accordion>
+
+  <Accordion title="Check publication dates">
+    For time-sensitive information, verify when sources were published or updated.
+  </Accordion>
+
+  <Accordion title="Evaluate source type">
+    Consider whether sources are news, blogs, academic, official docs, etc.
+  </Accordion>
+</AccordionGroup>
+
+## Privacy & Search
+
+<Warning>
+  Web searches may be logged by search providers. Avoid searching for sensitive or private information.
+</Warning>
+
+**Privacy considerations:**
+
+- Search queries sent to search providers
+- Source websites may track visits
+- Search history may be retained
+- Use private/incognito mode if concerned
+
+**Best practices:**
+
+- Don't search for personal information
+- Avoid searches containing sensitive data
+- Be mindful of search content
+- Review privacy policies of search providers
+
+## Tips for Better Search Results
+
+<AccordionGroup>
+  <Accordion title="Be specific in questions">
+    Instead of "Tell me about AI", ask "What are the latest LLM releases in November 2024?"
+  </Accordion>
+
+  <Accordion title="Include time context">
+    Add "recent", "latest", "current", or specific dates to get timely results.
+  </Accordion>
+
+  <Accordion title="Ask for comparisons">
+    "Compare X and Y" or "What are the pros and cons of Z" often triggers useful searches.
+  </Accordion>
+
+  <Accordion title="Request multiple sources">
+    Ask the AI to consult several sources for important or controversial topics.
+  </Accordion>
+
+  <Accordion title="Review citations">
+    Always expand the search grounding section to see what sources were used.
+  </Accordion>
+
+  <Accordion title="Follow up for depth">
+    Use follow-up questions to dive deeper into specific aspects of search results.
+  </Accordion>
+</AccordionGroup>
+
+## Limitations
+
+**Search has limitations:**
+
+- **Paywall content** - Cannot access subscription-only content
+- **Real-time data** - Slight delay in indexing very recent information  
+- **Regional restrictions** - Some content may be geo-restricted
+- **Search engine limits** - Constrained by search provider capabilities
+- **Processing time** - Web search adds latency to responses
+
+**When search might not help:**
+
+- Purely creative tasks
+- Personal advice without factual basis
+- Theoretical or hypothetical scenarios
+- Topics requiring opinion rather than facts
+
+<Info>
+  Web search features require either plugin installation or MCP server configuration. Some search providers may require API keys or subscriptions.
+</Info>
+
+<Note>
+  The number of search results and sources analyzed may vary based on your configuration and the complexity of the query.
+</Note>

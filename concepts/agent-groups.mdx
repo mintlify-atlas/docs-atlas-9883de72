@@ -1,0 +1,472 @@
+---
+title: "Agent Groups"
+description: "Multi-agent collaboration for complex workflows in LobeHub"
+---
+
+## What are agent groups?
+
+**Agent Groups** enable you to work with multiple agents simultaneously, like assembling a team of specialists for complex projects. Instead of switching between individual agents, you coordinate a team that collaborates in real-time to deliver better results.
+
+Think of it as the difference between consulting experts one-by-one versus having them all in the same room, building on each other's insights.
+
+<Note>
+  Agent Groups are a key feature that transforms LobeHub from a chat interface into a collaborative workspace where humans and AI teams work together.
+</Note>
+
+## Why use agent groups?
+
+### Single agent limitations
+
+A single agent, even with an advanced model, has constraints:
+
+- Limited to one perspective or expertise area
+- Cannot delegate subtasks to specialists
+- May struggle with multi-faceted problems
+- Lacks the diversity of thought that comes from collaboration
+
+### Agent group advantages
+
+<CardGroup cols={2}>
+  <Card title="Parallel expertise" icon="users-gear">
+    Different agents contribute their specialized knowledge simultaneously.
+  </Card>
+  <Card title="Iterative refinement" icon="arrows-spin">
+    Agents review and improve each other's work through multiple rounds.
+  </Card>
+  <Card title="Task decomposition" icon="list-check">
+    Complex projects are automatically broken down and distributed.
+  </Card>
+  <Card title="Quality control" icon="badge-check">
+    Multiple perspectives lead to more thorough, balanced outputs.
+  </Card>
+</CardGroup>
+
+## How agent groups work
+
+### Group orchestration
+
+LobeHub uses intelligent orchestration to coordinate agent collaboration:
+
+<Steps>
+  <Step title="Task analysis">
+    The system analyzes your request to determine which agents should participate.
+  </Step>
+  <Step title="Agent selection">
+    Relevant agents are activated based on their roles and capabilities.
+  </Step>
+  <Step title="Collaborative execution">
+    Agents work together, building on each other's contributions.
+  </Step>
+  <Step title="Synthesis">
+    The final output combines insights from all participating agents.
+  </Step>
+</Steps>
+
+### Collaboration modes
+
+Agent groups can operate in different modes:
+
+<Accordion title="Sequential mode">
+  Agents work one after another in a defined order:
+  
+  1. **Research agent** gathers information
+  2. **Analysis agent** processes the data
+  3. **Writing agent** creates the final document
+  
+  Best for: Linear workflows with clear dependencies
+</Accordion>
+
+<Accordion title="Parallel mode">
+  Multiple agents work simultaneously on different aspects:
+  
+  - **Marketing agent** writes copy
+  - **Design agent** creates visuals  
+  - **Data agent** compiles metrics
+  
+  Best for: Independent tasks that can be done concurrently
+</Accordion>
+
+<Accordion title="Iterative mode">
+  Agents review and refine work through multiple rounds:
+  
+  - Round 1: **Writer** creates draft
+  - Round 2: **Editor** provides feedback
+  - Round 3: **Writer** revises based on feedback
+  - Round 4: **Editor** final review
+  
+  Best for: High-quality output requiring refinement
+</Accordion>
+
+<Accordion title="Debate mode">
+  Agents present different perspectives and argue positions:
+  
+  - **Advocate** makes the case for option A
+  - **Critic** challenges assumptions
+  - **Analyst** evaluates evidence
+  - **Mediator** synthesizes conclusions
+  
+  Best for: Complex decisions requiring thorough analysis
+</Accordion>
+
+## Creating agent groups
+
+### Using the Group Agent Builder
+
+The easiest way to create an agent group is with the built-in **Group Agent Builder**:
+
+<Steps>
+  <Step title="Describe your workflow">
+    Tell the builder what you're trying to accomplish:
+    
+    "I need a team to help me write and publish blog posts. The workflow should include research, writing, editing, SEO optimization, and social media promotion."
+  </Step>
+  <Step title="Auto-configuration">
+    The builder automatically:
+    - Creates specialized agents for each role
+    - Defines collaboration patterns
+    - Sets up the orchestration flow
+  </Step>
+  <Step title="Test and refine">
+    Run a test workflow and adjust:
+    - Add or remove agents
+    - Modify agent roles
+    - Change collaboration sequence
+  </Step>
+</Steps>
+
+### Manual group creation
+
+For more control, create groups manually:
+
+1. **Create individual agents** with specific roles
+2. **Configure group settings**:
+   - Define the agent roster
+   - Set collaboration mode
+   - Specify workflow sequence
+3. **Set group context**:
+   - Shared knowledge base
+   - Common memory
+   - Project guidelines
+4. **Test the workflow** with example tasks
+
+<Tip>
+  Start with 2-3 agents and add more as needed. Too many agents can slow down the workflow without adding value.
+</Tip>
+
+## Agent group components
+
+### Group configuration
+
+<AccordionGroup>
+  <Accordion title="Agent roster">
+    The list of agents included in the group, each with defined roles and responsibilities.
+  </Accordion>
+  <Accordion title="Orchestration strategy">
+    How agents collaborate:
+    - **Sequential**: One after another
+    - **Parallel**: Work simultaneously
+    - **Dynamic**: System determines based on task
+  </Accordion>
+  <Accordion title="Shared context">
+    Information available to all agents:
+    - Project description
+    - Shared knowledge base
+    - Common guidelines and standards
+  </Accordion>
+  <Accordion title="Output format">
+    How the group presents results:
+    - Consolidated document
+    - Individual agent contributions
+    - Structured data format
+  </Accordion>
+</AccordionGroup>
+
+### Communication patterns
+
+Agents in a group can communicate in several ways:
+
+- **Direct collaboration**: Agents build on each other's outputs
+- **Review cycles**: Agents critique and refine work
+- **Information sharing**: Agents pass data and context
+- **Consensus building**: Agents discuss and agree on approaches
+
+## Example agent groups
+
+### Content creation team
+
+<CodeGroup>
+```yaml Group Configuration
+name: "Blog Post Production"
+mode: sequential
+agents:
+  - role: Researcher
+    model: GPT-4
+    task: Gather information and sources
+  
+  - role: Writer  
+    model: Claude Sonnet
+    task: Write engaging draft
+  
+  - role: Editor
+    model: Claude Sonnet
+    task: Review and refine
+  
+  - role: SEO Specialist
+    model: GPT-3.5
+    task: Optimize for search
+```
+
+```yaml Example Workflow
+1. User: "Write a blog post about AI agents"
+
+2. Researcher:
+   - Searches for current trends
+   - Gathers statistics and examples
+   - Provides source material
+
+3. Writer:
+   - Receives research
+   - Writes 1500-word draft
+   - Includes examples and structure
+
+4. Editor:
+   - Reviews draft
+   - Improves clarity and flow
+   - Checks tone and consistency
+
+5. SEO Specialist:
+   - Adds keywords
+   - Optimizes headings
+   - Suggests meta description
+
+6. Output: Polished, SEO-optimized blog post
+```
+</CodeGroup>
+
+### Product development team
+
+<CardGroup cols={1}>
+  <Card title="Requirements Agent" icon="clipboard-list">
+    Gathers user needs and writes product requirements documents.
+  </Card>
+  <Card title="Technical Architect" icon="diagram-project">
+    Designs system architecture and technical specifications.
+  </Card>
+  <Card title="Developer" icon="code">
+    Writes implementation code and technical documentation.
+  </Card>
+  <Card title="QA Tester" icon="vial">
+    Reviews code, suggests test cases, identifies edge cases.
+  </Card>
+  <Card title="Documentation Writer" icon="book">
+    Creates user documentation and guides.
+  </Card>
+</CardGroup>
+
+### Research analysis team
+
+<Steps>
+  <Step title="Data Collector">
+    Gathers data from multiple sources, web searches, and documents.
+  </Step>
+  <Step title="Statistician">
+    Analyzes data, calculates metrics, identifies patterns.
+  </Step>
+  <Step title="Domain Expert">
+    Interprets findings in context of industry knowledge.
+  </Step>
+  <Step title="Report Writer">
+    Synthesizes insights into executive summary.
+  </Step>
+</Steps>
+
+## Advanced features
+
+### Pages with agent groups
+
+**Pages** combine document editing with multi-agent collaboration:
+
+- Write and refine content with multiple agents in one place
+- Agents share context of the current page
+- Real-time collaborative editing
+- Version history and comparison
+
+<Card title="Learn about Pages" icon="file-lines" href="/workspace/pages">
+  Discover how to create documents with agent teams
+</Card>
+
+### Scheduled workflows
+
+Set agent groups to run automatically:
+
+<CodeGroup>
+```yaml Daily Report
+schedule: "Every day at 9 AM"
+group: "Analytics Team"
+task: "Generate daily metrics report"
+output: "Send to Slack channel"
+```
+
+```yaml Weekly Review  
+schedule: "Every Monday at 10 AM"
+group: "Project Management Team"
+task: "Review last week's progress"
+output: "Create summary document"
+```
+</CodeGroup>
+
+<Card title="Scheduling Guide" icon="calendar-clock" href="/workspace/scheduling">
+  Learn how to automate agent group workflows
+</Card>
+
+### Project organization
+
+Organize agent groups by project:
+
+- **Project-specific groups**: Dedicated teams for ongoing projects
+- **Shared context**: All agents access project knowledge base
+- **Tracking and history**: View all group activities for the project
+- **Team collaboration**: Human team members work alongside agent groups
+
+<Card title="Project Management" icon="folder-tree" href="/workspace/projects">
+  Structure your work with projects
+</Card>
+
+## Best practices
+
+### Designing effective groups
+
+<AccordionGroup>
+  <Accordion title="Define clear roles">
+    Each agent should have a specific, well-defined responsibility:
+    
+    ❌ **Vague**: "Agent 1: Help with content"
+    
+    ✅ **Clear**: "Research Agent: Find 3-5 credible sources on the topic and summarize key points. Include statistics and expert quotes."
+  </Accordion>
+  <Accordion title="Avoid redundancy">
+    Don't create multiple agents with overlapping roles. Each agent should bring unique value.
+  </Accordion>
+  <Accordion title="Balance specialization and coordination">
+    Agents should be specialized enough to be experts, but general enough to understand context and collaborate effectively.
+  </Accordion>
+  <Accordion title="Set clear handoff points">
+    In sequential workflows, define exactly what each agent passes to the next:
+    
+    "Research Agent outputs: Markdown document with sources, key points, and data. Writer Agent uses this as input to create draft."
+  </Accordion>
+</AccordionGroup>
+
+### Optimizing performance
+
+<CardGroup cols={2}>
+  <Card title="Right-size the team" icon="users">
+    More agents ≠ better results. Use the minimum number needed for quality output.
+  </Card>
+  <Card title="Choose appropriate models" icon="brain">
+    Use advanced models only where needed. Simple tasks can use faster, cheaper models.
+  </Card>
+  <Card title="Parallel when possible" icon="arrows-split-up-and-left">
+    Run independent tasks in parallel to save time.
+  </Card>
+  <Card title="Cache shared context" icon="database">
+    Store common knowledge once and share across agents.
+  </Card>
+</CardGroup>
+
+### Quality control
+
+<Steps>
+  <Step title="Include review stages">
+    Always have at least one agent review the work of others.
+  </Step>
+  <Step title="Test with examples">
+    Run the group with test cases before production use.
+  </Step>
+  <Step title="Monitor outputs">
+    Regularly review group outputs to ensure quality.
+  </Step>
+  <Step title="Iterate and improve">
+    Refine agent roles and workflows based on results.
+  </Step>
+</Steps>
+
+## Common use cases
+
+### Content production
+
+- Blog post creation (research → write → edit → SEO)
+- Social media campaigns (content → design → scheduling)
+- Documentation (technical → editing → publishing)
+- Video scripts (research → writing → review)
+
+### Business analysis
+
+- Market research (data gathering → analysis → reporting)
+- Competitive analysis (research → comparison → strategy)
+- Financial modeling (data → calculations → interpretation)
+- Risk assessment (identification → analysis → mitigation)
+
+### Software development
+
+- Feature development (requirements → design → code → testing)
+- Code review (analysis → suggestions → documentation)
+- Bug fixing (reproduction → diagnosis → solution → testing)
+- API design (requirements → specification → documentation)
+
+### Creative projects
+
+- Story development (plot → characters → dialogue → editing)
+- Marketing campaigns (strategy → creative → copy → review)
+- Product naming (brainstorm → evaluate → test → refine)
+- Design critique (analysis → feedback → recommendations)
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Group takes too long">
+    **Solutions**:
+    - Reduce number of agents
+    - Use faster models for simple tasks
+    - Switch to parallel mode when possible
+    - Simplify agent system roles
+  </Accordion>
+  <Accordion title="Inconsistent outputs">
+    **Solutions**:
+    - Add clearer role definitions
+    - Include shared guidelines in group context
+    - Add a coordinator/reviewer agent
+    - Lower temperature settings
+  </Accordion>
+  <Accordion title="Agents not collaborating">
+    **Solutions**:
+    - Explicitly define what each agent receives/produces
+    - Add transition instructions between agents
+    - Use sequential mode instead of parallel
+    - Review orchestration strategy
+  </Accordion>
+  <Accordion title="Poor quality results">
+    **Solutions**:
+    - Upgrade to better models for critical agents
+    - Add specialist agents for key areas
+    - Include review/quality control agents
+    - Provide more detailed system roles
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Pages" icon="file-lines" href="/workspace/pages">
+    Create documents with multi-agent collaboration
+  </Card>
+  <Card title="Projects" icon="folder" href="/workspace/projects">
+    Organize agent groups by project
+  </Card>
+  <Card title="Scheduling" icon="calendar" href="/workspace/scheduling">
+    Automate agent group workflows
+  </Card>
+  <Card title="Workspace Collaboration" icon="users" href="/workspace/collaboration">
+    Work with teams and agent groups together
+  </Card>
+</CardGroup>

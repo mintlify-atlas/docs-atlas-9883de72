@@ -1,0 +1,353 @@
+---
+title: File Storage Configuration
+description: Configure S3-compatible object storage for file uploads in your self-hosted LobeHub instance
+---
+
+# File Storage Configuration
+
+LobeHub uses S3-compatible object storage to store user-uploaded files, images, documents, and avatars. This enables scalable, cost-effective file management for your deployment.
+
+## Supported Storage Providers
+
+LobeHub supports any S3-compatible object storage service:
+
+- **AWS S3** - Amazon's object storage
+- **Cloudflare R2** - Zero egress fees, S3-compatible
+- **MinIO** - Self-hosted S3-compatible storage
+- **Backblaze B2** - Affordable S3-compatible storage
+- **DigitalOcean Spaces** - S3-compatible object storage
+- **Wasabi** - Hot cloud storage
+- **Alibaba Cloud OSS** - With S3-compatible API
+- Any other S3-compatible service
+
+## Configuration
+
+### Required Environment Variables
+
+<ParamField path="S3_ACCESS_KEY_ID" type="string" required>
+  S3 access key ID for authentication
+</ParamField>
+
+<ParamField path="S3_SECRET_ACCESS_KEY" type="string" required>
+  S3 secret access key for authentication
+</ParamField>
+
+<ParamField path="S3_ENDPOINT" type="string" required>
+  S3 endpoint URL
+  
+  Examples:
+  - AWS S3: `https://s3.us-west-2.amazonaws.com`
+  - Cloudflare R2: `https://account-id.r2.cloudflarestorage.com`
+  - MinIO: `https://minio.yourdomain.com`
+</ParamField>
+
+<ParamField path="S3_BUCKET" type="string" required>
+  S3 bucket name for storing files
+  
+  <Note>Create the bucket before deploying LobeHub</Note>
+</ParamField>
+
+### Optional Environment Variables
+
+<ParamField path="S3_REGION" type="string">
+  S3 bucket region (e.g., `us-west-2`, `auto`)
+  
+  Required for AWS S3. May be optional for other providers.
+</ParamField>
+
+<ParamField path="S3_PUBLIC_DOMAIN" type="string">
+  Public domain for accessing files
+  
+  Examples:
+  - AWS S3: `https://bucket-name.s3.us-west-2.amazonaws.com`
+  - Cloudflare R2 with custom domain: `https://cdn.yourdomain.com`
+  - MinIO: `https://minio.yourdomain.com`
+  
+  If not set, LobeHub will generate pre-signed URLs for file access.
+</ParamField>
+
+<ParamField path="S3_ENABLE_PATH_STYLE" type="boolean" default="false">
+  Enable path-style S3 URLs instead of virtual-hosted-style
+  
+  Set to `1` for:
+  - MinIO
+  - Some self-hosted S3 implementations
+  - When using IP addresses instead of domains
+  
+  Path-style: `https://endpoint/bucket/key`  
+  Virtual-hosted: `https://bucket.endpoint/key`
+</ParamField>
+
+<ParamField path="S3_SET_ACL" type="boolean" default="true">
+  Set ACL (Access Control List) when uploading files
+  
+  Set to `0` if:
+  - Your bucket has a public read policy
+  - Your S3 provider doesn't support ACLs
+  - Using Cloudflare R2 (doesn't support ACLs)
+  
+  When disabled, files are accessed via pre-signed URLs.
+</ParamField>
+
+<ParamField path="S3_PREVIEW_URL_EXPIRE_IN" type="number" default="7200">
+  Pre-signed URL expiration time in seconds (default: 2 hours)
+  
+  Only used when `S3_SET_ACL=0` or bucket is not public.
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_S3_FILE_PATH" type="string" default="files">
+  Path prefix for storing files within the bucket
+  
+  Files will be stored at: `{S3_BUCKET}/{NEXT_PUBLIC_S3_FILE_PATH}/...`
+</ParamField>
+
+## Provider-Specific Setup
+
+### AWS S3
+
+1. Create S3 bucket in [AWS Console](https://s3.console.aws.amazon.com)
+2. Create IAM user with S3 permissions:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::your-bucket-name/*",
+        "arn:aws:s3:::your-bucket-name"
+      ]
+    }
+  ]
+}
+```
+
+3. Configure environment variables:
+
+```bash
+S3_ACCESS_KEY_ID=AKIAXXXXXXXXXXXXXXXX
+S3_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+S3_ENDPOINT=https://s3.us-west-2.amazonaws.com
+S3_BUCKET=your-bucket-name
+S3_REGION=us-west-2
+S3_PUBLIC_DOMAIN=https://your-bucket-name.s3.us-west-2.amazonaws.com
+```
+
+### Cloudflare R2
+
+1. Create R2 bucket in [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. Create API token with R2 permissions
+3. Configure environment variables:
+
+```bash
+S3_ACCESS_KEY_ID=your_r2_access_key_id
+S3_SECRET_ACCESS_KEY=your_r2_secret_access_key
+S3_ENDPOINT=https://account-id.r2.cloudflarestorage.com
+S3_BUCKET=your-bucket-name
+S3_REGION=auto
+S3_SET_ACL=0
+# Optional: Use custom domain for R2
+S3_PUBLIC_DOMAIN=https://cdn.yourdomain.com
+```
+
+<Note>
+  Cloudflare R2 does not support ACLs. Set `S3_SET_ACL=0` and use pre-signed URLs or custom domains.
+</Note>
+
+### MinIO (Self-Hosted)
+
+1. Install MinIO server:
+
+```bash
+docker run -d \
+  --name minio \
+  -p 9000:9000 \
+  -p 9001:9001 \
+  -e MINIO_ROOT_USER=minioadmin \
+  -e MINIO_ROOT_PASSWORD=minioadmin \
+  -v /data/minio:/data \
+  minio/minio server /data --console-address ":9001"
+```
+
+2. Create bucket via MinIO Console (http://localhost:9001)
+3. Create access key and secret
+4. Configure environment variables:
+
+```bash
+S3_ACCESS_KEY_ID=your_minio_access_key
+S3_SECRET_ACCESS_KEY=your_minio_secret_key
+S3_ENDPOINT=https://minio.yourdomain.com
+S3_BUCKET=lobehub
+S3_REGION=us-east-1
+S3_ENABLE_PATH_STYLE=1
+S3_PUBLIC_DOMAIN=https://minio.yourdomain.com
+```
+
+### Backblaze B2
+
+1. Create B2 bucket in [Backblaze Console](https://www.backblaze.com/b2/cloud-storage.html)
+2. Create application key with read/write permissions
+3. Configure environment variables:
+
+```bash
+S3_ACCESS_KEY_ID=your_b2_key_id
+S3_SECRET_ACCESS_KEY=your_b2_application_key
+S3_ENDPOINT=https://s3.us-west-002.backblazeb2.com
+S3_BUCKET=your-bucket-name
+S3_REGION=us-west-002
+```
+
+## File Storage Architecture
+
+### File Deduplication
+
+LobeHub implements content-based file deduplication using SHA256 hashes:
+
+1. File uploaded by user → Calculate SHA256 hash
+2. Check if hash exists in `global_files` table
+3. If exists, create reference in `files` table (no upload)
+4. If new, upload to S3 and create entries in both tables
+
+This reduces storage costs and upload times for duplicate files.
+
+### Storage Tables
+
+**`files`** - User file references
+- Links user to files
+- Stores file metadata (name, size, type)
+- References `global_files.hash_id` for actual file location
+
+**`global_files`** - Deduplicated file storage
+- Stores unique files by SHA256 hash
+- Tracks S3 URL/key for each unique file
+- Reference counted (deleted when no `files` reference it)
+
+**`documents`** - Parsed document content
+- Stores extracted text from files
+- Links to `files` via `file_id`
+- Used for RAG and knowledge bases
+
+### File Types Supported
+
+LobeHub handles various file types:
+
+- **Images**: PNG, JPG, WEBP, GIF (vision models)
+- **Documents**: PDF, TXT, MD, DOCX (RAG/knowledge bases)
+- **Archives**: ZIP (document collections)
+- **Code**: Various programming languages
+- **Other**: Any file type for storage
+
+## File Access Patterns
+
+### Public Bucket (ACL Enabled)
+
+When `S3_SET_ACL=1` and bucket allows public read:
+
+- Files uploaded with public-read ACL
+- Direct access via `S3_PUBLIC_DOMAIN/key`
+- No expiration on URLs
+- Faster access (no signature verification)
+
+### Private Bucket (Pre-signed URLs)
+
+When `S3_SET_ACL=0` or bucket is private:
+
+- Files uploaded without public ACL
+- Access via pre-signed URLs
+- URLs expire after `S3_PREVIEW_URL_EXPIRE_IN` seconds
+- More secure (temporary access)
+
+## Storage Limits
+
+<ParamField path="DISABLE_REMOVE_GLOBAL_FILE" type="boolean" default="false">
+  Set to `1` to disable automatic deletion of unreferenced files from S3
+  
+  Useful for:
+  - Debugging storage issues
+  - Preserving files for recovery
+  - Custom file lifecycle policies
+</ParamField>
+
+There are no hard-coded file size limits in LobeHub. Configure limits in your S3 provider or reverse proxy.
+
+## Troubleshooting
+
+### Upload Failures
+
+**Error: "Access Denied"**
+
+- Check S3 credentials are correct
+- Verify IAM user/API token has write permissions
+- Ensure bucket name is correct
+
+**Error: "Bucket not found"**
+
+- Verify bucket exists
+- Check bucket name spelling
+- Ensure region is correct (for AWS S3)
+
+**Error: "Invalid endpoint"**
+
+- Verify `S3_ENDPOINT` URL format
+- Ensure endpoint is accessible from server
+- Check for HTTPS/HTTP mismatch
+
+### Access Issues
+
+**Files not accessible after upload**
+
+When `S3_SET_ACL=1`:
+- Verify bucket has public read policy or ACLs enabled
+- Check `S3_PUBLIC_DOMAIN` is correct
+
+When `S3_SET_ACL=0`:
+- Pre-signed URLs should work automatically
+- Check `S3_PREVIEW_URL_EXPIRE_IN` is not too short
+
+**CORS errors in browser**
+
+Configure CORS policy on your S3 bucket:
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://yourdomain.com"],
+    "AllowedMethods": ["GET", "PUT", "POST", "DELETE"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"]
+  }
+]
+```
+
+### Performance Issues
+
+- Use CDN (CloudFront, Cloudflare) in front of S3
+- Enable browser caching with appropriate headers
+- Consider geographic distribution of buckets
+- Use S3 transfer acceleration (AWS S3)
+
+## Security Best Practices
+
+<Warning>
+  **Security Recommendations:**
+  - Never expose S3 credentials in client-side code
+  - Use IAM roles (AWS) or scoped tokens (other providers)
+  - Enable versioning on buckets for recovery
+  - Implement bucket lifecycle policies for cleanup
+  - Use HTTPS for all S3 endpoints
+  - Regularly rotate access keys
+  - Monitor S3 access logs for suspicious activity
+</Warning>
+
+## Next Steps
+
+- [Database Configuration](/self-hosting/database) - Set up PostgreSQL for file metadata
+- [Authentication](/self-hosting/authentication) - Configure user access control
+- [Observability](/self-hosting/observability) - Monitor storage usage and performance

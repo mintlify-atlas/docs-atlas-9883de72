@@ -1,0 +1,552 @@
+---
+title: Technology Stack
+description: Complete overview of the technologies, frameworks, and tools powering LobeHub.
+---
+
+# Technology Stack
+
+LobeHub is built with modern, production-ready technologies. Here's a comprehensive overview of our stack.
+
+## Core Framework
+
+### Next.js 16
+
+**Why Next.js:**
+- Server-side rendering (SSR) for auth pages
+- API routes for backend logic
+- Automatic code splitting
+- Built-in optimization
+- Vercel deployment integration
+
+**Key Features Used:**
+- App Router for static pages
+- Route handlers for WebAPI
+- Server actions for mutations
+- Middleware for auth
+
+```bash
+# Start dev server
+bun run dev
+```
+
+### React 19
+
+**Modern React features:**
+- Server Components (RSC)
+- Concurrent rendering
+- Automatic batching
+- Transitions
+
+## Routing
+
+### React Router DOM v7
+
+**Main SPA routing:**
+
+```typescript
+import { createBrowserRouter } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
+// Navigate programmatically
+const navigate = useNavigate();
+navigate('/chat');
+
+// Link component
+<Link to="/settings">Settings</Link>
+```
+
+Config: `src/spa/router/desktopRouter.config.tsx`
+
+## UI & Styling
+
+### @lobehub/ui
+
+**Custom component library** built on Ant Design:
+
+```tsx
+import { ActionIcon, Flexbox, Center } from '@lobehub/ui';
+
+<Flexbox gap={16} align="center">
+  <ActionIcon icon={Save} onClick={handleSave} />
+</Flexbox>
+```
+
+Components: ActionIcon, Avatar, Button, Form, Modal, Tabs, Markdown, CodeEditor
+
+### Ant Design (antd) 6
+
+**Base component library:**
+
+```tsx
+import { Button, Input, Select, Table } from 'antd';
+```
+
+### antd-style
+
+**CSS-in-JS** solution with theme support:
+
+```tsx
+import { createStyles } from 'antd-style';
+
+const useStyles = createStyles(({ css, token }) => ({
+  container: css`
+    background: ${token.colorBgContainer};
+    padding: ${token.padding}px;
+  `,
+}));
+
+const { styles } = useStyles();
+```
+
+## State Management
+
+### Zustand 5
+
+**Lightweight state management** with slice pattern:
+
+```typescript
+import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
+
+interface ChatStore {
+  messages: Message[];
+  addMessage: (msg: Message) => void;
+}
+
+export const useChatStore = create<ChatStore>()()
+  devtools(
+    persist(
+      (set) => ({
+        messages: [],
+        addMessage: (msg) => set((state) => ({
+          messages: [...state.messages, msg]
+        })),
+      }),
+      { name: 'chat-storage' }
+    )
+  );
+```
+
+Stores location: `src/store/`
+
+### Selectors
+
+```typescript
+// In store slice
+export const chatSelectors = {
+  currentMessages: (s: ChatStore) => s.messages.filter(m => m.sessionId === s.activeSession),
+};
+
+// Usage
+const messages = useChatStore(chatSelectors.currentMessages);
+```
+
+## Data Fetching
+
+### tRPC 11
+
+**End-to-end type-safe APIs:**
+
+```typescript
+// Server: src/server/routers/agent.ts
+export const agentRouter = router({
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      return db.query.agents.findFirst({
+        where: eq(agents.id, input.id)
+      });
+    }),
+});
+
+// Client
+import { trpc } from '@/libs/trpc';
+
+const { data, isLoading } = trpc.agent.getById.useQuery({ id: 'agent_123' });
+```
+
+### SWR 2
+
+**Client-side data fetching:**
+
+```typescript
+import useSWR from 'swr';
+
+const { data, error, mutate } = useSWR('/api/user', fetcher, {
+  revalidateOnFocus: true,
+  dedupingInterval: 2000,
+});
+```
+
+## Database
+
+### Drizzle ORM 0.45
+
+**Type-safe SQL ORM:**
+
+```typescript
+// Define schema
+export const agents = pgTable('agents', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  userId: text('user_id').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Query
+const result = await db
+  .select()
+  .from(agents)
+  .where(eq(agents.userId, userId))
+  .orderBy(desc(agents.createdAt));
+```
+
+Schemas: `packages/database/src/schemas/`
+
+### PostgreSQL
+
+**Primary database:**
+
+```bash
+# Migrations
+pnpm db:migrate
+
+# Generate migration
+pnpm db:generate
+
+# Studio (GUI)
+pnpm db:studio
+```
+
+### Redis
+
+**Caching and sessions:**
+
+```typescript
+import { Redis } from 'ioredis';
+
+const redis = new Redis(process.env.REDIS_URL);
+await redis.set('key', 'value', 'EX', 3600);
+```
+
+## Authentication
+
+### Better Auth 1.4
+
+**Modern auth framework:**
+
+```typescript
+// src/auth.ts
+import { betterAuth } from 'better-auth';
+
+export const auth = betterAuth({
+  database: drizzleAdapter(db),
+  emailAndPassword: { enabled: true },
+  socialProviders: {
+    github: { clientId, clientSecret },
+    google: { clientId, clientSecret },
+  },
+});
+```
+
+## Internationalization
+
+### react-i18next
+
+**Multi-language support:**
+
+```typescript
+import { useTranslation } from 'react-i18next';
+
+const { t } = useTranslation('common');
+
+<h1>{t('welcome.title')}</h1>
+```
+
+Default language files: `src/locales/default/`
+
+Translations: `locales/`
+
+```bash
+# Generate translations
+pnpm i18n
+```
+
+## Testing
+
+### Vitest 3
+
+**Unit testing:**
+
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+
+describe('formatDate', () => {
+  it('should format date correctly', () => {
+    const result = formatDate(new Date('2024-01-01'));
+    expect(result).toBe('January 1, 2024');
+  });
+});
+```
+
+```bash
+# Run specific test
+bunx vitest run --silent='passed-only' 'src/utils/date.test.ts'
+```
+
+### Playwright + Cucumber
+
+**E2E testing:**
+
+```bash
+pnpm e2e
+```
+
+Tests: `e2e/`
+
+## AI & LLM
+
+### Model Runtime
+
+Package: `@lobechat/model-runtime`
+
+**Supported Providers:**
+- OpenAI
+- Anthropic (Claude)
+- Google (Gemini)
+- AWS Bedrock
+- Azure OpenAI
+- Ollama
+- Together AI
+- Groq
+- And 20+ more
+
+```typescript
+import { createOpenAI } from '@lobechat/model-runtime';
+
+const openai = createOpenAI({ apiKey });
+for await (const chunk of openai.chat(params)) {
+  console.log(chunk);
+}
+```
+
+### Agent Runtime
+
+Package: `@lobechat/agent-runtime`
+
+**Features:**
+- Tool calling
+- Multi-step reasoning
+- Context management
+- Usage tracking
+
+## Build Tools
+
+### Vite 7
+
+**SPA bundler:**
+
+```bash
+# Dev server
+bun run dev:spa
+
+# Build
+bun run build:spa
+```
+
+Config: `vite.config.ts`
+
+### TypeScript 5.9
+
+**Type checking:**
+
+```bash
+bun run type-check
+```
+
+Config: `tsconfig.json`
+
+### ESBuild
+
+Used by Vite for fast bundling
+
+## Package Management
+
+### pnpm 10
+
+**Monorepo package manager:**
+
+```bash
+pnpm install          # Install deps
+pnpm -r exec <cmd>    # Run in all packages
+pnpm --filter <pkg>   # Run in specific package
+```
+
+### Bun
+
+**Fast script runner:**
+
+```bash
+bun run dev           # Start dev server
+bun run build         # Build for production
+bun run test          # Run tests
+```
+
+## Code Quality
+
+### ESLint 10
+
+**Linting:**
+
+```bash
+pnpm lint:ts
+```
+
+Config: From `@lobehub/lint`
+
+### Prettier 3
+
+**Code formatting:**
+
+```bash
+pnpm prettier
+```
+
+### Stylelint 16
+
+**CSS linting:**
+
+```bash
+pnpm lint:style
+```
+
+### Commitlint
+
+**Commit message validation:**
+
+Uses gitmoji + semantic release
+
+## Desktop (Electron)
+
+### Electron
+
+**Desktop app framework:**
+
+Location: `apps/desktop/`
+
+```bash
+cd apps/desktop
+pnpm run dev
+```
+
+IPC: `packages/electron-client-ipc/`, `packages/electron-server-ipc/`
+
+## Development Tools
+
+### Husky
+
+**Git hooks:**
+- Pre-commit: lint-staged
+- Commit-msg: commitlint
+
+### lint-staged
+
+**Run linters on staged files**
+
+### Semantic Release
+
+**Automated versioning:**
+
+Triggers on:
+- `✨ feat:` - Minor version
+- `🐛 fix:` - Patch version
+
+## Utilities
+
+### es-toolkit
+
+**Modern Lodash alternative:**
+
+```typescript
+import { debounce, chunk, uniq } from 'es-toolkit';
+```
+
+### dayjs
+
+**Date manipulation:**
+
+```typescript
+import dayjs from 'dayjs';
+
+const formatted = dayjs().format('YYYY-MM-DD');
+```
+
+### nanoid
+
+**ID generation:**
+
+```typescript
+import { nanoid } from 'nanoid';
+
+const id = nanoid(); // => "V1StGXR8_Z5jdHi6B-myT"
+```
+
+## Deployment
+
+### Vercel
+
+**Recommended hosting:**
+
+```bash
+pnpm build:vercel
+```
+
+### Docker
+
+**Containerization:**
+
+```bash
+# Build image
+pnpm run self-hosting:docker
+
+# Run
+docker compose up -d
+```
+
+Dockerfile: Root directory
+
+## Observability
+
+### OpenTelemetry
+
+**Distributed tracing:**
+
+Package: `@lobechat/observability-otel`
+
+### Analytics
+
+- Vercel Analytics
+- PostHog (product analytics)
+
+## Documentation
+
+You're reading it! Built with:
+- Mintlify
+- MDX
+
+## Version Requirements
+
+| Tool | Version |
+|------|----------|
+| Node.js | 18+ |
+| pnpm | 10.20.0+ |
+| Bun | Latest |
+| PostgreSQL | 14+ |
+| Redis | 6+ |
+
+## Next Steps
+
+- [Local Setup](/development/setup)
+- [Architecture Guide](/development/architecture)
+- [Building Plugins](/development/plugins)
+- [Code Style](/development/code-style)

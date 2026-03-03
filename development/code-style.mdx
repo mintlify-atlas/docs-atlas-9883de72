@@ -1,0 +1,626 @@
+---
+title: Code Style Guidelines
+description: Code standards, linting rules, and best practices for LobeHub development.
+---
+
+# Code Style Guidelines
+
+Consistent code style makes LobeHub maintainable and collaborative. This guide covers our standards and tools.
+
+## Overview
+
+We use [@lobehub/lint](https://github.com/lobehub/lobe-lint) which includes:
+
+- **ESLint** - JavaScript/TypeScript linting
+- **Prettier** - Code formatting
+- **Stylelint** - CSS/styled-components linting
+- **Commitlint** - Commit message validation
+- **Remarklint** - Markdown linting
+
+## Running Linters
+
+### All Linters
+
+```bash
+pnpm lint
+```
+
+This runs:
+- TypeScript linting
+- Style linting
+- Type checking
+- Circular dependency detection
+
+### Individual Linters
+
+```bash
+pnpm lint:ts          # ESLint (JavaScript/TypeScript)
+pnpm lint:style       # Stylelint (CSS-in-JS)
+pnpm lint:md          # Remarklint (Markdown)
+pnpm type-check       # TypeScript type checking
+pnpm lint:circular    # Circular dependencies
+pnpm lint:unused      # Dead code detection (knip)
+```
+
+### Auto-fix
+
+```bash
+pnpm lint:ts --fix
+pnpm lint:style --fix
+pnpm prettier         # Format all files
+```
+
+## TypeScript
+
+### General Rules
+
+**Prefer interfaces over types** for object shapes:
+
+```typescript
+// ✅ Good
+interface User {
+  id: string;
+  name: string;
+}
+
+// ❌ Avoid (for object shapes)
+type User = {
+  id: string;
+  name: string;
+};
+```
+
+Types are fine for:
+- Union types: `type Status = 'active' | 'inactive'`
+- Utility types: `type ReadonlyUser = Readonly<User>`
+- Complex transformations
+
+**Use explicit types for public APIs:**
+
+```typescript
+// ✅ Good - Clear return type
+export function getUser(id: string): Promise<User> {
+  return db.query.users.findFirst({ where: eq(users.id, id) });
+}
+
+// ❌ Avoid - Unclear return type
+export function getUser(id: string) {
+  return db.query.users.findFirst({ where: eq(users.id, id) });
+}
+```
+
+**Avoid `any`, use `unknown`:**
+
+```typescript
+// ✅ Good
+function processData(data: unknown) {
+  if (typeof data === 'string') {
+    return data.toUpperCase();
+  }
+}
+
+// ❌ Bad
+function processData(data: any) {
+  return data.toUpperCase(); // No type safety
+}
+```
+
+### Imports
+
+**Use path aliases:**
+
+```typescript
+// ✅ Good
+import { Button } from '@/components/Button';
+import { useUser } from '@/hooks/useUser';
+import { formatDate } from '@/utils/date';
+
+// ❌ Bad
+import { Button } from '../../../components/Button';
+```
+
+**Group imports:**
+
+```typescript
+// 1. External packages
+import { useState, useEffect } from 'react';
+import { Button } from 'antd';
+
+// 2. Internal packages (@lobechat/*)
+import { AgentRuntime } from '@lobechat/agent-runtime';
+
+// 3. Project imports
+import { useUserStore } from '@/store/user';
+import { formatDate } from '@/utils/date';
+
+// 4. Types
+import type { User } from '@/types/user';
+```
+
+### Naming Conventions
+
+```typescript
+// Components: PascalCase
+export function UserProfile() {}
+export const ChatInput = () => {};
+
+// Hooks: camelCase with 'use' prefix
+export function useUser() {}
+export function useAgentStore() {}
+
+// Utils/helpers: camelCase
+export function formatDate() {}
+export function calculateTotal() {}
+
+// Constants: SCREAMING_SNAKE_CASE
+export const MAX_FILE_SIZE = 10_000_000;
+export const API_BASE_URL = 'https://api.example.com';
+
+// Types/Interfaces: PascalCase
+export interface UserProfile {}
+export type MessageStatus = 'sent' | 'delivered';
+
+// Enums: PascalCase for enum, SCREAMING_SNAKE_CASE for values
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+}
+```
+
+## React & JSX
+
+### Component Structure
+
+```tsx
+import { useState } from 'react';
+import { Button } from '@lobehub/ui';
+import { useStyles } from './styles';
+import type { MyComponentProps } from './types';
+
+// Props interface
+interface MyComponentProps {
+  title: string;
+  onClick?: () => void;
+  children?: React.ReactNode;
+}
+
+// Component
+export function MyComponent({ title, onClick, children }: MyComponentProps) {
+  const { styles } = useStyles();
+  const [count, setCount] = useState(0);
+
+  const handleClick = () => {
+    setCount((prev) => prev + 1);
+    onClick?.();
+  };
+
+  return (
+    <div className={styles.container}>
+      <h1>{title}</h1>
+      <Button onClick={handleClick}>Count: {count}</Button>
+      {children}
+    </div>
+  );
+}
+```
+
+### Hooks
+
+**Custom hooks pattern:**
+
+```typescript
+// hooks/useUser.ts
+import { useEffect } from 'react';
+import { useUserStore } from '@/store/user';
+
+export function useUser(userId: string) {
+  const user = useUserStore((s) => s.users[userId]);
+  const fetchUser = useUserStore((s) => s.fetchUser);
+
+  useEffect(() => {
+    if (!user) {
+      fetchUser(userId);
+    }
+  }, [userId, user, fetchUser]);
+
+  return user;
+}
+```
+
+### Event Handlers
+
+```typescript
+// ✅ Good - Descriptive names
+const handleSubmit = () => {};
+const handleInputChange = () => {};
+const handleModalClose = () => {};
+
+// ❌ Bad - Generic names
+const onClick = () => {};
+const onChange = () => {};
+```
+
+## Styling
+
+### antd-style
+
+**Primary styling method:**
+
+```typescript
+import { createStyles } from 'antd-style';
+
+const useStyles = createStyles(({ css, token }) => ({
+  container: css`
+    background: ${token.colorBgContainer};
+    padding: ${token.padding}px;
+    border-radius: ${token.borderRadius}px;
+  `,
+  title: css`
+    font-size: ${token.fontSizeLG}px;
+    color: ${token.colorText};
+  `,
+}));
+
+export function MyComponent() {
+  const { styles } = useStyles();
+  return <div className={styles.container}>...</div>;
+}
+```
+
+### Layout Components
+
+**Use @lobehub/ui layout components:**
+
+```tsx
+import { Flexbox, Center } from '@lobehub/ui';
+
+// ✅ Good
+<Flexbox gap={16} align="center" justify="space-between">
+  <div>Left</div>
+  <div>Right</div>
+</Flexbox>
+
+<Center>
+  <div>Centered content</div>
+</Center>
+
+// ❌ Avoid manual flexbox
+<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>...</div>
+```
+
+## State Management (Zustand)
+
+### Store Structure
+
+```typescript
+// store/user/index.ts
+import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
+import type { User } from '@/types/user';
+
+interface UserStore {
+  // State
+  users: Record<string, User>;
+  currentUserId: string | null;
+  
+  // Actions
+  setCurrentUser: (userId: string) => void;
+  addUser: (user: User) => void;
+  removeUser: (userId: string) => void;
+}
+
+export const useUserStore = create<UserStore>()()
+  devtools(
+    persist(
+      (set) => ({
+        // Initial state
+        users: {},
+        currentUserId: null,
+        
+        // Actions
+        setCurrentUser: (userId) => set({ currentUserId: userId }),
+        addUser: (user) => set((state) => ({
+          users: { ...state.users, [user.id]: user },
+        })),
+        removeUser: (userId) => set((state) => {
+          const { [userId]: _, ...rest } = state.users;
+          return { users: rest };
+        }),
+      }),
+      { name: 'user-storage' }
+    )
+  );
+
+// Selectors
+export const userSelectors = {
+  currentUser: (s: UserStore) => 
+    s.currentUserId ? s.users[s.currentUserId] : null,
+};
+```
+
+**Usage:**
+
+```typescript
+// ✅ Good - Use selectors
+const currentUser = useUserStore(userSelectors.currentUser);
+
+// ❌ Bad - Direct state access
+const currentUserId = useUserStore((s) => s.currentUserId);
+const currentUser = useUserStore((s) => s.users[currentUserId]);
+```
+
+## Database (Drizzle)
+
+### Schema Definition
+
+```typescript
+import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { timestamps } from './_helpers';
+
+export const users = pgTable('users', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').unique().notNull(),
+  ...timestamps,
+});
+```
+
+### Query Style
+
+**Use select() builder API, not relational API:**
+
+```typescript
+// ✅ Good
+const users = await db
+  .select()
+  .from(users)
+  .where(eq(users.active, true))
+  .orderBy(desc(users.createdAt));
+
+// ❌ Bad - Don't use relational API
+const users = await db.query.users.findMany({
+  where: eq(users.active, true),
+});
+```
+
+See [Architecture Guide](/development/architecture#database) for details.
+
+## File Organization
+
+### Feature Modules
+
+```plaintext
+src/features/ChatInput/
+├── index.tsx              # Main component export
+├── components/           # Sub-components
+│   ├── Toolbar.tsx
+│   └── EmojiPicker.tsx
+├── hooks/                # Feature-specific hooks
+│   └── useInputHandlers.ts
+├── styles.ts             # Styles (antd-style)
+├── types.ts              # Type definitions
+└── utils.ts              # Helper functions
+```
+
+### File Naming
+
+```plaintext
+# Components: PascalCase
+UserProfile.tsx
+ChatInput.tsx
+
+# Hooks: camelCase
+useUser.ts
+useAgentStore.ts
+
+# Utils: camelCase
+formatDate.ts
+validateInput.ts
+
+# Types: camelCase
+user.ts
+message.ts
+
+# Tests: Same as file + .test
+UserProfile.test.tsx
+formatDate.test.ts
+```
+
+## Comments
+
+### When to Comment
+
+```typescript
+// ✅ Good - Explain WHY, not WHAT
+// Use debounce to prevent excessive API calls during typing
+const debouncedSearch = debounce(search, 300);
+
+// Workaround for Safari bug with flexbox and min-height
+const containerStyle = { minHeight: 0 };
+
+// ❌ Bad - Obvious comments
+// Set the user name
+setUserName(name);
+```
+
+### JSDoc for Public APIs
+
+```typescript
+/**
+ * Formats a date into a human-readable string.
+ * 
+ * @param date - Date to format
+ * @param format - Format string (default: 'MMM DD, YYYY')
+ * @returns Formatted date string
+ * 
+ * @example
+ * formatDate(new Date()) // => "Mar 03, 2026"
+ */
+export function formatDate(date: Date, format = 'MMM DD, YYYY'): string {
+  // ...
+}
+```
+
+## Error Handling
+
+```typescript
+// ✅ Good - Specific error handling
+try {
+  const user = await fetchUser(userId);
+  return user;
+} catch (error) {
+  if (error instanceof NotFoundError) {
+    logger.warn('User not found', { userId });
+    return null;
+  }
+  logger.error('Failed to fetch user', { userId, error });
+  throw error;
+}
+
+// ❌ Bad - Silent failures
+try {
+  const user = await fetchUser(userId);
+  return user;
+} catch {
+  return null; // What went wrong?
+}
+```
+
+## Performance
+
+### Memoization
+
+```typescript
+import { useMemo, useCallback } from 'react';
+
+// Expensive calculations
+const sortedItems = useMemo(
+  () => items.sort((a, b) => a.priority - b.priority),
+  [items]
+);
+
+// Callbacks passed to child components
+const handleClick = useCallback(
+  (id: string) => {
+    updateItem(id);
+  },
+  [updateItem]
+);
+```
+
+### Lazy Loading
+
+```typescript
+import { lazy, Suspense } from 'react';
+
+const HeavyComponent = lazy(() => import('./HeavyComponent'));
+
+function App() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <HeavyComponent />
+    </Suspense>
+  );
+}
+```
+
+## Testing
+
+See [Testing Guide](/development/testing) for complete details.
+
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+
+describe('formatDate', () => {
+  it('should format date correctly', () => {
+    const date = new Date('2024-03-15');
+    expect(formatDate(date)).toBe('Mar 15, 2024');
+  });
+});
+```
+
+## Pre-commit Checks
+
+Automated via Husky:
+
+1. **lint-staged** - Lint only changed files
+2. **commitlint** - Validate commit message
+
+Manually run:
+
+```bash
+pnpm lint           # All linters
+pnpm type-check     # Type check
+```
+
+## Editor Setup
+
+### VS Code
+
+Recommended extensions (`.vscode/extensions.json`):
+
+- ESLint
+- Prettier
+- Stylelint
+- TypeScript and JavaScript Language Features
+
+### Settings
+
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.fixAll.stylelint": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"
+}
+```
+
+## Common Mistakes
+
+### Console Logs
+
+```typescript
+// ❌ Never commit console.log
+console.log('Debug:', data);
+
+// ✅ Use proper logging
+import { logger } from '@/utils/logger';
+logger.debug('Processing data', { data });
+```
+
+### Circular Dependencies
+
+```bash
+# Check for circular deps
+pnpm lint:circular
+```
+
+Avoid:
+```typescript
+// a.ts imports b.ts
+// b.ts imports a.ts
+// ❌ Circular dependency!
+```
+
+### Unused Exports
+
+```bash
+# Find dead code
+pnpm lint:unused
+```
+
+## Resources
+
+- [@lobehub/lint](https://github.com/lobehub/lobe-lint)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [React Best Practices](https://react.dev/learn)
+- [Contributing Guide](/development/contributing)
+
+## Next Steps
+
+- [Local Setup](/development/setup)
+- [Architecture](/development/architecture)
+- [Testing](/development/testing)
+- [Contributing](/development/contributing)

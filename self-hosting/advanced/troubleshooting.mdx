@@ -1,0 +1,750 @@
+---
+title: Troubleshooting Self-Hosted LobeHub
+description: Common issues and solutions for self-hosted LobeHub deployments, including connection errors, authentication problems, and performance issues.
+tags:
+  - Troubleshooting
+  - Common Issues
+  - Error Resolution
+  - Debug
+---
+
+# Troubleshooting
+
+This guide covers common issues encountered when self-hosting LobeHub and their solutions. Issues are organized by category for quick reference.
+
+## Connection and API Issues
+
+<Accordion title="AI returns empty messages or no response">
+  **Symptoms:**
+  - Chat sends but receives blank responses
+  - Loading indicator appears but no content
+  - Network request completes but message is empty
+  
+  **Common causes and solutions:**
+  
+  ### Missing `/v1` suffix in proxy URL
+  
+  Some proxy services require `/v1` in the URL, others don't:
+  
+  ```bash
+  # Try with /v1
+  OPENAI_PROXY_URL="https://api.your-proxy.com/v1"
+  
+  # Or without /v1
+  OPENAI_PROXY_URL="https://api.your-proxy.com"
+  ```
+  
+  **How to determine which to use:**
+  
+  - If proxy forwards to `api.openai.com/v1` → don't add `/v1`
+  - If proxy forwards to `api.openai.com` → add `/v1`
+  - Check your proxy provider's documentation
+  - Test both configurations
+  
+  ### Invalid API key
+  
+  ```bash
+  # Verify API key works
+  curl https://api.openai.com/v1/models \
+    -H "Authorization: Bearer $OPENAI_API_KEY"
+  
+  # Should return list of available models
+  ```
+  
+  ### Model not available
+  
+  ```bash
+  # Check if model exists in your account
+  curl https://api.openai.com/v1/models/gpt-4 \
+    -H "Authorization: Bearer $OPENAI_API_KEY"
+  ```
+  
+  **Related discussions:**
+  - [Why is the return value blank after Docker installation?](https://github.com/lobehub/lobe-chat/discussions/623)
+  - [Reasons for errors when using third-party interfaces](https://github.com/lobehub/lobe-chat/discussions/734)
+  - [No response after filling in proxy server](https://github.com/lobehub/lobe-chat/discussions/1065)
+</Accordion>
+
+<Accordion title="UNABLE_TO_VERIFY_LEAF_SIGNATURE certificate error">
+  **Error message:**
+  
+  ```bash
+  [TypeError: fetch failed] {
+    cause: [Error: unable to verify the first certificate] {
+      code: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE'
+    }
+  }
+  ```
+  
+  Or:
+  
+  ```json
+  {
+    "endpoint": "https://api.openai.com/v1",
+    "error": {
+      "cause": {
+        "code": "UNABLE_TO_VERIFY_LEAF_SIGNATURE"
+      }
+    }
+  }
+  ```
+  
+  **Cause:**
+  
+  This occurs when using a proxy with self-signed certificates or man-in-the-middle certificates that Node.js doesn't trust.
+  
+  **Solution:**
+  
+  Disable TLS verification (use only in trusted private deployments):
+  
+  ```bash
+  # Docker run
+  docker run -d \
+    -e NODE_TLS_REJECT_UNAUTHORIZED=0 \
+    -e OPENAI_API_KEY=sk-xxx \
+    lobehub/lobe-chat
+  
+  # Docker Compose
+  environment:
+    - NODE_TLS_REJECT_UNAUTHORIZED=0
+  
+  # Dockerfile
+  ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+  ```
+  
+  <Warning>
+    `NODE_TLS_REJECT_UNAUTHORIZED=0` disables certificate validation and reduces security. Only use in controlled, trusted environments. For production, properly configure SSL certificates instead.
+  </Warning>
+  
+  **Secure alternatives:**
+  
+  1. Install the proxy's CA certificate in the container
+  2. Use certificates from trusted certificate authorities
+  3. Configure proper certificate chain in your proxy
+  4. Use a different proxy without MITM certificates
+</Accordion>
+
+<Accordion title="Connection timeout or network errors">
+  **Symptoms:**
+  - "Failed to fetch" errors
+  - Request timeout
+  - ERR_CONNECTION_REFUSED
+  
+  **Debugging steps:**
+  
+  ### Check network connectivity
+  
+  ```bash
+  # From inside container
+  docker exec lobe-chat curl https://api.openai.com/v1/models
+  
+  # Test with your proxy
+  docker exec lobe-chat curl https://your-proxy.com/v1/models
+  ```
+  
+  ### Verify firewall rules
+  
+  ```bash
+  # Check if port 3210 is accessible
+  curl http://localhost:3210
+  
+  # From another machine
+  curl http://your-server-ip:3210
+  ```
+  
+  ### Check Docker network
+  
+  ```bash
+  # Inspect container network
+  docker inspect lobe-chat | grep -A 20 NetworkSettings
+  
+  # Test DNS resolution
+  docker exec lobe-chat nslookup api.openai.com
+  ```
+  
+  ### Configure proxy settings
+  
+  If behind a corporate proxy:
+  
+  ```bash
+  docker run -d \
+    -e HTTP_PROXY=http://proxy.company.com:8080 \
+    -e HTTPS_PROXY=http://proxy.company.com:8080 \
+    -e NO_PROXY=localhost,127.0.0.1 \
+    lobehub/lobe-chat
+  ```
+</Accordion>
+
+## Database Issues
+
+<Accordion title="Database connection failed">
+  **Error messages:**
+  - "Could not connect to database"
+  - "ECONNREFUSED"
+  - "Connection terminated unexpectedly"
+  
+  **Verification steps:**
+  
+  ### Check DATABASE_URL format
+  
+  ```bash
+  # Correct format
+  DATABASE_URL="postgresql://username:password@host:port/database"
+  
+  # Examples
+  DATABASE_URL="postgresql://postgres:mypassword@localhost:5432/lobechat"
+  DATABASE_URL="postgresql://user:pass@postgres-host.example.com:5432/lobechat?sslmode=require"
+  ```
+  
+  ### Test database connectivity
+  
+  ```bash
+  # From host machine
+  psql "postgresql://postgres:password@localhost:5432/lobechat"
+  
+  # Or using docker
+  docker exec postgres psql -U postgres -d lobechat -c "SELECT version();"
+  ```
+  
+  ### Verify PostgreSQL is running
+  
+  ```bash
+  # Check container status
+  docker ps | grep postgres
+  
+  # Check PostgreSQL logs
+  docker logs postgres
+  ```
+  
+  ### Check network connectivity between containers
+  
+  ```bash
+  # If using docker-compose, containers should be on same network
+  docker network ls
+  docker network inspect your-network-name
+  
+  # Test connection from lobe-chat container
+  docker exec lobe-chat nc -zv postgres 5432
+  ```
+</Accordion>
+
+<Accordion title="Database migration errors">
+  **Symptoms:**
+  - "Migration failed" on startup
+  - Tables don't exist errors
+  - Schema version mismatch
+  
+  **Solutions:**
+  
+  ### Check LobeHub logs
+  
+  ```bash
+  docker logs lobe-chat | grep -i "migration\|database\|schema"
+  ```
+  
+  ### Manually run migrations (if needed)
+  
+  ```bash
+  # Enter container
+  docker exec -it lobe-chat sh
+  
+  # Run migrations (exact command depends on LobeHub version)
+  npm run migration:run
+  ```
+  
+  ### Reset database (development only)
+  
+  <Warning>
+    This will delete all data. Only use in development/testing.
+  </Warning>
+  
+  ```bash
+  # Drop and recreate database
+  docker exec postgres psql -U postgres -c "DROP DATABASE lobechat;"
+  docker exec postgres psql -U postgres -c "CREATE DATABASE lobechat;"
+  
+  # Restart LobeHub to run migrations
+  docker restart lobe-chat
+  ```
+  
+  ### Verify PostgreSQL version
+  
+  ```bash
+  # Check version
+  docker exec postgres psql -U postgres -c "SELECT version();"
+  
+  # LobeHub requires PostgreSQL 12 or higher
+  ```
+</Accordion>
+
+## Authentication Issues
+
+<Accordion title="Unable to sign in / authentication loop">
+  **Symptoms:**
+  - Redirected back to login after signing in
+  - "Authentication failed" errors
+  - Infinite redirect loop
+  
+  **Common causes:**
+  
+  ### Missing or incorrect NEXTAUTH_URL
+  
+  ```bash
+  # Must match your actual domain
+  NEXTAUTH_URL="https://your-domain.com"
+  
+  # For local development
+  NEXTAUTH_URL="http://localhost:3210"
+  
+  # ❌ Common mistakes
+  NEXTAUTH_URL="http://localhost:3210/"  # Don't include trailing slash
+  NEXTAUTH_URL="your-domain.com"         # Missing protocol
+  ```
+  
+  ### Invalid NEXT_AUTH_SECRET
+  
+  ```bash
+  # Generate a secure secret
+  openssl rand -base64 32
+  
+  # Set in environment
+  NEXT_AUTH_SECRET="your-generated-secret-here"
+  ```
+  
+  ### OAuth configuration issues
+  
+  For GitHub OAuth:
+  
+  ```bash
+  # Required variables
+  AUTH_GITHUB_ID="your-github-oauth-app-id"
+  AUTH_GITHUB_SECRET="your-github-oauth-secret"
+  
+  # Callback URL must be registered in GitHub OAuth app:
+  # https://your-domain.com/api/auth/callback/github
+  ```
+  
+  ### Session storage issues
+  
+  If using Redis:
+  
+  ```bash
+  # Verify Redis connection
+  docker exec lobe-chat redis-cli -h redis-host ping
+  
+  # Check Redis logs
+  docker logs redis-container
+  ```
+</Accordion>
+
+<Accordion title="SSO provider not working">
+  **For specific providers:**
+  
+  ### Google OAuth
+  
+  ```bash
+  AUTH_GOOGLE_ID="your-google-client-id.apps.googleusercontent.com"
+  AUTH_GOOGLE_SECRET="your-google-client-secret"
+  
+  # Authorized redirect URI in Google Console:
+  # https://your-domain.com/api/auth/callback/google
+  ```
+  
+  ### Microsoft/Azure AD
+  
+  ```bash
+  AUTH_AZURE_AD_ID="your-application-id"
+  AUTH_AZURE_AD_SECRET="your-client-secret"
+  AUTH_AZURE_AD_TENANT_ID="your-tenant-id"
+  ```
+  
+  ### Generic OIDC
+  
+  ```bash
+  AUTH_OIDC_ID="your-client-id"
+  AUTH_OIDC_SECRET="your-client-secret"
+  AUTH_OIDC_ISSUER="https://your-identity-provider.com"
+  ```
+  
+  **Debugging steps:**
+  
+  1. Check provider logs/console for errors
+  2. Verify redirect URIs match exactly
+  3. Confirm client ID and secret are correct
+  4. Test provider connection:
+     ```bash
+     curl https://your-identity-provider.com/.well-known/openid-configuration
+     ```
+</Accordion>
+
+## Performance Issues
+
+<Accordion title="Slow response times or timeouts">
+  **Symptoms:**
+  - Long wait times for AI responses
+  - Timeout errors
+  - Poor user experience
+  
+  **Solutions:**
+  
+  ### Enable Redis caching
+  
+  ```bash
+  REDIS_URL="redis://localhost:6379"
+  REDIS_PREFIX="lobechat"
+  ```
+  
+  See [Redis Configuration](/docs/self-hosting/advanced/redis) for details.
+  
+  ### Optimize database queries
+  
+  ```bash
+  # Check database performance
+  docker exec postgres psql -U postgres -d lobechat -c "SELECT * FROM pg_stat_activity;"
+  
+  # Look for long-running queries
+  docker exec postgres psql -U postgres -d lobechat -c "SELECT pid, query, state, query_start FROM pg_stat_activity WHERE state != 'idle';"
+  ```
+  
+  ### Increase container resources
+  
+  ```bash
+  # Docker run with resource limits
+  docker run -d \
+    --memory="2g" \
+    --cpus="2" \
+    --name lobe-chat \
+    lobehub/lobe-chat
+  ```
+  
+  ```yaml
+  # Docker Compose
+  services:
+    lobe-chat:
+      image: lobehub/lobe-chat
+      deploy:
+        resources:
+          limits:
+            memory: 2G
+            cpus: '2'
+  ```
+</Accordion>
+
+<Accordion title="Vercel timeout on AI image generation">
+  **Symptoms:**
+  - DALL-E or image generation times out after ~60 seconds
+  - Status code 504 (Gateway Timeout)
+  - Log shows: `POST 504 /trpc/async/image.createImage`
+  
+  **Cause:**
+  
+  Vercel's default function timeout is 60 seconds. Image generation often takes longer.
+  
+  **Solution: Enable Fluid Compute**
+  
+  For projects created before Vercel's dashboard update:
+  
+  1. Go to your Vercel project dashboard
+  2. Navigate to **Settings** → **Functions**
+  3. Enable **Fluid Compute**
+  4. This extends timeout to 300 seconds
+  
+  **For new projects:**
+  
+  Fluid Compute is enabled by default.
+  
+  **Alternative: Use Docker deployment**
+  
+  Docker deployments don't have strict timeout limits:
+  
+  ```bash
+  docker run -d -p 3210:3210 \
+    -e OPENAI_API_KEY=sk-xxx \
+    lobehub/lobe-chat
+  ```
+  
+  **Reference:**
+  - [Vercel Fluid Compute Documentation](https://vercel.com/docs/fluid-compute)
+  - [Function Limitations](https://vercel.com/docs/functions/limitations#max-duration)
+</Accordion>
+
+## Plugin Issues
+
+<Accordion title="Plugins not appearing or not working">
+  **Check these items:**
+  
+  ### Feature flag enabled
+  
+  ```bash
+  FEATURE_FLAGS="+plugins"
+  ```
+  
+  ### Model supports Function Calling
+  
+  ```bash
+  # Model must have 'fc' capability
+  OPENAI_MODEL_LIST="gpt-4=GPT-4<8192:fc>"
+  ```
+  
+  ### Custom plugin installation issues
+  
+  ```bash
+  # Test plugin manifest accessibility
+  curl https://your-plugin.com/manifest.json
+  
+  # Should return valid JSON
+  ```
+  
+  ### CORS errors
+  
+  Plugin API must allow LobeHub origin:
+  
+  ```javascript
+  // Plugin server CORS configuration
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  ```
+  
+  See [Plugin Configuration](/docs/self-hosting/advanced/plugins) for comprehensive troubleshooting.
+</Accordion>
+
+## Storage and File Issues
+
+<Accordion title="File upload fails">
+  **Symptoms:**
+  - "Upload failed" errors
+  - Files don't appear after upload
+  - Storage quota errors
+  
+  **Check S3 configuration:**
+  
+  ```bash
+  # Required S3 variables
+  S3_ENDPOINT="https://s3.amazonaws.com"
+  S3_BUCKET="your-bucket-name"
+  S3_ACCESS_KEY_ID="your-access-key"
+  S3_SECRET_ACCESS_KEY="your-secret-key"
+  S3_REGION="us-east-1"
+  ```
+  
+  **Test S3 connectivity:**
+  
+  ```bash
+  # Using AWS CLI
+  aws s3 ls s3://your-bucket-name --endpoint-url=$S3_ENDPOINT
+  
+  # Test file upload
+  echo "test" > test.txt
+  aws s3 cp test.txt s3://your-bucket-name/test.txt --endpoint-url=$S3_ENDPOINT
+  ```
+  
+  **Check bucket permissions:**
+  
+  Ensure bucket policy allows uploads:
+  
+  ```json
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:DeleteObject"
+        ],
+        "Resource": "arn:aws:s3:::your-bucket-name/*"
+      }
+    ]
+  }
+  ```
+  
+  **Common issues:**
+  
+  - Incorrect bucket region
+  - Missing CORS configuration on bucket
+  - Invalid access credentials
+  - Bucket doesn't exist
+</Accordion>
+
+## Docker-Specific Issues
+
+<Accordion title="Container fails to start">
+  **Check container logs:**
+  
+  ```bash
+  docker logs lobe-chat
+  ```
+  
+  **Common errors:**
+  
+  ### Port already in use
+  
+  ```bash
+  # Error: port is already allocated
+  
+  # Solution: Use different port
+  docker run -d -p 3211:3210 lobehub/lobe-chat
+  
+  # Or stop conflicting service
+  lsof -i :3210
+  kill -9 <PID>
+  ```
+  
+  ### Permission denied errors
+  
+  ```bash
+  # If volume mount fails
+  docker run -d \
+    -v $(pwd)/data:/app/data \
+    --user $(id -u):$(id -g) \
+    lobehub/lobe-chat
+  ```
+  
+  ### Out of memory
+  
+  ```bash
+  # Increase Docker memory limit
+  docker run -d --memory="4g" lobehub/lobe-chat
+  ```
+</Accordion>
+
+<Accordion title="PDF parsing fails (librt.so.1 error)">
+  **Error message:**
+  
+  ```
+  Error: librt.so.1: cannot open shared object file
+  ```
+  
+  **Solution:**
+  
+  This was fixed in version 2.1.13. Upgrade to latest version:
+  
+  ```bash
+  docker pull lobehub/lobe-chat:latest
+  ```
+  
+  The latest Docker image includes the required `librt.so.1` library for PDF parsing.
+  
+  **Reference:** [Issue #12039](https://github.com/lobehub/lobe-chat/issues/12039)
+</Accordion>
+
+## Environment Variable Issues
+
+<Accordion title="Environment variables not being read">
+  **Verification:**
+  
+  ```bash
+  # Check if variables are set in container
+  docker exec lobe-chat env | grep OPENAI
+  
+  # Should show your configured variables
+  ```
+  
+  **Common issues:**
+  
+  ### Using .env file incorrectly
+  
+  ```bash
+  # ✓ Correct
+  docker run -d --env-file .env lobehub/lobe-chat
+  
+  # ✗ Wrong - .env file not automatically loaded
+  docker run -d lobehub/lobe-chat
+  ```
+  
+  ### Variable name typos
+  
+  ```bash
+  # ✓ Correct
+  OPENAI_API_KEY=sk-xxx
+  
+  # ✗ Wrong
+  OPEN_AI_API_KEY=sk-xxx
+  OPENAI_APIKEY=sk-xxx
+  ```
+  
+  ### Quotes in environment file
+  
+  ```bash
+  # .env file - no quotes needed
+  OPENAI_API_KEY=sk-xxx
+  DATABASE_URL=postgresql://user:pass@host/db
+  
+  # Not:
+  OPENAI_API_KEY="sk-xxx"  # Don't use quotes
+  ```
+  
+  ### NEXT_PUBLIC variables
+  
+  `NEXT_PUBLIC_*` variables must be set at build time:
+  
+  ```bash
+  # Build custom image with NEXT_PUBLIC vars
+  docker build \
+    --build-arg NEXT_PUBLIC_BASE_PATH=/chat \
+    -t my-lobe-chat .
+  ```
+</Accordion>
+
+## Getting Help
+
+If your issue isn't covered here:
+
+<Steps>
+  ### Gather Information
+  
+  Collect the following before asking for help:
+  
+  - LobeHub version
+  - Deployment platform (Docker, Vercel, etc.)
+  - Relevant error messages and logs
+  - Environment configuration (redact sensitive values)
+  - Steps to reproduce the issue
+  
+  ### Check Existing Resources
+  
+  - [GitHub Issues](https://github.com/lobehub/lobe-chat/issues) - Search for similar problems
+  - [GitHub Discussions](https://github.com/lobehub/lobe-chat/discussions) - Q&A and community help
+  - [Documentation](https://lobehub.com/docs) - Full documentation
+  
+  ### Ask for Help
+  
+  - [Discord Server](https://discord.gg/rGHwKq4R) - Real-time community support
+  - [Create GitHub Issue](https://github.com/lobehub/lobe-chat/issues/new/choose) - For bugs and feature requests
+  
+  ### Report a Bug
+  
+  Use the bug report template and include:
+  
+  - Client type (Web, Desktop, Mobile)
+  - Operating system
+  - Deployment platform
+  - LobeHub version
+  - Browser (if applicable)
+  - Detailed description
+  - Steps to reproduce
+  - Expected vs actual behavior
+</Steps>
+
+## Debug Mode
+
+Enable verbose logging for debugging:
+
+```bash
+# Docker
+docker run -d \
+  -e DEBUG=lobe:* \
+  -e LOG_LEVEL=debug \
+  lobehub/lobe-chat
+
+# Check logs
+docker logs -f lobe-chat
+```
+
+## Reference
+
+- [Environment Variables](/docs/self-hosting/environment-variables)
+- [Docker Deployment](/docs/self-hosting/platform/docker)
+- [Upgrade Guide](/docs/self-hosting/advanced/upgrading)
+- [FAQ](/docs/self-hosting/faq)

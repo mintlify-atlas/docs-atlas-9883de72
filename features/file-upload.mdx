@@ -1,0 +1,571 @@
+---
+title: File Upload & Knowledge Base
+description: Upload files and build knowledge bases for enhanced AI conversations
+---
+
+LobeHub provides comprehensive file upload and knowledge base capabilities, enabling AI agents to access, analyze, and reference documents, images, code, and other files during conversations.
+
+## Overview
+
+File features enable you to:
+
+- **Upload diverse file types** - Documents, code, images, videos, and more
+- **Create knowledge bases** - Organize files into searchable collections
+- **Contextual conversations** - AI references uploaded files automatically
+- **File analysis** - Get insights from documents and data
+- **Persistent storage** - Files remain available across sessions
+
+## Uploading Files
+
+### Upload Methods
+
+<Tabs>
+  <Tab title="Drag & Drop">
+    **Quick File Upload**
+
+    Drag files directly into conversations:
+
+    1. Drag file(s) from your file explorer
+    2. Drop into the message input area or chat window
+    3. Files upload and preview automatically
+    4. Add context or questions
+    5. Send to include in conversation
+
+    **Supports:**
+    - Single or multiple files
+    - Any supported file type
+    - Entire folders (as individual files)
+  </Tab>
+
+  <Tab title="Click to Upload">
+    **Traditional File Selection**
+
+    Use the attachment button:
+
+    1. Click the paperclip or attachment icon
+    2. Browse your file system
+    3. Select one or more files
+    4. Confirm selection
+    5. Files appear in message area
+
+    **Benefits:**
+    - Familiar interface
+    - Multi-select support
+    - Preview before upload
+  </Tab>
+
+  <Tab title="Paste from Clipboard">
+    **Instant File Sharing**
+
+    Paste files or screenshots directly:
+
+    1. Copy file or take screenshot
+    2. Click in message input
+    3. Press Ctrl+V (Cmd+V on Mac)
+    4. File appears immediately
+    5. Send with your message
+
+    **Perfect for:**
+    - Screenshots
+    - Copied files
+    - Quick sharing
+  </Tab>
+</Tabs>
+
+### Supported File Types
+
+LobeHub supports a wide range of file formats:
+
+<Tabs>
+  <Tab title="Documents">
+    **Text & Office Documents**
+
+    - **PDF** - Portable Document Format
+    - **Microsoft Office**
+      - Word (.doc, .docx)
+      - Excel (.xls, .xlsx)  
+      - PowerPoint (.ppt, .pptx)
+    - **OpenDocument**
+      - Writer (.odt)
+      - Calc (.ods)
+      - Impress (.odp)
+    - **Text files** (.txt, .md, .rtf)
+
+    **Capabilities:**
+    - Text extraction and analysis
+    - Document summarization
+    - Content search
+    - Data extraction from spreadsheets
+  </Tab>
+
+  <Tab title="Code & Data">
+    **Programming & Data Files**
+
+    - **Code files** - .js, .ts, .py, .java, .cpp, .go, .rs, etc.
+    - **Web files** - .html, .css, .json, .xml
+    - **Data formats** - .csv, .json, .yaml, .sql
+    - **Configuration** - .env, .config, .toml
+    - **Markdown** - .md, .mdx
+
+    **Capabilities:**
+    - Code review and analysis
+    - Bug detection
+    - Documentation generation
+    - Data parsing and analysis
+    - Syntax highlighting in viewer
+  </Tab>
+
+  <Tab title="Images">
+    **Image Files**
+
+    - **Photos** - .jpg, .jpeg, .png, .webp
+    - **Graphics** - .gif, .bmp, .svg
+    - **Screenshots** - Any image format
+
+    **Capabilities:**
+    - Visual analysis (with vision models)
+    - Text extraction (OCR)
+    - Image description
+    - Design feedback
+    - Inline preview
+
+    See [Vision Features](/features/vision) for details.
+  </Tab>
+
+  <Tab title="Media">
+    **Video & Audio**
+
+    - **Video** - .mp4, .webm, .ogg
+    - **Audio** - .mp3, .wav, .ogg, .m4a
+
+    **Capabilities:**
+    - Video playback in viewer
+    - Audio playback
+    - Transcription (with appropriate tools)
+    - Content analysis
+
+    <Note>
+      Video and audio analysis capabilities depend on enabled integrations and models.
+    </Note>
+  </Tab>
+</Tabs>
+
+### File Size Limits
+
+**Default limits:**
+- Maximum file size: 100MB (configurable)
+- Recommended: Under 20MB for best performance
+- Archive files: May contain files within limits
+
+**Large files:**
+- Automatic chunking for processing
+- Progress indicators during upload
+- May take longer to process
+
+## File Viewer
+
+LobeHub includes an integrated file viewer supporting multiple formats:
+
+### Viewer Features
+
+<Tabs>
+  <Tab title="PDF Viewer">
+    **Full-Featured PDF Support**
+
+    - Page-by-page navigation
+    - Zoom and pan controls
+    - Text selection and copying
+    - Search within document
+    - Page thumbnails
+    - Fullscreen mode
+
+    **Highlighting:**
+    - Relevant sections highlighted
+    - Jump to referenced pages
+    - Context-aware navigation
+  </Tab>
+
+  <Tab title="Code Viewer">
+    **Syntax-Highlighted Code Display**
+
+    - Automatic language detection
+    - Syntax highlighting
+    - Line numbers
+    - Copy code blocks
+    - Search functionality
+    - Responsive layout
+
+    **Supported languages:**
+    - JavaScript/TypeScript
+    - Python, Java, C++, Go, Rust
+    - HTML, CSS, JSON, YAML
+    - And 50+ more languages
+  </Tab>
+
+  <Tab title="Image Viewer">
+    **High-Quality Image Display**
+
+    - Full-resolution viewing
+    - Zoom and pan
+    - Fit to screen
+    - Original size view
+    - Download original
+    - Gallery mode for multiple images
+  </Tab>
+
+  <Tab title="Office Documents">
+    **Document Preview**
+
+    - Formatted document preview
+    - Preserves layout and styling
+    - Table rendering
+    - Image support
+    - Multi-page navigation
+
+    **Supported:**
+    - Word documents
+    - PowerPoint presentations  
+    - Excel spreadsheets
+  </Tab>
+</Tabs>
+
+### Viewing Files
+
+**To view uploaded files:**
+
+1. Click on file name or thumbnail in chat
+2. File opens in dedicated viewer pane
+3. Use viewer controls to navigate
+4. Close viewer to return to chat
+
+**Viewer shortcuts:**
+- `Esc` - Close viewer
+- `Arrow keys` - Navigate pages/sections
+- `+/-` - Zoom in/out
+- `Ctrl+F` - Search in file
+
+## Knowledge Base
+
+Knowledge bases organize files into searchable collections that agents can reference.
+
+### Creating Knowledge Bases
+
+<Steps>
+  <Step title="Navigate to Knowledge Base">
+    Access the Knowledge Base section from the main menu
+  </Step>
+  
+  <Step title="Create new knowledge base">
+    Click "New Knowledge Base" and provide:
+    - Name (descriptive title)
+    - Description (optional)
+    - Category/tags (optional)
+  </Step>
+  
+  <Step title="Upload files">
+    Add files to your knowledge base:
+    - Drag and drop files
+    - Click to upload
+    - Upload multiple files at once
+    - Organize into folders (if supported)
+  </Step>
+  
+  <Step title="Configure settings">
+    Set knowledge base options:
+    - Access permissions
+    - Indexing preferences  
+    - Search settings
+    - Agent associations
+  </Step>
+  
+  <Step title="Activate">
+    Enable the knowledge base for use by agents
+  </Step>
+</Steps>
+
+### Using Knowledge Bases
+
+**Agent integration:**
+
+When a knowledge base is enabled for an agent:
+
+1. **Automatic reference** - Agent searches knowledge base for relevant content
+2. **Contextual retrieval** - Finds documents related to your questions
+3. **Cited responses** - Indicates which files information came from
+4. **File chunks** - Shows specific sections referenced
+
+**Example interaction:**
+
+```
+User: "What are our API rate limits?"
+
+Agent: [Searches knowledge base]
+       [Finds "API_Documentation.pdf"]
+       
+       "According to the API documentation, rate limits are:
+       - Free tier: 100 requests/hour
+       - Pro tier: 1000 requests/hour
+       - Enterprise: Custom limits
+       
+       Source: API_Documentation.pdf (pages 12-13)"
+```
+
+### Knowledge Base Features
+
+<Tabs>
+  <Tab title="Smart Search">
+    **Semantic Search**
+
+    Knowledge bases use semantic search:
+
+    - **Meaning-based** - Finds conceptually related content
+    - **Not just keywords** - Understands context and intent
+    - **Cross-document** - Searches across all files
+    - **Ranked results** - Most relevant content first
+
+    **Example:**
+    Asking "How do I authenticate users?" finds documents about:
+    - Authentication systems
+    - Login processes
+    - User verification
+    - Security protocols
+    
+    Even if they don't contain the exact phrase.
+  </Tab>
+
+  <Tab title="Chunking">
+    **Intelligent Document Splitting**
+
+    Large documents are split into chunks:
+
+    - **Semantic chunks** - Split at logical boundaries
+    - **Overlap** - Maintains context between chunks
+    - **Referenced sections** - Agent cites specific chunks
+    - **Efficient retrieval** - Only relevant parts loaded
+
+    **Benefits:**
+    - Faster search
+    - More precise citations
+    - Better context
+    - Reduced processing
+  </Tab>
+
+  <Tab title="Indexing">
+    **Automatic Content Indexing**
+
+    Files are automatically indexed:
+
+    - **Text extraction** - Pulls text from all formats
+    - **Metadata** - Indexes titles, dates, authors
+    - **Embedding** - Creates semantic vectors
+    - **Updates** - Re-indexes when files change
+
+    **Index includes:**
+    - Full text content
+    - Document structure
+    - Metadata and properties
+    - Relationships between files
+  </Tab>
+
+  <Tab title="Management">
+    **Knowledge Base Management**
+
+    Organize and maintain knowledge bases:
+
+    **Operations:**
+    - Add/remove files
+    - Update existing files
+    - Delete knowledge bases
+    - Export data
+    - Share with team members
+
+    **Organization:**
+    - Tags and categories
+    - Folder structures
+    - File metadata
+    - Access controls
+  </Tab>
+</Tabs>
+
+## Use Cases
+
+<Tabs>
+  <Tab title="Documentation Assistant">
+    **Product & Technical Documentation**
+
+    Upload documentation for instant answers:
+
+    **Setup:**
+    1. Create "Documentation" knowledge base
+    2. Upload all docs, guides, and manuals
+    3. Enable for support agent
+
+    **Usage:**
+    - "How do I configure X?"
+    - "What's the API endpoint for Y?"
+    - "Show me examples of Z"
+
+    **Benefits:**
+    - Instant documentation access
+    - Always up-to-date answers
+    - No manual searching
+    - Cited references
+  </Tab>
+
+  <Tab title="Code Repository Analysis">
+    **Codebase Understanding**
+
+    Analyze and understand codebases:
+
+    **Setup:**
+    1. Upload source code files
+    2. Include README and docs
+    3. Add configuration files
+
+    **Usage:**
+    - "Explain the architecture of this app"
+    - "Find security vulnerabilities"
+    - "Where is feature X implemented?"
+    - "Generate documentation for this code"
+
+    **Benefits:**
+    - Code comprehension
+    - Onboarding assistance
+    - Bug hunting
+    - Documentation generation
+  </Tab>
+
+  <Tab title="Research & Analysis">
+    **Academic & Business Research**
+
+    Organize research materials:
+
+    **Setup:**
+    1. Upload papers, articles, reports
+    2. Add data files and datasets
+    3. Include notes and references
+
+    **Usage:**
+    - "Summarize findings about X"
+    - "Compare these research papers"
+    - "What do sources say about Y?"
+    - "Extract key statistics"
+
+    **Benefits:**
+    - Centralized research
+    - Quick literature review
+    - Cross-reference sources
+    - Data extraction
+  </Tab>
+
+  <Tab title="Personal Knowledge">
+    **Personal Information Management**
+
+    Build your personal knowledge repository:
+
+    **Setup:**
+    1. Upload notes and journals
+    2. Add saved articles and bookmarks
+    3. Include personal documents
+
+    **Usage:**
+    - "What did I learn about X?"
+    - "Find my notes on Y"
+    - "Summarize my thoughts about Z"
+    - "What meetings discussed this topic?"
+
+    **Benefits:**
+    - External brain
+    - Never forget information
+    - Connected knowledge
+    - Personal AI assistant
+  </Tab>
+</Tabs>
+
+## Tips for Effective File Use
+
+<AccordionGroup>
+  <Accordion title="Organize files logically">
+    Use descriptive filenames and organize into themed knowledge bases for better retrieval.
+  </Accordion>
+
+  <Accordion title="Include context documents">
+    Upload README files, glossaries, or context documents to help AI understand domain-specific content.
+  </Accordion>
+
+  <Accordion title="Keep files updated">
+    Replace outdated files with new versions to ensure AI references current information.
+  </Accordion>
+
+  <Accordion title="Use appropriate formats">
+    Text-extractable formats (PDF, DOCX, TXT) work better than image-only documents.
+  </Accordion>
+
+  <Accordion title="Chunk large documents">
+    Very large files may benefit from being split into topical sections.
+  </Accordion>
+
+  <Accordion title="Tag and categorize">
+    Use metadata, tags, and categories to improve search and organization.
+  </Accordion>
+</AccordionGroup>
+
+## File Privacy & Security
+
+<Warning>
+  Uploaded files may be processed by AI services. Avoid uploading sensitive or confidential information unless using private deployments.
+</Warning>
+
+**Privacy considerations:**
+
+- Files stored in your LobeHub instance
+- Content may be sent to AI providers for analysis
+- Knowledge base data persists in local/server database
+- Implement access controls for sensitive bases
+
+**Best practices:**
+
+- Don't upload personally identifiable information (PII)
+- Redact sensitive data before upload
+- Use private agents for confidential files
+- Regularly audit uploaded content
+- Delete files when no longer needed
+
+## Advanced Features
+
+### File Chunks Display
+
+When AI references files, see the exact chunks used:
+
+- **Chunk preview** - View referenced text segments
+- **Source highlighting** - See what the AI read
+- **Page numbers** - Jump to exact locations
+- **Relevance scores** - Understand match quality
+
+### Multi-File Conversations
+
+Reference multiple files in single conversations:
+
+```
+"Compare the architectures in design_v1.pdf and design_v2.pdf"
+"Summarize all meeting notes from last week"
+"Find contradictions between doc_a.txt and doc_b.txt"
+```
+
+### File-Based Workflows
+
+Create workflows around files:
+
+1. Upload source material
+2. Extract information or insights
+3. Generate derived content
+4. Export or save results
+5. Iterate with refinements
+
+<Info>
+  Knowledge base features may require specific configuration in your LobeHub deployment. Check your instance capabilities and settings.
+</Info>
+
+<Note>
+  Processing large documents or many files may take time. Progress indicators show upload and indexing status.
+</Note>

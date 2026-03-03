@@ -1,0 +1,333 @@
+---
+title: Artifacts Support
+description: Create and visualize dynamic content with Claude-style artifacts
+---
+
+LobeHub integrates Claude Artifacts capabilities, enabling AI to create real-time, interactive content that goes beyond text responses. Generate visualizations, interactive applications, and documents that appear in a dedicated preview pane.
+
+## What are Artifacts?
+
+Artifacts are substantial, self-contained pieces of content created by AI that deserve their own dedicated space. Instead of inline code blocks, artifacts open in a separate panel where you can:
+
+- View live previews of generated content
+- Interact with applications and visualizations
+- Edit and iterate on the output
+- Export or copy the final result
+
+When the AI creates an artifact, it automatically appears in the artifacts panel on the right side of your screen.
+
+## Supported Artifact Types
+
+<Tabs>
+  <Tab title="SVG Graphics">
+    **Dynamic Vector Graphics**
+
+    Create scalable, resolution-independent graphics and diagrams.
+
+    **Capabilities:**
+    - Charts and graphs (bar, line, pie, scatter)
+    - Technical diagrams and flowcharts
+    - Illustrations and icons
+    - Data visualizations
+    - Infographics
+
+    **Example prompts:**
+    - "Create an SVG diagram showing the software development lifecycle"
+    - "Generate a pie chart showing market share distribution"
+    - "Design an icon set for a mobile banking app"
+
+    **Export options:**
+    - Download as SVG file
+    - Download as PNG image
+    - Copy as image to clipboard
+  </Tab>
+
+  <Tab title="React Components">
+    **Interactive Web Applications**
+
+    Build live, interactive React applications that run directly in the browser.
+
+    **Capabilities:**
+    - Interactive forms and calculators
+    - Data visualization dashboards
+    - Mini web applications
+    - UI component prototypes
+    - Interactive demonstrations
+
+    **Example prompts:**
+    - "Create a mortgage calculator with React"
+    - "Build an interactive to-do list app"
+    - "Generate a color palette picker component"
+    - "Make a typing speed test game"
+
+    **Features:**
+    - Full React hooks support
+    - Real-time updates and interactions
+    - Responsive layouts
+    - State management
+  </Tab>
+
+  <Tab title="HTML Pages">
+    **Static Web Pages**
+
+    Generate complete, styled HTML pages with CSS and basic JavaScript.
+
+    **Capabilities:**
+    - Landing pages
+    - Documentation pages
+    - Email templates
+    - Simple web pages
+    - Formatted reports
+
+    **Example prompts:**
+    - "Create a product landing page for a fitness app"
+    - "Design an HTML email newsletter template"
+    - "Build a simple portfolio website"
+
+    **Includes:**
+    - Semantic HTML5
+    - Embedded CSS styling
+    - JavaScript for interactivity
+    - Responsive design
+  </Tab>
+
+  <Tab title="Mermaid Diagrams">
+    **Technical Diagrams**
+
+    Create professional diagrams using Mermaid syntax.
+
+    **Diagram types:**
+    - Flowcharts
+    - Sequence diagrams
+    - Class diagrams
+    - State diagrams
+    - Gantt charts
+    - Entity relationship diagrams
+    - Git graphs
+
+    **Example prompts:**
+    - "Create a sequence diagram for user authentication"
+    - "Generate a class diagram for an e-commerce system"
+    - "Draw a flowchart for the order processing workflow"
+
+    **Benefits:**
+    - Auto-generated from descriptions
+    - Version control friendly
+    - Easy to update and modify
+  </Tab>
+
+  <Tab title="Code Files">
+    **Standalone Code**
+
+    Generate complete, well-structured code files in various languages.
+
+    **Supported languages:**
+    - Python scripts and modules
+    - JavaScript/TypeScript files
+    - HTML/CSS/JavaScript combinations
+    - Shell scripts
+    - Configuration files (JSON, YAML, etc.)
+
+    **Features:**
+    - Syntax highlighting
+    - Copy entire file with one click
+    - View code and preview side-by-side
+    - Switch between code view and output
+
+    **Example prompts:**
+    - "Write a Python script to analyze CSV data"
+    - "Create a Node.js Express API boilerplate"
+    - "Generate a GitHub Actions workflow file"
+  </Tab>
+</Tabs>
+
+## Using Artifacts
+
+### Creating Artifacts
+
+Artifacts are created automatically when you ask the AI to generate substantial, self-contained content.
+
+**Trigger artifact creation:**
+
+```
+"Create a React calculator app"
+"Generate an SVG chart showing quarterly sales"
+"Build an interactive timeline of World War II"
+"Design a landing page for a coffee shop"
+```
+
+**What qualifies as an artifact:**
+- Substantial content (more than a few lines)
+- Self-contained and functional
+- Something you might want to iterate on
+- Content that benefits from a dedicated preview
+
+**What doesn't need artifacts:**
+- Short code snippets or examples
+- Quick explanations or answers
+- Simple text responses
+
+### Viewing Artifacts
+
+When an artifact is created:
+
+1. The artifacts panel automatically opens on the right
+2. Content renders in real-time as it's generated
+3. A preview appears showing the live result
+4. You can switch between preview and code view
+
+**Display modes:**
+
+<Tabs>
+  <Tab title="Preview Mode">
+    Shows the rendered output:
+    - Interactive applications run live
+    - SVG graphics display at full quality
+    - HTML pages render completely
+    - Diagrams appear formatted
+
+    **When to use:**
+    - Testing functionality
+    - Viewing final output
+    - Presenting to others
+    - Interacting with the content
+  </Tab>
+
+  <Tab title="Code Mode">
+    Shows the source code:
+    - Syntax highlighted
+    - Formatted and readable
+    - Easy to copy
+    - Includes comments and structure
+
+    **When to use:**
+    - Understanding implementation
+    - Copying code to your project
+    - Making manual edits
+    - Learning from examples
+  </Tab>
+</Tabs>
+
+### Iterating on Artifacts
+
+Continue the conversation to refine artifacts:
+
+```
+"Add a dark mode toggle"
+"Make the chart responsive for mobile"
+"Change the color scheme to blue and green"
+"Add error handling to the form"
+```
+
+Each iteration updates the artifact in real-time, letting you see changes immediately.
+
+### Exporting Artifacts
+
+Depending on the artifact type, you can:
+
+- **Copy code** - Copy the complete source to clipboard
+- **Download SVG** - Save graphics as .svg files
+- **Download PNG** - Export graphics as images
+- **Copy as image** - Copy rendered output to clipboard
+- **Save HTML** - Download complete web pages
+
+## Use Cases
+
+<Tabs>
+  <Tab title="Rapid Prototyping">
+    **Build and Test Ideas Quickly**
+
+    Create functional prototypes without writing code:
+    - Interactive UI mockups
+    - Calculator and converter tools
+    - Data visualization experiments
+    - Form and input validation
+
+    **Example workflow:**
+    1. "Create a tip calculator with React"
+    2. Test the functionality
+    3. "Add a split bill feature"
+    4. "Make it work for different currencies"
+    5. Export and integrate into your project
+  </Tab>
+
+  <Tab title="Data Visualization">
+    **Transform Data into Insights**
+
+    Turn raw data into visual representations:
+    - Create charts from datasets
+    - Build interactive dashboards
+    - Generate infographics
+    - Visualize trends and patterns
+
+    **Example workflow:**
+    1. Share your data or describe it
+    2. "Create an interactive bar chart from this data"
+    3. Customize colors and labels
+    4. Export for presentations or reports
+  </Tab>
+
+  <Tab title="Learning & Education">
+    **Interactive Learning Tools**
+
+    Build educational content and demonstrations:
+    - Algorithm visualizations
+    - Interactive tutorials
+    - Concept demonstrations
+    - Practice exercises
+
+    **Example workflow:**
+    1. "Create an interactive demonstration of bubble sort"
+    2. "Add step-by-step controls"
+    3. "Highlight the elements being compared"
+    4. Use for teaching or learning
+  </Tab>
+
+  <Tab title="Design & Creative">
+    **Visual Content Creation**
+
+    Generate graphics and visual content:
+    - Logo concepts
+    - Icon sets
+    - Diagrams and schematics
+    - Decorative elements
+
+    **Example workflow:**
+    1. "Design a minimalist logo for a tech startup"
+    2. "Try a version with more geometric shapes"
+    3. "Change to a blue color palette"
+    4. Download as SVG for editing
+  </Tab>
+</Tabs>
+
+## Tips for Working with Artifacts
+
+<AccordionGroup>
+  <Accordion title="Be specific in requests">
+    Detailed prompts produce better artifacts. Specify colors, layout, functionality, and features upfront.
+  </Accordion>
+
+  <Accordion title="Iterate incrementally">
+    Make one change at a time to maintain stability. Large changes can introduce bugs or inconsistencies.
+  </Accordion>
+
+  <Accordion title="Test interactivity">
+    For interactive artifacts, test all features before exporting. Ask for bug fixes or edge case handling.
+  </Accordion>
+
+  <Accordion title="Use preview and code modes">
+    Switch between modes to understand both the visual result and implementation details.
+  </Accordion>
+
+  <Accordion title="Save your favorites">
+    Copy or download artifacts you want to keep. They remain in your conversation history but are easier to access when saved separately.
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  Artifacts run in a sandboxed environment for security. Some features requiring external API calls or sensitive permissions may not work.
+</Warning>
+
+<Note>
+  Complex artifacts may take a few moments to generate. Watch the real-time rendering as the AI creates your content.
+</Note>

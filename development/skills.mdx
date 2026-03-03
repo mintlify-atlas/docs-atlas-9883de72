@@ -1,0 +1,467 @@
+---
+title: Creating Skills
+description: Guide to developing AI agent skills for LobeHub development workflows.
+---
+
+# Creating Skills
+
+Skills are specialized knowledge modules that provide AI agents with domain-specific instructions and workflows for LobeHub development. This guide covers how to create and use skills.
+
+## What are Skills?
+
+Skills are **structured instruction sets** loaded into AI agent context to provide:
+
+- Development guidelines
+- Code patterns
+- Best practices
+- Workflow instructions
+- Reference documentation
+
+Location: `.agents/skills/`
+
+## Skill Structure
+
+Each skill is a directory containing:
+
+```plaintext
+.agents/skills/my-skill/
+├── SKILL.md              # Main skill definition
+├── references/          # Supporting docs (optional)
+│   ├── example-1.md
+│   └── example-2.md
+└── templates/           # Code templates (optional)
+    └── component.tsx
+```
+
+## SKILL.md Format
+
+Every skill must have a `SKILL.md` file with frontmatter:
+
+```markdown
+---
+name: my-skill
+description: Brief description of when to use this skill. Include trigger keywords.
+disable-model-invocation: false  # Optional, default false
+---
+
+# Skill Title
+
+Main content here...
+```
+
+### Frontmatter Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Unique identifier (kebab-case) |
+| `description` | Yes | When to use this skill + trigger keywords |
+| `disable-model-invocation` | No | If true, prevents recursive AI calls |
+
+## Example Skill
+
+Here's a complete example skill for React testing:
+
+```markdown
+---
+name: react-testing
+description: Testing guide for React components using Vitest and Testing Library. Use when writing component tests, fixing test failures, or adding test coverage. Triggers on test creation, React testing, mock setup.
+---
+
+# React Testing Guide
+
+## Quick Reference
+
+**Run tests:**
+
+\`\`\`bash
+bunx vitest run --silent='passed-only' 'src/components/MyComponent.test.tsx'
+\`\`\`
+
+## Component Testing Pattern
+
+\`\`\`typescript
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { MyComponent } from './MyComponent';
+
+describe('MyComponent', () => {
+  it('should render correctly', () => {
+    render(<MyComponent title="Test" />);
+    expect(screen.getByText('Test')).toBeInTheDocument();
+  });
+
+  it('should handle click events', () => {
+    const onClick = vi.fn();
+    render(<MyComponent onClick={onClick} />);
+    
+    fireEvent.click(screen.getByRole('button'));
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+});
+\`\`\`
+
+## Best Practices
+
+1. **Test user behavior**, not implementation
+2. Use `screen.getByRole` over `getByTestId`
+3. Mock external dependencies with `vi.spyOn`
+4. Clean up after each test
+
+## Common Patterns
+
+### Mocking Zustand Store
+
+\`\`\`typescript
+vi.spyOn(useMyStore, 'getState').mockReturnValue({
+  data: mockData,
+  actions: { update: vi.fn() },
+});
+\`\`\`
+
+### Testing Async Components
+
+\`\`\`typescript
+it('should load data', async () => {
+  render(<AsyncComponent />);
+  
+  expect(screen.getByText('Loading...')).toBeInTheDocument();
+  
+  await waitFor(() => {
+    expect(screen.getByText('Data loaded')).toBeInTheDocument();
+  });
+});
+\`\`\`
+```
+
+## Existing Skills
+
+LobeHub includes many built-in skills:
+
+### Frontend
+
+- **react** - React component development
+- **typescript** - TypeScript patterns
+- **i18n** - Internationalization
+- **microcopy** - UX writing
+
+### State & Data
+
+- **zustand** - State management
+- **data-fetching** - SWR and tRPC
+- **recent-data** - Recent data patterns
+
+### Backend
+
+- **drizzle** - Database and ORM
+- **db-migrations** - Database migrations
+
+### Testing
+
+- **testing** - Vitest testing guide
+
+### Desktop
+
+- **desktop** - Electron development
+
+### UI Patterns
+
+- **modal** - Modal implementation
+- **hotkey** - Keyboard shortcuts
+
+### Workflow
+
+- **linear** - Linear issue management
+- **debug** - Debugging strategies
+- **pr** - Pull request workflow
+
+### Architecture
+
+- **spa-routes** - SPA routing patterns
+- **project-overview** - Project structure
+
+## Creating a New Skill
+
+<Steps>
+
+### Create Directory
+
+```bash
+mkdir -p .agents/skills/my-new-skill
+cd .agents/skills/my-new-skill
+```
+
+### Create SKILL.md
+
+```markdown
+---
+name: my-new-skill
+description: Clear description of what this skill covers. Include specific trigger keywords that indicate when this skill should be used. Mention file types, operations, or domain terms.
+---
+
+# Skill Title
+
+## Quick Reference
+
+Provide quick commands, patterns, or key information upfront.
+
+## Core Concepts
+
+Explain the main ideas and principles.
+
+## Usage Patterns
+
+Show concrete examples with code blocks.
+
+\`\`\`typescript
+// Example code
+\`\`\`
+
+## Best Practices
+
+1. List best practices
+2. Include dos and don'ts
+3. Explain reasoning
+
+## Common Pitfalls
+
+Warn about common mistakes.
+
+## References
+
+Link to detailed docs in `references/` if needed.
+```
+
+### Add References (Optional)
+
+Create supporting documentation:
+
+```bash
+mkdir references
+touch references/advanced-patterns.md
+touch references/troubleshooting.md
+```
+
+### Add Templates (Optional)
+
+Provide code templates:
+
+```bash
+mkdir templates
+```
+
+```typescript
+// templates/example.ts
+export function templateFunction() {
+  // Template implementation
+}
+```
+
+### Test the Skill
+
+AI agents will auto-load skills when keywords match. Test by:
+
+1. Starting a development task
+2. Mentioning trigger keywords
+3. Verifying agent uses skill guidance
+
+</Steps>
+
+## Skill Best Practices
+
+### 1. Clear Descriptions
+
+```markdown
+# ✅ Good
+description: Guide for implementing modals using @lobehub/ui. Use when creating modal dialogs, form modals, or confirmation dialogs. Triggers on modal creation, dialog implementation, or popup UI tasks.
+
+# ❌ Bad
+description: Modals.
+```
+
+### 2. Action-Oriented
+
+Focus on **how to do** things, not just what they are:
+
+```markdown
+# ✅ Good - Actionable
+## Creating a Modal
+
+1. Import Modal component
+2. Define state for visibility
+3. Implement open/close handlers
+
+# ❌ Bad - Too abstract
+## Modals
+
+Modals are dialog boxes that appear over content.
+```
+
+### 3. Quick Reference First
+
+Put the most common use cases at the top:
+
+```markdown
+## Quick Reference
+
+**Create component:**
+\`\`\`bash
+touch src/features/MyFeature/index.tsx
+\`\`\`
+
+**Import pattern:**
+\`\`\`typescript
+import { MyComponent } from '@/features/MyFeature';
+\`\`\`
+
+[Detailed explanation below...]
+```
+
+### 4. Include Examples
+
+Provide complete, working examples:
+
+```markdown
+## Example: Full Component
+
+\`\`\`typescript
+import { useState } from 'react';
+import { Button, Modal } from '@lobehub/ui';
+
+export function MyModal() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Open</Button>
+      <Modal open={open} onClose={() => setOpen(false)}>
+        Content here
+      </Modal>
+    </>
+  );
+}
+\`\`\`
+```
+
+### 5. Link to Code
+
+Reference real codebase examples:
+
+```markdown
+See implementation in `src/features/ChatInput/index.tsx:42`
+```
+
+### 6. Dos and Don'ts
+
+Be explicit about anti-patterns:
+
+```markdown
+## Best Practices
+
+✅ **Do:**
+- Use semantic HTML
+- Add ARIA labels
+- Handle keyboard navigation
+
+❌ **Don't:**
+- Nest modals
+- Block all user input
+- Skip accessibility
+```
+
+## Advanced: References
+
+For complex skills, split content:
+
+```plaintext
+.agents/skills/complex-skill/
+├── SKILL.md                    # Overview + common patterns
+├── references/
+│   ├── advanced-usage.md     # Deep dive
+│   ├── api-reference.md      # Complete API
+│   └── troubleshooting.md    # Common issues
+```
+
+Reference from SKILL.md:
+
+```markdown
+## Advanced Topics
+
+For advanced usage, see `references/advanced-usage.md`
+```
+
+## Skill Loading
+
+Skills are automatically available to AI agents when:
+
+1. Keywords in description match the task
+2. File types match (e.g., `.tsx` → react skill)
+3. Explicitly mentioned by user
+
+**Auto-loading skills:**
+
+From `AGENTS.md`:
+
+```markdown
+| Category     | Skills                                     |
+| ------------ | ------------------------------------------ |
+| Frontend     | `react`, `typescript`, `i18n`, `microcopy` |
+| State        | `zustand`                                  |
+| Backend      | `drizzle`                                  |
+```
+
+These load automatically for LobeHub development.
+
+## Testing Skills
+
+Manual testing:
+
+1. Create a development task that should trigger the skill
+2. Check if AI agent references the skill content
+3. Verify guidance is followed correctly
+
+Example:
+
+```markdown
+User: "Create a new React component for user settings"
+
+Expected: Agent loads `react` skill, follows component patterns
+```
+
+## Contributing Skills
+
+To contribute a skill to LobeHub:
+
+1. Create skill in `.agents/skills/`
+2. Follow structure and format guidelines
+3. Test with AI agents
+4. Submit PR with:
+   - Skill files
+   - Update to `AGENTS.md` skills table
+   - Example usage in PR description
+
+## Examples
+
+Study existing skills:
+
+```bash
+# View all skills
+ls .agents/skills/
+
+# Read a skill
+cat .agents/skills/react/SKILL.md
+
+# Check references
+ls .agents/skills/zustand/references/
+```
+
+## Resources
+
+- [Existing Skills](https://github.com/lobehub/lobe-chat/tree/main/.agents/skills)
+- [AGENTS.md](https://github.com/lobehub/lobe-chat/blob/main/AGENTS.md)
+- [Agent Development](/development/agents)
+
+## Next Steps
+
+- [Agent Development](/development/agents)
+- [MCP Server Development](/development/mcp-servers)
+- [Contributing Guide](/development/contributing)

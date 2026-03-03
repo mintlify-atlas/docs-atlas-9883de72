@@ -1,0 +1,433 @@
+---
+title: Building Plugins
+description: Guide to developing plugins and tools for LobeHub agents.
+---
+
+# Building Plugins
+
+LobeHub supports an extensible plugin system that allows agents to interact with external tools, APIs, and services. This guide covers plugin development from concept to deployment.
+
+## Plugin Types
+
+LobeHub supports two main plugin types:
+
+### 1. Chat Plugins (Legacy)
+
+**Function Calling plugins** - Traditional OpenAI-style function calling
+
+Location: External repositories, indexed via [@lobehub/chat-plugins-gateway](https://github.com/lobehub/chat-plugins-gateway)
+
+### 2. MCP Servers (Modern)
+
+**Model Context Protocol** - Standardized protocol for tool integration
+
+Location: Built-in (`packages/builtin-tools/`) or external MCP servers
+
+**MCP is recommended** for new plugins due to:
+- Better standardization
+- Broader ecosystem
+- Enhanced security
+- Easier development
+
+## MCP Server Development
+
+### Quick Start
+
+MCP servers expose tools through a standardized protocol. Here's a minimal example:
+
+```typescript
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+
+const server = new Server(
+  {
+    name: 'my-tool-server',
+    version: '1.0.0',
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Define a tool
+server.setRequestHandler('tools/list', async () => ({
+  tools: [
+    {
+      name: 'get_weather',
+      description: 'Get weather for a location',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          location: { type: 'string', description: 'City name' },
+        },
+        required: ['location'],
+      },
+    },
+  ],
+}));
+
+// Handle tool calls
+server.setRequestHandler('tools/call', async (request) => {
+  const { name, arguments: args } = request.params;
+  
+  if (name === 'get_weather') {
+    const weather = await fetchWeather(args.location);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Weather in ${args.location}: ${weather}`,
+        },
+      ],
+    };
+  }
+  
+  throw new Error(`Unknown tool: ${name}`);
+});
+
+// Start server
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+### Built-in Tools Structure
+
+LobeHub includes many built-in tools organized as MCP servers:
+
+```plaintext
+packages/builtin-tools/
+├── builtin-tool-calculator/       # Math calculations
+├── builtin-tool-web-browsing/     # Web search & scraping
+├── builtin-tool-knowledge-base/   # RAG knowledge base
+├── builtin-tool-memory/           # Agent memory
+├── builtin-tool-cloud-sandbox/    # Code execution
+├── builtin-tool-gtd/              # Task management
+└── ...
+```
+
+### Creating a Built-in Tool
+
+<Steps>
+
+### Create Package
+
+```bash
+mkdir -p packages/builtin-tool-myfeature
+cd packages/builtin-tool-myfeature
+```
+
+### Package Structure
+
+```plaintext
+packages/builtin-tool-myfeature/
+├── src/
+│   ├── index.ts           # MCP server entry
+│   ├── tools.ts           # Tool definitions
+│   └── handlers.ts        # Tool handlers
+├── package.json
+└── tsconfig.json
+```
+
+### Implement MCP Server
+
+```typescript
+// src/index.ts
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { tools } from './tools';
+import { handleToolCall } from './handlers';
+
+export function createMyFeatureServer() {
+  const server = new Server(
+    { name: 'myfeature', version: '1.0.0' },
+    { capabilities: { tools: {} } }
+  );
+
+  server.setRequestHandler('tools/list', async () => ({ tools }));
+  server.setRequestHandler('tools/call', handleToolCall);
+
+  return server;
+}
+```
+
+### Define Tools
+
+```typescript
+// src/tools.ts
+import { Tool } from '@modelcontextprotocol/sdk/types.js';
+
+export const tools: Tool[] = [
+  {
+    name: 'myfeature_action',
+    description: 'Perform a specific action',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input: {
+          type: 'string',
+          description: 'Input parameter',
+        },
+        options: {
+          type: 'object',
+          properties: {
+            flag: { type: 'boolean' },
+          },
+        },
+      },
+      required: ['input'],
+    },
+  },
+];
+```
+
+### Implement Handlers
+
+```typescript
+// src/handlers.ts
+import { CallToolRequest, CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+
+export async function handleToolCall(
+  request: CallToolRequest
+): Promise<CallToolResult> {
+  const { name, arguments: args } = request.params;
+
+  switch (name) {
+    case 'myfeature_action': {
+      const result = await performAction(args.input, args.options);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result),
+          },
+        ],
+      };
+    }
+    default:
+      throw new Error(`Unknown tool: ${name}`);
+  }
+}
+
+async function performAction(input: string, options?: any) {
+  // Your implementation
+  return { success: true, data: `Processed: ${input}` };
+}
+```
+
+### Register Tool
+
+Add to `packages/builtin-tools/src/index.ts`:
+
+```typescript
+export { createMyFeatureServer } from '@lobechat/builtin-tool-myfeature';
+```
+
+</Steps>
+
+## Legacy Chat Plugins
+
+### Plugin SDK
+
+Use [@lobehub/chat-plugin-sdk](https://github.com/lobehub/chat-plugin-sdk):
+
+```typescript
+import { createHeadersWithPluginSettings } from '@lobehub/chat-plugin-sdk';
+
+export default async function handler(req: Request) {
+  const { input } = await req.json();
+  
+  // Your plugin logic
+  const result = await processInput(input);
+  
+  return new Response(JSON.stringify(result));
+}
+```
+
+### Plugin Manifest
+
+```json
+{
+  "api": [
+    {
+      "name": "getWeather",
+      "description": "Get weather information",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City name"
+          }
+        },
+        "required": ["location"]
+      }
+    }
+  ],
+  "identifier": "weather-plugin",
+  "version": "1.0.0",
+  "meta": {
+    "title": "Weather Plugin",
+    "description": "Get real-time weather data",
+    "author": "Your Name"
+  }
+}
+```
+
+## Tool Marketplace
+
+Publish your plugin to the LobeHub ecosystem:
+
+### MCP Marketplace
+
+Submit to [lobehub.com/mcp](https://lobehub.com/mcp):
+
+1. Create MCP server repository
+2. Add `mcp.json` manifest
+3. Submit PR to marketplace index
+
+### Chat Plugin Marketplace
+
+Submit to [lobechat.com/discover/plugins](https://lobechat.com/discover/plugins):
+
+1. Host plugin on Vercel/serverless platform
+2. Create plugin manifest
+3. Submit to [lobe-chat-plugins](https://github.com/lobehub/lobe-chat-plugins)
+
+## Testing Plugins
+
+### Local Testing
+
+```typescript
+// Test MCP server
+import { createMyFeatureServer } from './src';
+
+const server = createMyFeatureServer();
+
+// Simulate tool call
+const result = await server.handleRequest({
+  method: 'tools/call',
+  params: {
+    name: 'myfeature_action',
+    arguments: { input: 'test' },
+  },
+});
+
+console.log(result);
+```
+
+### Unit Tests
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { handleToolCall } from '../src/handlers';
+
+describe('myfeature_action', () => {
+  it('should process input correctly', async () => {
+    const result = await handleToolCall({
+      params: {
+        name: 'myfeature_action',
+        arguments: { input: 'test' },
+      },
+    });
+    
+    expect(result.content[0].text).toContain('Processed: test');
+  });
+});
+```
+
+## Best Practices
+
+### Tool Design
+
+- **Single responsibility** - One tool, one task
+- **Clear descriptions** - Help LLM understand when to use tool
+- **Structured output** - Return JSON for easy parsing
+- **Error handling** - Graceful failures with helpful messages
+
+### Schema Design
+
+```typescript
+// ✅ Good - Clear, specific schema
+{
+  type: 'object',
+  properties: {
+    city: {
+      type: 'string',
+      description: 'City name (e.g., "San Francisco")',
+      examples: ['New York', 'Tokyo'],
+    },
+    units: {
+      type: 'string',
+      enum: ['celsius', 'fahrenheit'],
+      description: 'Temperature units',
+      default: 'celsius',
+    },
+  },
+  required: ['city'],
+}
+
+// ❌ Bad - Vague, unclear
+{
+  type: 'object',
+  properties: {
+    data: { type: 'string' }, // What data?
+  },
+}
+```
+
+### Security
+
+- **Validate inputs** - Never trust LLM-provided arguments
+- **Rate limiting** - Prevent abuse
+- **Authentication** - Use API keys for external services
+- **Sandboxing** - Isolate code execution
+
+```typescript
+import { z } from 'zod';
+
+const ArgsSchema = z.object({
+  location: z.string().min(1).max(100),
+  units: z.enum(['celsius', 'fahrenheit']).optional(),
+});
+
+export async function handleToolCall(request) {
+  // Validate
+  const args = ArgsSchema.parse(request.params.arguments);
+  
+  // Process safely
+  const result = await getWeather(args.location, args.units);
+  return { content: [{ type: 'text', text: result }] };
+}
+```
+
+### Performance
+
+- **Async operations** - Don't block the event loop
+- **Caching** - Cache external API responses
+- **Timeouts** - Set reasonable timeout limits
+- **Streaming** - For long operations, stream results
+
+## Examples
+
+Explore built-in tools for inspiration:
+
+- **Calculator** - Simple stateless tool
+- **Web Browsing** - External API integration
+- **Knowledge Base** - Database interaction
+- **Memory** - Stateful tool with storage
+- **Cloud Sandbox** - Code execution with sandboxing
+
+## Resources
+
+- [MCP Specification](https://modelcontextprotocol.io/)
+- [@lobehub/chat-plugin-sdk](https://github.com/lobehub/chat-plugin-sdk)
+- [Plugin Template](https://github.com/lobehub/chat-plugin-template)
+- [MCP Marketplace](https://lobehub.com/mcp)
+- [Plugin Examples](https://github.com/lobehub/lobe-chat-plugins)
+
+## Next Steps
+
+- [Agent Development](/development/agents)
+- [Creating Skills](/development/skills)
+- [MCP Server Guide](/development/mcp-servers)

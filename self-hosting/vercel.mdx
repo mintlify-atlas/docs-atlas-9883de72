@@ -1,0 +1,407 @@
+---
+title: Vercel deployment
+description: Deploy LobeHub to Vercel's serverless platform with one click
+---
+
+Vercel provides a quick and easy deployment option for LobeHub with automatic HTTPS, CDN, and serverless scaling. This guide covers one-click deployment and manual configuration.
+
+## Quick deploy
+
+<Steps>
+  <Step title="Click deploy button">
+    [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Flobehub%2Flobe-chat&env=OPENAI_API_KEY&envDescription=Find%20your%20OpenAI%20API%20Key&envLink=https%3A%2F%2Fplatform.openai.com%2Faccount%2Fapi-keys&project-name=lobe-chat&repository-name=lobe-chat)
+    
+    This will fork the repository to your GitHub account and deploy it to Vercel.
+  </Step>
+
+  <Step title="Configure environment variables">
+    During deployment, you'll be prompted to set:
+    
+    **Required**:
+    - `OPENAI_API_KEY` - Your OpenAI API key from [platform.openai.com](https://platform.openai.com/account/api-keys)
+    
+    **Recommended**:
+    - `DATABASE_URL` - PostgreSQL connection string
+    - `KEY_VAULTS_SECRET` - Encryption key for sensitive data
+    - `AUTH_SECRET` - Secret for authentication (auto-generated if not set)
+  </Step>
+
+  <Step title="Deploy">
+    Click **Deploy** and wait for the build to complete (usually 2-3 minutes).
+  </Step>
+
+  <Step title="Access your deployment">
+    Your LobeHub instance will be available at:
+    `https://your-project-name.vercel.app`
+  </Step>
+</Steps>
+
+## Prerequisites
+
+### Required external services
+
+<Warning>
+  Vercel is a serverless platform and cannot run databases. You must use external services for:
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="PostgreSQL database (required)">
+    Choose a managed PostgreSQL provider:
+    
+    **Recommended options**:
+    - **[Neon](https://neon.tech)** - Serverless Postgres with free tier
+    - **[Supabase](https://supabase.com)** - Postgres + storage + auth
+    - **[Vercel Postgres](https://vercel.com/storage/postgres)** - Native Vercel integration
+    - **[Railway](https://railway.app)** - Simple Postgres hosting
+    - **[Render](https://render.com)** - Free tier available
+    
+    Get your `DATABASE_URL` in the format:
+    ```
+    postgresql://user:password@host:5432/database?sslmode=require
+    ```
+  </Accordion>
+
+  <Accordion title="Redis (optional but recommended)">
+    For better performance with session storage and caching:
+    
+    **Recommended options**:
+    - **[Upstash Redis](https://upstash.com)** - Serverless Redis with free tier
+    - **[Vercel KV](https://vercel.com/storage/kv)** - Native Vercel integration
+    - **[Redis Cloud](https://redis.com/cloud/)** - Managed Redis
+    
+    Get your `REDIS_URL`:
+    ```
+    redis://default:password@host:port
+    ```
+  </Accordion>
+
+  <Accordion title="S3-compatible storage (for file uploads)">
+    Required if you want file upload and knowledge base features:
+    
+    **Recommended options**:
+    - **[Cloudflare R2](https://www.cloudflare.com/products/r2/)** - S3-compatible, no egress fees
+    - **[AWS S3](https://aws.amazon.com/s3/)** - Industry standard
+    - **[Backblaze B2](https://www.backblaze.com/b2/)** - Cost-effective
+    - **[Vercel Blob](https://vercel.com/storage/blob)** - Native integration
+    
+    Configure S3 environment variables:
+    ```bash
+    S3_ENDPOINT=https://...
+    S3_BUCKET=my-bucket
+    S3_ACCESS_KEY_ID=...
+    S3_SECRET_ACCESS_KEY=...
+    S3_REGION=auto  # for Cloudflare R2
+    ```
+    
+    See [Storage Configuration](/self-hosting/storage) for details.
+  </Accordion>
+</AccordionGroup>
+
+## Environment variables
+
+### Configure in Vercel dashboard
+
+1. Go to your project in [Vercel Dashboard](https://vercel.com/dashboard)
+2. Navigate to **Settings** → **Environment Variables**
+3. Add the required variables:
+
+### Essential variables
+
+```bash
+# AI Provider (at least one required)
+OPENAI_API_KEY=sk-xxxxxx
+
+# Database (required for production)
+DATABASE_URL=postgresql://user:password@host:5432/lobechat
+
+# Security (required)
+KEY_VAULTS_SECRET=base64-encoded-32-byte-key
+AUTH_SECRET=random-secret-string
+
+# Redis (optional but recommended)
+REDIS_URL=redis://default:password@host:port
+
+# S3 Storage (for file uploads)
+S3_ENDPOINT=https://s3.amazonaws.com
+S3_BUCKET=my-lobehub-bucket
+S3_ACCESS_KEY_ID=AKIAXXXXXXXX
+S3_SECRET_ACCESS_KEY=xxxxxxxx
+S3_REGION=us-east-1
+```
+
+See [Environment Variables](/self-hosting/environment-variables) for the complete list.
+
+### Generate secure secrets
+
+<CodeGroup>
+```bash Generate KEY_VAULTS_SECRET
+# Generate a random 32-byte key and base64 encode it
+openssl rand -base64 32
+```
+
+```bash Generate AUTH_SECRET
+# Generate a random secret
+openssl rand -hex 32
+```
+</CodeGroup>
+
+## Custom domain
+
+<Steps>
+  <Step title="Add domain in Vercel">
+    1. Go to **Settings** → **Domains**
+    2. Click **Add Domain**
+    3. Enter your domain (e.g., `lobehub.example.com`)
+  </Step>
+
+  <Step title="Configure DNS">
+    Add the DNS records provided by Vercel:
+    
+    **For subdomain** (e.g., `lobehub.example.com`):
+    ```
+    CNAME  lobehub  cname.vercel-dns.com
+    ```
+    
+    **For apex domain** (e.g., `example.com`):
+    ```
+    A      @        76.76.21.21
+    ```
+  </Step>
+
+  <Step title="Wait for SSL">
+    Vercel automatically provisions an SSL certificate. This usually takes a few minutes.
+  </Step>
+</Steps>
+
+## Limitations
+
+<Warning>
+  Be aware of these Vercel platform limitations:
+</Warning>
+
+### Serverless function timeout
+
+- **Hobby plan**: 10 seconds
+- **Pro plan**: 60 seconds
+- **Enterprise**: 900 seconds
+
+**Impact**: Long-running AI requests may timeout on Hobby plan.
+
+**Workaround**: Use streaming responses (enabled by default) to keep connections alive.
+
+### No WebSocket support
+
+Vercel serverless functions don't support persistent WebSocket connections.
+
+**Impact**: Real-time features use Server-Sent Events (SSE) instead.
+
+### Cold starts
+
+Serverless functions may experience cold starts after periods of inactivity.
+
+**Impact**: First request after idle period may be slower (1-3 seconds).
+
+### File size limits
+
+- **Deployment size**: 250 MB (compressed)
+- **Function size**: 50 MB
+
+**Impact**: Large dependencies may need optimization.
+
+## Deployment workflow
+
+### Automatic deployments
+
+By default, Vercel automatically deploys:
+
+- **Production**: Every push to `main` branch
+- **Preview**: Every push to other branches and PRs
+
+### Manual deployments
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Select your project
+3. Click **Deployments**
+4. Click **Redeploy** on any previous deployment
+
+### Deploy via CLI
+
+<CodeGroup>
+```bash Install Vercel CLI
+npm i -g vercel
+```
+
+```bash Deploy to production
+vercel --prod
+```
+
+```bash Deploy preview
+vercel
+```
+</CodeGroup>
+
+## Keeping updated
+
+### Enable auto-sync from upstream
+
+<Warning>
+  If you used the one-click deploy, Vercel creates a **new** repository instead of forking. This prevents automatic updates.
+</Warning>
+
+To enable updates:
+
+<Steps>
+  <Step title="Delete current deployment">
+    Remove the project from Vercel dashboard (settings → delete project).
+  </Step>
+
+  <Step title="Fork the repository">
+    Manually fork [lobehub/lobe-chat](https://github.com/lobehub/lobe-chat) on GitHub.
+  </Step>
+
+  <Step title="Import to Vercel">
+    1. Go to Vercel Dashboard
+    2. Click **Add New** → **Project**
+    3. Import your forked repository
+    4. Configure environment variables
+    5. Deploy
+  </Step>
+
+  <Step title="Enable GitHub Actions">
+    In your fork, go to **Actions** tab and enable:
+    - `upstream-sync` workflow (syncs from original repo)
+    
+    Disable other workflows to prevent unnecessary runs.
+  </Step>
+
+  <Step title="Sync updates">
+    The `upstream-sync` action automatically checks for updates daily.
+    
+    Manual sync:
+    1. Go to **Actions** tab
+    2. Select **Upstream Sync** workflow
+    3. Click **Run workflow**
+  </Step>
+</Steps>
+
+## Database migrations
+
+<Note>
+  LobeHub automatically runs database migrations on deployment.
+</Note>
+
+If migrations fail:
+
+1. Check deployment logs in Vercel dashboard
+2. Verify `DATABASE_URL` is correct
+3. Ensure database is accessible (check IP allowlist)
+4. Run migrations manually:
+
+```bash
+# Install dependencies
+npm install
+
+# Set DATABASE_URL
+export DATABASE_URL="postgresql://..."
+
+# Run migrations
+npm run db:migrate
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Deployment fails">
+    Check build logs in Vercel dashboard:
+    
+    1. Go to **Deployments**
+    2. Click on failed deployment
+    3. Check **Build Logs**
+    
+    Common issues:
+    - Missing environment variables
+    - TypeScript errors
+    - Out of memory (increase Node memory: `NODE_OPTIONS=--max-old-space-size=4096`)
+  </Accordion>
+
+  <Accordion title="Function timeout">
+    If requests timeout on Hobby plan:
+    
+    1. Upgrade to Pro plan for 60s timeout
+    2. Use faster AI models (e.g., GPT-3.5 instead of GPT-4)
+    3. Reduce max tokens in responses
+    4. Enable streaming (default)
+  </Accordion>
+
+  <Accordion title="Database connection fails">
+    Verify connection:
+    
+    1. Check `DATABASE_URL` format
+    2. Ensure `?sslmode=require` is appended for managed databases
+    3. Check database IP allowlist (allow Vercel IPs or use `0.0.0.0/0`)
+    4. Test connection locally:
+    
+    ```bash
+    psql "$DATABASE_URL"
+    ```
+  </Accordion>
+
+  <Accordion title="502 Bad Gateway">
+    Common causes:
+    
+    1. Function timeout (see above)
+    2. Out of memory
+    3. Database connection pool exhausted
+    
+    Solutions:
+    - Use connection pooler (PgBouncer)
+    - Reduce concurrent connections
+    - Check database logs
+  </Accordion>
+
+  <Accordion title="Environment variables not updating">
+    After changing environment variables:
+    
+    1. Go to **Deployments**
+    2. Click **Redeploy** (three dots menu)
+    3. Select **Use existing Build Cache: No**
+  </Accordion>
+</AccordionGroup>
+
+## Cost optimization
+
+### Vercel pricing
+
+- **Hobby**: Free, 100 GB-hours/month
+- **Pro**: $20/month, unlimited bandwidth
+- **Enterprise**: Custom pricing
+
+### Reduce costs
+
+1. **Use external caching** - Upstash Redis reduces function invocations
+2. **Optimize images** - Use Vercel Image Optimization
+3. **CDN caching** - Configure `Cache-Control` headers
+4. **Function regions** - Deploy to regions close to users
+
+### Database costs
+
+- **Neon**: Free tier with 0.5 GB storage
+- **Supabase**: Free tier with 500 MB database
+- **Vercel Postgres**: Starts at $10/month
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Environment variables" icon="code" href="/self-hosting/environment-variables">
+    Complete environment variable reference
+  </Card>
+  <Card title="Authentication" icon="lock" href="/self-hosting/authentication">
+    Set up SSO and user management
+  </Card>
+  <Card title="Database" icon="database" href="/self-hosting/database">
+    Configure PostgreSQL and run migrations
+  </Card>
+  <Card title="Storage" icon="box" href="/self-hosting/storage">
+    Set up S3 for file uploads
+  </Card>
+</CardGroup>

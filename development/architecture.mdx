@@ -1,0 +1,357 @@
+---
+title: System Architecture
+description: Deep dive into LobeHub's architecture - from frontend to backend, runtime to storage.
+---
+
+# System Architecture
+
+LobeHub is an open-source AI Agent platform built on Next.js, enabling natural language interaction with AI, tool usage, knowledge management, and multi-agent collaboration.
+
+## Architecture Overview
+
+```plaintext
+┌─────────────────────────────────────────────────────────────┐
+│                     Frontend Layer                          │
+│  Next.js RSC + React Router DOM (SPA) + @lobehub/ui        │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                      API Layer                              │
+│         RESTful WebAPI + tRPC Routers                       │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                   Runtime Layer                             │
+│      Agent Runtime ← Model Runtime (30+ providers)          │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    Data Layer                               │
+│          PostgreSQL + Redis + S3 Storage                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Frontend Architecture
+
+### Hybrid Routing
+
+LobeHub uses a unique **hybrid routing architecture**:
+
+| Router | Use Case | Location |
+|--------|----------|----------|
+| **Next.js App Router** | Auth pages (SSR) | `src/app/(backend)/` |
+| **React Router DOM** | Main SPA | `src/spa/` + `src/routes/` |
+
+**Why hybrid?**
+- SSR benefits for auth, SEO, and static pages
+- SPA performance for interactive chat and agent interfaces
+- Best of both worlds
+
+### State Management
+
+**Zustand** with slice pattern:
+
+```typescript
+// Store structure
+src/store/
+├── chat/          # Chat sessions, messages
+├── agent/         # Agent configs
+├── user/          # User preferences
+├── tool/          # Tool and plugin state
+└── global/        # App-wide state
+```
+
+Each slice is self-contained with:
+- State interface
+- Actions (methods)
+- Selectors (computed values)
+- Persistence (optional)
+
+See [State Management Guide](/development/state-management) for details.
+
+### Data Fetching
+
+- **tRPC** for type-safe API calls
+- **SWR** for client-side caching and revalidation
+- **Server Actions** (Next.js) for mutations
+
+### Component Architecture
+
+```plaintext
+src/
+├── components/       # Shared UI components
+├── features/         # Business feature modules
+│   ├── AgentPanel/
+│   ├── ChatInput/
+│   ├── PluginStore/
+│   └── ...
+├── routes/           # SPA page components
+└── layout/           # Layout providers
+```
+
+**Component priority:**
+1. Project components (`src/components/`)
+2. @lobehub/ui
+3. Ant Design (antd)
+
+## Backend API
+
+LobeHub provides two API styles:
+
+### RESTful WebAPI
+
+Location: `src/app/(backend)/webapi/`
+
+Used for:
+- **Chat streaming** - Server-sent events (SSE)
+- **File serving** - Uploads, downloads, images
+- **TTS/STT** - Audio processing
+- **OAuth callbacks** - Authentication flows
+
+### tRPC Routers
+
+Location: `src/server/routers/`
+
+Grouped by execution context:
+
+```typescript
+routers/
+├── lambda/        # Main business logic (Vercel Edge)
+│   ├── agent
+│   ├── session
+│   ├── message
+│   ├── file
+│   ├── knowledgeBase
+│   └── user
+├── async/         # Long-running tasks (background)
+│   ├── fileProcessing
+│   ├── imageGeneration
+│   └── ragEvaluation
+├── tools/         # Tool invocations
+│   ├── search
+│   ├── mcp
+│   └── market
+└── mobile/        # Mobile-specific routes
+```
+
+**Benefits:**
+- End-to-end type safety
+- Auto-generated client
+- Built-in validation (Zod)
+- Request/response transformation
+
+## Runtime Architecture
+
+### Model Runtime
+
+Package: `@lobechat/model-runtime` (`packages/model-runtime/`)
+
+**Purpose:** Normalize API differences across 30+ AI providers
+
+```typescript
+// Unified interface for all providers
+interface ModelProvider {
+  chat(params: ChatParams): AsyncIterable<ChatChunk>;
+  embed(text: string): Promise<number[]>;
+  generateImage(prompt: string): Promise<ImageURL>;
+}
+
+// Providers
+- OpenAI
+- Anthropic
+- Google (Gemini)
+- AWS Bedrock
+- Azure OpenAI
+- Ollama (local)
+- And 25+ more...
+```
+
+**Features:**
+- Streaming support
+- Function calling normalization
+- Token counting
+- Error handling and retries
+
+### Agent Runtime
+
+Package: `@lobechat/agent-runtime` (`packages/agent-runtime/`)
+
+**Purpose:** Orchestrate multi-step AI agent behavior
+
+```typescript
+// Agent execution flow
+1. Parse user input
+2. LLM decides: respond or use tool
+3. Execute tools (single or batch)
+4. Human-in-the-loop approval (if needed)
+5. Feed results back to LLM
+6. Loop until final response
+```
+
+**Key Features:**
+
+- **Plan-Execute Loop** - State machine for agent thinking
+- **Tool Invocation** - Single and batch execution
+- **Context Management** - Window limits, compression
+- **Usage Tracking** - Tokens, costs, timing
+- **Multi-Agent Orchestration** - Supervisor + Executor pattern
+
+**Group Runtime:**
+
+```typescript
+// Multi-agent collaboration
+GroupOrchestrationRuntime
+├── Supervisor Agent  # Decides task delegation
+└── Executor Agents   # Specialized workers
+```
+
+## Authentication
+
+LobeHub uses [Better Auth](https://www.better-auth.com/):
+
+**Supported Methods:**
+- Email + password
+- OAuth (GitHub, Google, Microsoft, etc.)
+- Magic links
+- Passkeys (WebAuthn)
+
+**Implementation:**
+- Config: `src/auth.ts`
+- Routes: `src/app/(backend)/api/auth/`
+- Middleware: Session validation, CSRF protection
+
+## Data Storage
+
+### PostgreSQL
+
+**Primary database** - User data, sessions, messages, agent configs
+
+ORM: **Drizzle** (`packages/database/`)
+
+```typescript
+schemas/
+├── user.ts          # Users, auth
+├── agent.ts         # Agent configurations
+├── session.ts       # Chat sessions
+├── message.ts       # Messages, topics
+├── file.ts          # File metadata
+├── knowledgeBase.ts # Knowledge bases, chunks
+└── ...
+```
+
+Migrations: `packages/database/src/migrations/`
+
+### Redis
+
+**Caching and state:**
+- Session storage
+- Rate limiting
+- Temporary data (file processing status)
+- Real-time features (presence, typing indicators)
+
+### S3 Storage
+
+**File storage:**
+- User uploads
+- Generated images
+- Knowledge base files
+- Agent artifacts
+
+Supports:
+- AWS S3
+- Cloudflare R2
+- MinIO (self-hosted)
+- RustFS (development)
+
+## Monorepo Structure
+
+```plaintext
+lobe-chat/
+├── apps/
+│   └── desktop/           # Electron app
+├── packages/              # Shared packages (@lobechat/*)
+│   ├── agent-runtime/
+│   ├── model-runtime/
+│   ├── database/
+│   ├── builtin-tools/
+│   └── ...
+├── src/                   # Main web app
+│   ├── app/              # Next.js routes
+│   ├── spa/              # SPA entry points
+│   ├── routes/           # SPA page components
+│   ├── features/         # Business modules
+│   ├── store/            # Zustand stores
+│   ├── server/           # Server services
+│   └── ...
+└── e2e/                   # E2E tests
+```
+
+**Package Manager:** pnpm (workspaces)
+
+**Script Runner:** bun
+
+## Deployment Targets
+
+### Vercel (Recommended)
+
+- Next.js optimized
+- Edge Functions
+- Auto-scaling
+- Zero-config deployments
+
+### Docker
+
+```bash
+# Build
+docker build -t lobehub:local .
+
+# Run
+docker compose up -d
+```
+
+### Self-Hosted
+
+Supports:
+- Alibaba Cloud
+- Zeabur
+- Sealos
+- Any Node.js host
+
+## Development Flow
+
+```plaintext
+1. Local dev → Docker services (PostgreSQL, Redis)
+2. Code changes → Hot reload (Vite/Next.js)
+3. Type checking → TypeScript + tRPC
+4. Linting → ESLint + Stylelint
+5. Testing → Vitest (unit) + Playwright (E2E)
+6. Commit → Husky hooks (lint-staged, commitlint)
+7. Push → GitHub Actions CI
+8. Merge → Auto-release (semantic-release)
+9. Deploy → Vercel/Docker
+```
+
+## Performance Optimizations
+
+- **Code splitting** - Dynamic imports for routes
+- **Lazy loading** - Defer non-critical components
+- **SWR caching** - Minimize API calls
+- **Edge caching** - CDN for static assets
+- **Streaming** - Progressive response rendering
+- **Virtualization** - Long message lists
+
+## Security
+
+- **CSRF protection** - Token validation
+- **XSS prevention** - Content sanitization
+- **Rate limiting** - Redis-based throttling
+- **SSRF protection** - URL allowlists
+- **SQL injection** - Parameterized queries (Drizzle)
+- **Secret management** - Environment variables only
+
+## Next Steps
+
+- [Tech Stack Details](/development/tech-stack)
+- [Building Plugins](/development/plugins)
+- [Agent Development](/development/agents)
+- [Contributing Guide](/development/contributing)

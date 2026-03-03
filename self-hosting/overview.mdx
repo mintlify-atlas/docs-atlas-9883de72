@@ -1,0 +1,229 @@
+---
+title: Self-hosting overview
+description: Overview of deployment options and architecture for self-hosting LobeHub
+---
+
+LobeHub can be self-hosted on your own infrastructure, giving you complete control over your data, customization, and deployment environment. Whether you're deploying for a team, organization, or personal use, LobeHub supports multiple deployment methods.
+
+## Deployment options
+
+<CardGroup cols={2}>
+  <Card title="Docker" icon="docker" href="/self-hosting/docker">
+    Deploy with Docker Compose for full control and easy updates
+  </Card>
+  <Card title="Vercel" icon="triangle" href="/self-hosting/vercel">
+    One-click deployment to Vercel's serverless platform
+  </Card>
+  <Card title="Cloud platforms" icon="cloud">
+    Deploy to Zeabur, Sealos, or Alibaba Cloud
+  </Card>
+  <Card title="Kubernetes" icon="dharmachakra">
+    Scale horizontally with Kubernetes orchestration
+  </Card>
+</CardGroup>
+
+## Architecture overview
+
+LobeHub consists of several key components:
+
+### Core services
+
+- **Next.js application** - Hybrid SSR/SPA frontend with API routes
+- **PostgreSQL database** - Stores conversations, agents, files, and user data
+- **Redis** (optional) - Session storage and caching
+- **S3-compatible storage** - File uploads and knowledge base documents
+
+### Optional services
+
+- **MinIO** - Self-hosted S3-compatible storage
+- **Langfuse** - LLM observability and tracing
+- **OpenTelemetry** - Distributed tracing
+- **Searxng** - Privacy-focused web search
+
+## Choosing a deployment method
+
+### Docker Compose (Recommended)
+
+**Best for:**
+- Self-hosted installations
+- Full control over infrastructure
+- Team deployments
+- Development environments
+
+**Pros:**
+- Complete stack in one command
+- Easy updates with `docker compose pull`
+- Includes PostgreSQL, Redis, MinIO, Searxng
+- Full feature support
+
+**Cons:**
+- Requires server management
+- Need to handle backups and monitoring
+
+### Vercel
+
+**Best for:**
+- Quick deployments
+- Serverless scaling
+- Low maintenance
+
+**Pros:**
+- One-click deployment
+- Automatic HTTPS and CDN
+- Scales automatically
+- Free tier available
+
+**Cons:**
+- Requires external PostgreSQL database
+- 10-second serverless timeout limit
+- Less control over infrastructure
+
+### Cloud platforms
+
+**Zeabur, Sealos, Alibaba Cloud:**
+- Similar to Vercel with regional options
+- Good for specific geographic requirements
+- Various pricing and feature differences
+
+## Prerequisites
+
+Before deploying LobeHub, you'll need:
+
+### Required
+
+<AccordionGroup>
+  <Accordion title="AI provider API keys">
+    At minimum, you need an API key from at least one AI provider:
+    
+    - **OpenAI** - `OPENAI_API_KEY` from [platform.openai.com](https://platform.openai.com/account/api-keys)
+    - **Anthropic** - `ANTHROPIC_API_KEY` from [console.anthropic.com](https://console.anthropic.com/)
+    - **Google** - `GOOGLE_API_KEY` from [makersuite.google.com](https://makersuite.google.com/app/apikey)
+    
+    See [AI Providers](/integrations/ai-providers) for the full list of 40+ supported providers.
+  </Accordion>
+
+  <Accordion title="Database (for server deployment)">
+    PostgreSQL 14+ is required for server deployments:
+    
+    - **Managed options**: Neon, Supabase, Railway, Vercel Postgres
+    - **Self-hosted**: Docker, AWS RDS, Google Cloud SQL
+    
+    See [Database Configuration](/self-hosting/database) for setup details.
+  </Accordion>
+</AccordionGroup>
+
+### Optional but recommended
+
+<AccordionGroup>
+  <Accordion title="Redis">
+    Redis improves performance for:
+    
+    - Session storage
+    - Rate limiting
+    - Caching
+    
+    Use Upstash, Redis Cloud, or self-hosted Redis.
+  </Accordion>
+
+  <Accordion title="S3-compatible storage">
+    For file uploads and knowledge bases:
+    
+    - **AWS S3** - Production-ready, scalable
+    - **Cloudflare R2** - No egress fees
+    - **MinIO** - Self-hosted S3 alternative
+    - **Backblaze B2** - Cost-effective
+    
+    See [Storage Configuration](/self-hosting/storage) for details.
+  </Accordion>
+
+  <Accordion title="Authentication provider">
+    For SSO and team features:
+    
+    - Google OAuth
+    - GitHub OAuth
+    - Microsoft Azure AD
+    - Auth0
+    - Keycloak
+    
+    See [Authentication Setup](/self-hosting/authentication) for configuration.
+  </Accordion>
+</AccordionGroup>
+
+## Security considerations
+
+<Warning>
+  Never commit API keys or secrets to version control. Always use environment variables.
+</Warning>
+
+### Essential security measures
+
+1. **Use HTTPS** - Always deploy with SSL/TLS certificates
+2. **Secure database** - Use strong passwords and restrict network access
+3. **Environment variables** - Store secrets securely (never in code)
+4. **Authentication** - Enable Better Auth for multi-user deployments
+5. **Regular updates** - Keep LobeHub and dependencies up to date
+
+### Authentication options
+
+- **Open access** - No authentication (single-user deployments only)
+- **Better Auth** - Built-in auth with email/password, OAuth, magic links
+- **Reverse proxy** - Use Authelia, Authentik, or similar
+
+See [Authentication Configuration](/self-hosting/authentication) for detailed setup.
+
+## Feature comparison
+
+| Feature | Docker | Vercel | Cloud Platforms |
+|---------|--------|--------|----------------|
+| Full control | ✅ | ❌ | ⚠️ |
+| Custom domain | ✅ | ✅ | ✅ |
+| One-click deploy | ❌ | ✅ | ✅ |
+| Auto-scaling | ❌ | ✅ | ✅ |
+| Free tier | ✅ | ✅ | Varies |
+| Function timeout | Unlimited | 10s | Varies |
+| WebSocket support | ✅ | ❌ | Varies |
+| File storage | Local/MinIO | External S3 | Varies |
+| Database | Included | External | Varies |
+
+## Next steps
+
+<Steps>
+  <Step title="Choose deployment method">
+    Select Docker for maximum control or Vercel for simplicity
+  </Step>
+  
+  <Step title="Gather API keys">
+    Obtain API keys from your chosen AI providers
+  </Step>
+  
+  <Step title="Set up infrastructure">
+    Provision database, Redis, and storage if needed
+  </Step>
+  
+  <Step title="Configure environment">
+    Set all required environment variables
+  </Step>
+  
+  <Step title="Deploy">
+    Follow the deployment guide for your chosen method
+  </Step>
+  
+  <Step title="Configure authentication">
+    Set up Better Auth for multi-user access
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="Docker deployment" icon="docker" href="/self-hosting/docker">
+    Complete Docker Compose setup guide
+  </Card>
+  <Card title="Vercel deployment" icon="triangle" href="/self-hosting/vercel">
+    Deploy to Vercel in one click
+  </Card>
+  <Card title="Environment variables" icon="code" href="/self-hosting/environment-variables">
+    Complete environment variable reference
+  </Card>
+  <Card title="Authentication" icon="lock" href="/self-hosting/authentication">
+    Configure user authentication
+  </Card>
+</CardGroup>

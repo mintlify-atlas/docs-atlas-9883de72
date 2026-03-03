@@ -1,0 +1,450 @@
+---
+title: 'File API'
+description: 'Upload and manage files'
+---
+
+## Overview
+
+The File API enables you to upload, manage, and organize files for use with AI agents and knowledge bases.
+
+## Upload File
+
+Create a file record after uploading to storage.
+
+```typescript
+const file = await client.file.createFile.mutate({
+  name: 'document.pdf',
+  fileType: 'application/pdf',
+  size: 1024000,
+  url: 'https://storage.example.com/files/document.pdf',
+  hash: 'abc123...',
+  knowledgeBaseId: 'kb_123', // optional
+});
+```
+
+<ParamField path="name" type="string" required>
+  File name
+</ParamField>
+
+<ParamField path="fileType" type="string" required>
+  MIME type
+</ParamField>
+
+<ParamField path="size" type="number" required>
+  File size in bytes
+</ParamField>
+
+<ParamField path="url" type="string" required>
+  File URL from storage service
+</ParamField>
+
+<ParamField path="hash" type="string" required>
+  File hash for deduplication
+</ParamField>
+
+<ParamField path="knowledgeBaseId" type="string" optional>
+  Knowledge base ID to add file to
+</ParamField>
+
+<ParamField path="parentId" type="string" optional>
+  Parent document/folder ID
+</ParamField>
+
+<ParamField path="metadata" type="object" optional>
+  Additional metadata
+</ParamField>
+
+**Response:**
+
+<ResponseField name="id" type="string">
+  File ID
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  Proxy URL (format: `/f/{id}`)
+</ResponseField>
+
+## Check File Hash
+
+Check if a file with the same hash already exists.
+
+```typescript
+const result = await client.file.checkFileHash.mutate({
+  hash: 'abc123...',
+});
+```
+
+<ParamField path="hash" type="string" required>
+  File hash
+</ParamField>
+
+**Response:**
+
+<ResponseField name="isExist" type="boolean">
+  Whether file exists
+</ResponseField>
+
+<ResponseField name="fileId" type="string">
+  Existing file ID (if exists)
+</ResponseField>
+
+## Get File by ID
+
+Retrieve file information.
+
+```typescript
+const file = await client.file.findById.query({
+  id: 'file_123',
+});
+```
+
+<ParamField path="id" type="string" required>
+  File ID
+</ParamField>
+
+**Response:**
+
+<ResponseField name="id" type="string">
+  File ID
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  File name
+</ResponseField>
+
+<ResponseField name="fileType" type="string">
+  MIME type
+</ResponseField>
+
+<ResponseField name="size" type="number">
+  File size in bytes
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  Proxy URL
+</ResponseField>
+
+<ResponseField name="fileHash" type="string">
+  File hash
+</ResponseField>
+
+<ResponseField name="metadata" type="object">
+  File metadata
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  Creation timestamp
+</ResponseField>
+
+<ResponseField name="updatedAt" type="string">
+  Last update timestamp
+</ResponseField>
+
+<ResponseField name="chunkTaskId" type="string">
+  Chunking task ID (if processing)
+</ResponseField>
+
+<ResponseField name="embeddingTaskId" type="string">
+  Embedding task ID (if processing)
+</ResponseField>
+
+## Get File Item
+
+Get file with processing status.
+
+```typescript
+const fileItem = await client.file.getFileItemById.query({
+  id: 'file_123',
+});
+```
+
+**Response:**
+
+<ResponseField name="id" type="string">
+  File ID
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  File name
+</ResponseField>
+
+<ResponseField name="fileType" type="string">
+  MIME type
+</ResponseField>
+
+<ResponseField name="size" type="number">
+  File size in bytes
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  Proxy URL
+</ResponseField>
+
+<ResponseField name="chunkCount" type="number">
+  Number of chunks created
+</ResponseField>
+
+<ResponseField name="chunkingStatus" type="string">
+  Chunking status ('pending', 'processing', 'success', 'error')
+</ResponseField>
+
+<ResponseField name="chunkingError" type="string">
+  Chunking error message (if failed)
+</ResponseField>
+
+<ResponseField name="embeddingStatus" type="string">
+  Embedding status ('pending', 'processing', 'success', 'error')
+</ResponseField>
+
+<ResponseField name="embeddingError" type="string">
+  Embedding error message (if failed)
+</ResponseField>
+
+<ResponseField name="finishEmbedding" type="boolean">
+  Whether embedding is complete
+</ResponseField>
+
+## Query Files
+
+List and filter files.
+
+```typescript
+const files = await client.file.getFiles.query({
+  knowledgeBaseId: 'kb_123',
+  keyword: 'report',
+  limit: 50,
+});
+```
+
+<ParamField path="knowledgeBaseId" type="string" optional>
+  Filter by knowledge base
+</ParamField>
+
+<ParamField path="keyword" type="string" optional>
+  Search keyword
+</ParamField>
+
+<ParamField path="limit" type="number" optional>
+  Number of results (default: 50)
+</ParamField>
+
+<ParamField path="offset" type="number" optional>
+  Pagination offset
+</ParamField>
+
+<ParamField path="showFilesInKnowledgeBase" type="boolean" optional>
+  Include files in knowledge bases (default: true)
+</ParamField>
+
+**Response:**
+
+<ResponseField name="items" type="array">
+  Array of file items (same structure as getFileItemById)
+</ResponseField>
+
+## Get Knowledge Items
+
+Get files and documents with pagination.
+
+```typescript
+const result = await client.file.getKnowledgeItems.query({
+  knowledgeBaseId: 'kb_123',
+  limit: 50,
+  offset: 0,
+});
+```
+
+**Response:**
+
+<ResponseField name="items" type="array">
+  Array of knowledge items (files and documents)
+</ResponseField>
+
+<ResponseField name="hasMore" type="boolean">
+  Whether more items are available
+</ResponseField>
+
+## Recent Files
+
+Get recently accessed files.
+
+```typescript
+const recentFiles = await client.file.recentFiles.query({
+  limit: 12,
+});
+```
+
+<ParamField path="limit" type="number" optional>
+  Number of files (default: 12)
+</ParamField>
+
+**Response:**
+
+<ResponseField name="items" type="array">
+  Array of recent file items
+</ResponseField>
+
+## Recent Pages
+
+Get recently accessed pages (documents).
+
+```typescript
+const recentPages = await client.file.recentPages.query({
+  limit: 12,
+});
+```
+
+**Response:**
+
+<ResponseField name="items" type="array">
+  Array of recent page items
+</ResponseField>
+
+## Update File
+
+Update file metadata.
+
+```typescript
+await client.file.updateFile.mutate({
+  id: 'file_123',
+  parentId: 'folder_456',
+});
+```
+
+<ParamField path="id" type="string" required>
+  File ID
+</ParamField>
+
+<ParamField path="parentId" type="string" optional>
+  Parent document/folder ID (null to move to root)
+</ParamField>
+
+## Remove File
+
+Delete a file.
+
+```typescript
+await client.file.removeFile.mutate({
+  id: 'file_123',
+});
+```
+
+<ParamField path="id" type="string" required>
+  File ID
+</ParamField>
+
+## Remove Multiple Files
+
+Delete multiple files.
+
+```typescript
+await client.file.removeFiles.mutate({
+  ids: ['file_1', 'file_2', 'file_3'],
+});
+```
+
+<ParamField path="ids" type="array" required>
+  Array of file IDs
+</ParamField>
+
+## Remove All Files
+
+Delete all user's files.
+
+```typescript
+await client.file.removeAllFiles.mutate();
+```
+
+## Remove File Async Task
+
+Cancel a file processing task.
+
+```typescript
+await client.file.removeFileAsyncTask.mutate({
+  id: 'file_123',
+  type: 'embedding', // or 'chunk'
+});
+```
+
+<ParamField path="id" type="string" required>
+  File ID
+</ParamField>
+
+<ParamField path="type" type="string" required>
+  Task type ('embedding' or 'chunk')
+</ParamField>
+
+## File Processing
+
+### Chunking
+
+When a file is uploaded, it's automatically chunked for RAG:
+
+1. File is split into chunks based on content type
+2. Chunking task is created with status 'pending'
+3. Background worker processes the file
+4. Status updates to 'processing', then 'success' or 'error'
+
+### Embedding
+
+After chunking, embeddings are generated:
+
+1. Embedding task is created for each chunk
+2. Background worker generates embeddings using configured model
+3. Embeddings are stored for semantic search
+4. Status updates to 'success' when complete
+
+### Monitoring Status
+
+Use `getFileItemById` to monitor processing status:
+
+```typescript
+const file = await client.file.getFileItemById.query({ id: 'file_123' });
+
+if (file.chunkingStatus === 'error') {
+  console.error('Chunking failed:', file.chunkingError);
+}
+
+if (file.finishEmbedding) {
+  console.log('File ready for RAG with', file.chunkCount, 'chunks');
+}
+```
+
+## File Storage
+
+LobeHub supports multiple storage backends:
+
+- **S3-compatible**: AWS S3, MinIO, Cloudflare R2
+- **Local filesystem**: For development
+
+Files are accessed via proxy URL (`/f/{id}`) which:
+- Checks user permissions
+- Redirects to actual storage URL
+- Handles authentication
+
+## Supported File Types
+
+### Documents
+- PDF (.pdf)
+- Word (.doc, .docx)
+- Text (.txt, .md)
+- HTML (.html)
+
+### Images
+- JPEG (.jpg, .jpeg)
+- PNG (.png)
+- GIF (.gif)
+- WebP (.webp)
+
+### Code
+- JavaScript (.js, .jsx)
+- TypeScript (.ts, .tsx)
+- Python (.py)
+- JSON (.json)
+
+### Other
+- CSV (.csv)
+- XML (.xml)
+- YAML (.yml, .yaml)
+
+Note: Image files are not included in knowledge base queries by default.

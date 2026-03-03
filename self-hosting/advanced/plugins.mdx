@@ -1,0 +1,419 @@
+---
+title: Plugin Configuration for Self-Hosted LobeHub
+description: Configure and manage plugins in your self-hosted LobeHub deployment, including custom plugins and plugin settings.
+tags:
+  - Plugins
+  - Configuration
+  - Custom Plugins
+  - Function Calling
+---
+
+# Plugin Configuration
+
+LobeHub's plugin system extends your AI assistant's capabilities with tools for web search, code execution, API integration, and more. This guide covers plugin configuration for self-hosted deployments.
+
+## Plugin System Overview
+
+LobeHub plugins use the Function Calling API to enable AI assistants to interact with external services and tools. The plugin system is compatible with ChatGPT plugins and supports custom plugin development.
+
+**Key features:**
+
+- Function Calling support for compatible models
+- Custom plugin installation
+- ChatGPT plugin compatibility
+- Granular control via feature flags
+
+## Enabling Plugins
+
+### Global Plugin Control
+
+Plugins are enabled by default but can be controlled via the `FEATURE_FLAGS` environment variable:
+
+```bash
+# Enable plugins (default)
+FEATURE_FLAGS="+plugins"
+
+# Disable plugins globally
+FEATURE_FLAGS="-plugins"
+```
+
+<Warning>
+  Disabling plugins will remove plugin functionality from both chat interfaces and agent settings across your entire deployment.
+</Warning>
+
+### Model Requirements
+
+Plugins require models with Function Calling support. When configuring custom models, include the `fc` capability:
+
+```bash
+# Model with Function Calling enabled
+OPENAI_MODEL_LIST="gpt-4-turbo=GPT-4 Turbo<128000:fc:vision>"
+
+# Model without Function Calling (plugins won't work)
+OPENAI_MODEL_LIST="gpt-3.5=GPT-3.5<16000>"  # ❌ No 'fc' flag
+```
+
+See the [Custom Models](/docs/self-hosting/advanced/custom-models) guide for more on model capabilities.
+
+## Built-in Plugin Configuration
+
+### DALL-E Image Generation
+
+Control DALL-E image generation separately:
+
+```bash
+# Enable DALL-E (default)
+FEATURE_FLAGS="+dalle"
+
+# Disable DALL-E
+FEATURE_FLAGS="-dalle"
+
+# Disable all AI image features (including DALL-E)
+FEATURE_FLAGS="-ai_image"
+```
+
+**Configuration example:**
+
+```bash
+# Enable plugins but disable DALL-E
+FEATURE_FLAGS="+plugins,-dalle"
+```
+
+### Web Search Plugins
+
+For models with built-in search capabilities, use the `search` extension flag:
+
+```bash
+# Qwen Max with web search
+OPENAI_MODEL_LIST="qwen-max-latest=Qwen Max<32768:search:fc>"
+
+# Perplexity models (search-optimized)
+ENABLED_PERPLEXITY=1
+PERPLEXITY_API_KEY="pplx-..."
+PERPLEXITY_MODEL_LIST="+sonar-medium-online=Perplexity Sonar<16000:search:fc>"
+```
+
+## Custom Plugin Installation
+
+### Installing via Plugin Manifest
+
+Users can install custom plugins using a manifest URL:
+
+<Steps>
+  ### Obtain Plugin Manifest URL
+  
+  Custom LobeHub plugins use the format:
+  ```
+  https://your-plugin-domain.com/manifest.json
+  ```
+  
+  ChatGPT plugins use:
+  ```
+  https://your-plugin-domain.com/.well-known/ai-plugin.json
+  ```
+  
+  ### Install Through UI
+  
+  1. Navigate to plugin settings in LobeHub
+  2. Click "Custom Plugin"
+  3. Enter the manifest URL
+  4. Click "Install"
+  
+  ### Example Plugin URLs
+  
+  Try these example plugins:
+  
+  ```bash
+  # LobeHub plugin example
+  https://lobe-plugin-mock-credit-card.vercel.app/manifest.json
+  
+  # ChatGPT plugin example
+  https://www.accesslinks.ai/.well-known/ai-plugin.json
+  ```
+</Steps>
+
+<Callout type="info">
+  Custom plugins must be installed per user. There is currently no server-side configuration to pre-install plugins for all users.
+</Callout>
+
+### Plugin Manifest Structure
+
+A basic LobeHub plugin manifest:
+
+```json
+{
+  "api": {
+    "url": "https://api.your-plugin.com/openapi.json",
+    "type": "openapi"
+  },
+  "identifier": "your-plugin-id",
+  "ui": {
+    "url": "https://your-plugin.com",
+    "height": 200
+  },
+  "version": "1.0.0",
+  "settings": {
+    "properties": {
+      "apiKey": {
+        "type": "string",
+        "title": "API Key",
+        "description": "Enter your API key",
+        "format": "password"
+      }
+    },
+    "required": ["apiKey"]
+  }
+}
+```
+
+## Plugin Development
+
+### Development Environment Setup
+
+To develop custom plugins for your self-hosted deployment:
+
+<Steps>
+  ### Create Plugin Project
+  
+  ```bash
+  # Use the LobeHub plugin template
+  git clone https://github.com/lobehub/lobe-chat-plugin-template
+  cd lobe-chat-plugin-template
+  npm install
+  ```
+  
+  ### Define Plugin Functionality
+  
+  Create an OpenAPI specification for your plugin endpoints:
+  
+  ```yaml
+  openapi: 3.0.0
+  info:
+    title: My Custom Plugin
+    version: 1.0.0
+  paths:
+    /api/search:
+      post:
+        operationId: searchDatabase
+        summary: Search internal database
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  query:
+                    type: string
+                    description: Search query
+  ```
+  
+  ### Deploy Plugin
+  
+  Deploy your plugin to a publicly accessible URL:
+  
+  ```bash
+  # Deploy to Vercel
+  vercel deploy --prod
+  ```
+  
+  ### Install in LobeHub
+  
+  Use the deployed manifest URL to install your plugin.
+</Steps>
+
+For comprehensive plugin development guides, see:
+
+- [Plugin Development Documentation](https://github.com/lobehub/lobe-chat-plugins)
+- [Plugin SDK Reference](https://github.com/lobehub/chat-plugin-sdk)
+
+## Advanced Plugin Configuration
+
+### Restricting Plugin Access
+
+Control which features are available to users:
+
+```bash
+# Disable custom plugin installation
+# (Only pre-installed plugins available)
+FEATURE_FLAGS="+plugins,-edit_agent"
+
+# Disable all plugin functionality
+FEATURE_FLAGS="-plugins"
+
+# Allow plugins but restrict agent editing
+FEATURE_FLAGS="+plugins,-edit_agent"
+```
+
+### Plugin Settings for Team Deployments
+
+For team or enterprise deployments:
+
+```bash
+# Recommended configuration for controlled environments
+FEATURE_FLAGS="+plugins,-market,-edit_agent"
+
+# This configuration:
+# ✓ Enables plugins
+# ✗ Disables public market (use pre-configured agents only)
+# ✗ Prevents users from modifying agents
+```
+
+### Knowledge Base Integration
+
+If using the knowledge base feature with plugins:
+
+```bash
+# Enable knowledge base for RAG (Retrieval Augmented Generation)
+FEATURE_FLAGS="+knowledge_base,+plugins"
+
+# Requires S3 storage configuration
+S3_ENDPOINT="https://s3.amazonaws.com"
+S3_BUCKET="your-bucket-name"
+S3_ACCESS_KEY_ID="..."
+S3_SECRET_ACCESS_KEY="..."
+```
+
+See [S3 Storage Configuration](/docs/self-hosting/environment-variables/s3) for details.
+
+## Troubleshooting
+
+<Accordion title="Plugins not appearing in chat">
+  **Check these items:**
+  
+  1. **Feature flag enabled:**
+     ```bash
+     FEATURE_FLAGS="+plugins"  # Ensure plugins are enabled
+     ```
+  
+  2. **Model supports Function Calling:**
+     ```bash
+     # Model must have 'fc' capability
+     OPENAI_MODEL_LIST="gpt-4=GPT-4<8192:fc>"
+     ```
+  
+  3. **Plugin properly installed:**
+     - Check plugin manifest URL is accessible
+     - Verify manifest JSON is valid
+     - Confirm OpenAPI spec is correctly formatted
+</Accordion>
+
+<Accordion title="Custom plugin installation fails">
+  **Common issues:**
+  
+  1. **CORS errors** - Plugin API must allow LobeHub origin:
+     ```javascript
+     // Plugin server should include:
+     res.setHeader('Access-Control-Allow-Origin', '*');
+     ```
+  
+  2. **Invalid manifest** - Validate JSON:
+     ```bash
+     curl https://your-plugin.com/manifest.json | jq .
+     ```
+  
+  3. **HTTPS required** - Plugin URLs must use HTTPS in production
+  
+  4. **OpenAPI spec errors** - Validate OpenAPI specification:
+     ```bash
+     # Use Swagger validator
+     curl https://validator.swagger.io/validator/debug?url=https://your-plugin.com/openapi.json
+     ```
+</Accordion>
+
+<Accordion title="Plugin calls timeout or fail">
+  **Debugging steps:**
+  
+  1. **Check plugin endpoint accessibility:**
+     ```bash
+     curl -X POST https://your-plugin.com/api/endpoint \
+       -H "Content-Type: application/json" \
+       -d '{"test": "data"}'
+     ```
+  
+  2. **Verify API key/authentication** (if required)
+  
+  3. **Check LobeHub logs:**
+     ```bash
+     docker logs lobe-chat | grep -i "plugin"
+     ```
+  
+  4. **Increase timeout** (for slow plugins):
+     - This is typically configured in the plugin's OpenAPI spec
+     - For Vercel deployments, see [timeout troubleshooting](/docs/self-hosting/advanced/troubleshooting#vercel-timeouts)
+</Accordion>
+
+<Accordion title="DALL-E image generation not working">
+  **Verification:**
+  
+  1. **Feature enabled:**
+     ```bash
+     FEATURE_FLAGS="+dalle,+ai_image"
+     ```
+  
+  2. **OpenAI API key has access:**
+     ```bash
+     # Test DALL-E access
+     curl https://api.openai.com/v1/images/generations \
+       -H "Authorization: Bearer $OPENAI_API_KEY" \
+       -H "Content-Type: application/json" \
+       -d '{
+         "prompt": "a white siamese cat",
+         "n": 1,
+         "size": "1024x1024"
+       }'
+     ```
+  
+  3. **For Vercel deployments** - Enable Fluid Compute to avoid timeouts (see [troubleshooting guide](/docs/self-hosting/advanced/troubleshooting))
+</Accordion>
+
+## Best Practices
+
+<Steps>
+  ### Security Considerations
+  
+  - **Vet custom plugins** before installation
+  - **Use HTTPS** for all plugin endpoints
+  - **Implement authentication** for sensitive plugin APIs
+  - **Sanitize inputs** in plugin code to prevent injection attacks
+  
+  ### Performance Optimization
+  
+  - **Cache plugin responses** when appropriate
+  - **Set reasonable timeouts** in OpenAPI specs
+  - **Use async operations** for long-running plugin tasks
+  - **Monitor plugin performance** and disable slow/problematic plugins
+  
+  ### Team Deployments
+  
+  For controlled enterprise environments:
+  
+  ```bash
+  # Lock down plugin configuration
+  FEATURE_FLAGS="+plugins,-market,-edit_agent,-create_session"
+  
+  # Pre-configure models with necessary capabilities
+  OPENAI_MODEL_LIST="-all,+gpt-4-company=Company GPT-4<128000:fc:vision>"
+  ```
+  
+  ### Testing Plugins
+  
+  Always test plugins before production deployment:
+  
+  ```bash
+  # Development environment
+  docker run -d \
+    -p 3210:3210 \
+    -e OPENAI_API_KEY="sk-test..." \
+    -e FEATURE_FLAGS="+plugins" \
+    --name lobe-chat-plugin-test \
+    lobehub/lobe-chat
+  ```
+</Steps>
+
+## Reference
+
+- [Feature Flags Configuration](/docs/self-hosting/advanced/feature-flags)
+- [Custom Models Guide](/docs/self-hosting/advanced/custom-models)
+- [Plugin Development Guide](https://github.com/lobehub/lobe-chat-plugins)
+- [Plugin SDK Documentation](https://github.com/lobehub/chat-plugin-sdk)

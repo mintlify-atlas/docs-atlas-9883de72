@@ -1,0 +1,392 @@
+---
+title: MCP Plugin System
+description: Extend your AI with 10,000+ tools through the Model Context Protocol
+---
+
+The Model Context Protocol (MCP) plugin system is LobeHub's framework for connecting your AI agents to external tools, data sources, and services. With MCP, your agents can interact with databases, APIs, file systems, development tools, and more—transforming conversations into powerful workflows.
+
+## What is MCP?
+
+MCP (Model Context Protocol) is an open protocol that enables AI models to securely access external context and tools. Think of it as a universal adapter that lets your AI:
+
+- **Read and search** files, databases, and documentation
+- **Execute actions** like running code, managing tasks, or sending notifications
+- **Access real-time data** from APIs, web services, and local applications
+- **Integrate with tools** you already use daily
+
+LobeHub's implementation breaks down barriers between your AI and the digital ecosystem, enabling unprecedented connectivity and functionality.
+
+## Key Features
+
+- **10,000+ Available Tools**: Massive library of pre-built integrations
+- **One-Click Installation**: Install plugins directly from the marketplace
+- **Secure by Design**: Controlled permissions and data access
+- **Dynamic Discovery**: Plugins automatically expose available tools
+- **Cross-Platform**: Works in web, desktop, and self-hosted environments
+- **Open Standard**: Based on Anthropic's Model Context Protocol
+
+## MCP Marketplace
+
+Explore the [LobeHub MCP Marketplace](https://lobehub.com/mcp) to discover plugins across categories:
+
+- **Development**: GitHub, GitLab, Linear, Jira, VS Code
+- **Productivity**: Google Drive, Notion, Slack, Trello, Asana
+- **Data & Analytics**: PostgreSQL, MongoDB, Redis, Elasticsearch
+- **Cloud Services**: AWS, Google Cloud, Azure, Cloudflare
+- **File Systems**: Local files, Dropbox, OneDrive, S3
+- **Communication**: Email, SMS, Discord, Telegram
+- **Search & Knowledge**: Web search, Wikipedia, documentation sites
+- **Media**: Image processing, video tools, audio transcription
+
+## Installing MCP Plugins
+
+### One-Click Installation (Desktop App)
+
+The LobeHub Desktop application provides the easiest way to install MCP plugins:
+
+1. Open the **MCP Marketplace** from the sidebar
+2. Browse or search for plugins
+3. Click **Install** on your desired plugin
+4. Configure any required settings (API keys, permissions)
+5. The plugin is immediately available to all agents
+
+### Manual Installation (Self-Hosted)
+
+For self-hosted deployments, install MCP servers manually:
+
+<Accordion title="Installing a Local MCP Server">
+**Example: Installing the File System MCP Server**
+
+1. **Install the MCP server package:**
+   ```bash
+   npm install -g @modelcontextprotocol/server-filesystem
+   ```
+
+2. **Configure in LobeHub settings:**
+   
+   Add to your MCP configuration file or environment:
+   ```json
+   {
+     "mcpServers": {
+       "filesystem": {
+         "command": "mcp-server-filesystem",
+         "args": ["/path/to/allowed/directory"],
+         "type": "stdio"
+       }
+     }
+   }
+   ```
+
+3. **Restart LobeHub** to load the new plugin
+
+4. **Verify** the plugin appears in your tools list
+</Accordion>
+
+<Accordion title="Installing an HTTP MCP Server">
+**Example: GitHub MCP Server**
+
+1. **Deploy the MCP server** (self-hosted or cloud)
+
+2. **Configure the HTTP endpoint:**
+   ```json
+   {
+     "mcpServers": {
+       "github": {
+         "url": "https://mcp-server-github.example.com",
+         "type": "http",
+         "headers": {
+           "Authorization": "Bearer YOUR_GITHUB_TOKEN"
+         }
+       }
+     }
+   }
+   ```
+
+3. **Test the connection** using the MCP diagnostic tool
+</Accordion>
+
+### Configuration File Location
+
+MCP configuration files are stored in:
+
+- **Desktop App**: Managed through UI, stored in app data directory
+- **Self-Hosted**: `config/mcp.json` or via `MCP_CONFIG` environment variable
+- **Docker**: Mount configuration as volume
+
+## Using MCP Plugins
+
+Once installed, MCP plugins automatically expose their tools to your agents:
+
+### Enabling Plugins for an Agent
+
+1. Open **Agent Settings**
+2. Navigate to **Tools & Plugins**
+3. Select which MCP plugins this agent can access
+4. Save configuration
+
+### Using Tools in Conversation
+
+Agents automatically use MCP tools when relevant:
+
+```
+You: Search my project files for the authentication code
+Agent: I'll search your files for authentication-related code.
+[Agent uses filesystem MCP to search]
+Agent: I found the authentication code in src/auth/login.ts...
+```
+
+### Tool Invocation
+
+MCP tools are invoked through function calling:
+
+- Agent determines when a tool is needed
+- Requests tool execution from MCP server
+- Receives results and incorporates into response
+- User sees the outcome seamlessly
+
+## Popular MCP Plugins
+
+<AccordionGroup>
+  <Accordion title="File System Access">
+    **Plugin**: `@modelcontextprotocol/server-filesystem`
+
+    **Capabilities:**
+    - Read files and directories
+    - Search file contents
+    - Create, update, delete files
+    - Navigate directory structures
+
+    **Use Cases:**
+    - Code review and analysis
+    - Documentation search
+    - Project file management
+    - Log file analysis
+
+    **Setup:**
+    ```bash
+    npm install -g @modelcontextprotocol/server-filesystem
+    ```
+
+    **Security**: Restricts access to specified directories only
+  </Accordion>
+
+  <Accordion title="GitHub Integration">
+    **Plugin**: `mcp-server-github`
+
+    **Capabilities:**
+    - Search repositories and code
+    - Create and manage issues
+    - Review pull requests
+    - Access file contents
+    - Check workflows and actions
+
+    **Use Cases:**
+    - Project management assistance
+    - Code review automation
+    - Issue triage and labeling
+    - Release management
+
+    **Required**: GitHub personal access token
+  </Accordion>
+
+  <Accordion title="Database Access">
+    **Plugin**: `mcp-server-postgres` / `mcp-server-mysql`
+
+    **Capabilities:**
+    - Query databases
+    - Analyze schemas
+    - Generate reports
+    - Explain query plans
+
+    **Use Cases:**
+    - Data analysis
+    - Schema exploration
+    - Query optimization
+    - Report generation
+
+    **Security**: Read-only mode recommended
+  </Accordion>
+
+  <Accordion title="Web Search">
+    **Plugin**: `mcp-server-brave-search` / `mcp-server-google-search`
+
+    **Capabilities:**
+    - Real-time web search
+    - News and current events
+    - Fact verification
+    - Research assistance
+
+    **Use Cases:**
+    - Up-to-date information
+    - Research and fact-checking
+    - News monitoring
+    - Competitive analysis
+
+    **Required**: API key from search provider
+  </Accordion>
+
+  <Accordion title="Slack Integration">
+    **Plugin**: `mcp-server-slack`
+
+    **Capabilities:**
+    - Send messages to channels
+    - Read conversation history
+    - Search messages
+    - Manage notifications
+
+    **Use Cases:**
+    - Team notifications
+    - Automated reporting
+    - Incident management
+    - Bot interactions
+
+    **Required**: Slack bot token with appropriate scopes
+  </Accordion>
+</AccordionGroup>
+
+## Developing Custom MCP Plugins
+
+Create your own MCP plugins to integrate proprietary systems:
+
+### Quick Start
+
+```typescript
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+
+// Create MCP server
+const server = new Server(
+  {
+    name: 'my-custom-tool',
+    version: '1.0.0',
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Define a tool
+server.setRequestHandler('tools/list', async () => {
+  return {
+    tools: [
+      {
+        name: 'search_database',
+        description: 'Search the company database',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Search query',
+            },
+          },
+          required: ['query'],
+        },
+      },
+    ],
+  };
+});
+
+// Handle tool calls
+server.setRequestHandler('tools/call', async (request) => {
+  if (request.params.name === 'search_database') {
+    const results = await performSearch(request.params.arguments.query);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(results),
+        },
+      ],
+    };
+  }
+});
+
+// Start server
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+### Publishing Your Plugin
+
+1. Create npm package with your MCP server
+2. Submit to [LobeHub Plugin Index](https://github.com/lobehub/lobe-chat-plugins)
+3. Include documentation and examples
+4. Plugin appears in marketplace after review
+
+## Security & Permissions
+
+MCP plugins operate with controlled permissions:
+
+### Permission Model
+
+- **Explicit Approval**: Users approve tool access per agent
+- **Scoped Access**: Plugins only access specified resources
+- **Audit Logging**: Track all tool invocations
+- **Revocable**: Disable plugins anytime
+
+### Best Practices
+
+- **Principle of Least Privilege**: Only grant necessary permissions
+- **Regular Audits**: Review active plugins and their usage
+- **API Key Rotation**: Regularly rotate credentials
+- **Monitor Usage**: Track plugin behavior for anomalies
+- **Test in Isolation**: Verify new plugins before production use
+
+## Environment Configuration
+
+Configure MCP behavior with environment variables:
+
+```bash
+# Plugin timeout (milliseconds)
+MCP_TOOL_TIMEOUT=30000
+
+# Enable MCP debug logging
+DEBUG_MCP=1
+
+# MCP configuration file path
+MCP_CONFIG=/path/to/mcp-config.json
+```
+
+## Troubleshooting
+
+### Plugin Not Appearing
+
+- Verify MCP server is running
+- Check configuration file syntax
+- Review server logs for errors
+- Ensure required dependencies are installed
+
+### Tool Call Failures
+
+- Check API credentials are valid
+- Verify network connectivity
+- Review permission scopes
+- Increase timeout if needed: `MCP_TOOL_TIMEOUT=60000`
+
+### Connection Issues
+
+- **STDIO plugins**: Check command path and arguments
+- **HTTP plugins**: Verify URL and headers
+- **Authentication**: Confirm tokens/credentials are correct
+
+### Debugging
+
+Enable debug mode to see detailed MCP communication:
+
+```bash
+DEBUG_MCP=1 npm start
+```
+
+Check logs in:
+- **Desktop**: Help > View Logs
+- **Self-hosted**: Application log directory
+
+## Next Steps
+
+- Browse the [MCP Marketplace](https://lobehub.com/mcp) for plugins
+- Review [MCP Protocol Specification](https://modelcontextprotocol.io/)
+- Learn about [Desktop App](/integrations/desktop-app) for enhanced MCP support
+- Explore [Plugin Development Guide](https://lobehub.com/docs/usage/plugins/development)

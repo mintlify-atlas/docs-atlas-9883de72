@@ -1,0 +1,418 @@
+---
+title: Desktop Application
+description: Native desktop experience with peak performance and zero distractions
+---
+
+The LobeHub Desktop application brings the full power of LobeHub to your desktop with native performance, enhanced functionality, and a distraction-free environment. Built with Electron, it provides a comprehensive, focused workspace for your AI agent collaboration.
+
+## Why Use the Desktop App?
+
+The desktop application offers several advantages over the web version:
+
+- **Peak Performance**: Optimized resource management and faster response times
+- **Zero Distractions**: Dedicated environment without browser tabs and notifications
+- **Enhanced Privacy**: Data stored locally with optional encryption
+- **Native Integration**: Deep OS integration with menus, shortcuts, and notifications
+- **Offline Capability**: Continue working with local models when offline
+- **Advanced Features**: MCP plugin system, file access, system integration
+- **Better Stability**: More stable connection to AI services
+- **Multi-Window Support**: Work with multiple agents simultaneously
+
+## Features
+
+### Cross-Platform Support
+
+- **macOS**: Intel and Apple Silicon (M1/M2/M3) native builds
+- **Windows**: Windows 10 and 11 (64-bit)
+- **Linux**: AppImage and Debian packages
+
+### Auto-Updates
+
+Built-in update mechanism ensures you always have the latest features:
+
+- **Stable Channel**: Thoroughly tested releases
+- **Beta Channel**: Pre-release features
+- **Nightly Channel**: Daily builds with cutting-edge changes
+
+### Native Features
+
+<AccordionGroup>
+  <Accordion title="System Integration">
+    **Native Menus**
+    - Platform-specific application menus (macOS, Windows, Linux)
+    - Context menus with clipboard operations
+    - Menu bar integration on macOS
+
+    **Global Shortcuts**
+    - Quick access from anywhere in the OS
+    - Customizable keyboard shortcuts
+    - Conflict detection and resolution
+
+    **System Tray**
+    - Background operation (Windows/Linux)
+    - Quick actions from tray menu
+    - Status indicators
+
+    **Notifications**
+    - Native OS notifications
+    - Action buttons in notifications
+    - Notification history
+  </Accordion>
+
+  <Accordion title="Window Management">
+    **Multi-Window Architecture**
+    - Main chat window
+    - Dedicated settings window
+    - Developer tools window
+    - Independent window positioning
+
+    **Theme Synchronization**
+    - Automatic theme sync across windows
+    - System dark/light mode detection
+    - Per-window theme overrides
+
+    **Window State Persistence**
+    - Remembers window size and position
+    - Restores previous session state
+    - Multi-monitor support
+  </Accordion>
+
+  <Accordion title="File System Access">
+    **Local File Operations**
+    - Direct file system access
+    - Drag-and-drop file uploads
+    - Local file serving
+    - Secure file permissions
+
+    **Knowledge Base Integration**
+    - Index local documents
+    - Search file contents
+    - Create file-based knowledge bases
+    - Watch directories for changes
+  </Accordion>
+
+  <Accordion title="MCP Plugin System">
+    **One-Click Installation**
+    - Browse MCP marketplace
+    - Install plugins with one click
+    - Automatic dependency management
+    - Configuration UI for plugins
+
+    **Plugin Management**
+    - Enable/disable plugins per agent
+    - Update plugins automatically
+    - Plugin permissions control
+    - Usage monitoring
+
+    **Local MCP Servers**
+    - Run MCP servers locally
+    - STDIO and HTTP server support
+    - Secure token storage
+    - Connection testing tools
+  </Accordion>
+</AccordionGroup>
+
+### Advanced Capabilities
+
+- **Remote Server Sync**: Securely synchronize with remote LobeHub instances
+- **OAuth Authentication**: Secure OAuth 2.0 + PKCE authentication flow
+- **Encrypted Storage**: Sensitive data encrypted using OS keychain
+- **Developer Tools**: Built-in debugging and development panel
+- **Network Proxy**: Configure HTTP/HTTPS/SOCKS5 proxies
+- **Custom Protocol Handler**: Handle `lobehub://` URLs
+
+## Installation
+
+### macOS
+
+**Download Options:**
+- [Download from GitHub Releases](https://github.com/lobehub/lobe-chat/releases)
+- Universal binary supports Intel and Apple Silicon
+
+**Installation Steps:**
+
+1. Download `LobeHub-${version}-darwin-universal.dmg`
+2. Open the DMG file
+3. Drag LobeHub to Applications folder
+4. Launch from Applications
+5. If prompted about unidentified developer:
+   - Open System Preferences > Security & Privacy
+   - Click "Open Anyway"
+
+**First Launch:**
+- macOS may verify the app on first launch
+- The application is notarized by Apple for security
+
+### Windows
+
+**Download Options:**
+- [Download from GitHub Releases](https://github.com/lobehub/lobe-chat/releases)
+- 64-bit installer for Windows 10/11
+
+**Installation Steps:**
+
+1. Download `LobeHub-Setup-${version}.exe`
+2. Run the installer
+3. Follow the installation wizard
+4. Launch LobeHub from Start Menu or Desktop
+
+**Auto-Update:**
+- Updates install automatically in the background
+- Restart when prompted to complete update
+
+### Linux
+
+**AppImage (Universal):**
+
+1. Download `LobeHub-${version}.AppImage`
+2. Make executable: `chmod +x LobeHub-${version}.AppImage`
+3. Run: `./LobeHub-${version}.AppImage`
+
+**Debian/Ubuntu:**
+
+1. Download `LobeHub-${version}.deb`
+2. Install: `sudo dpkg -i LobeHub-${version}.deb`
+3. Launch: `lobehub`
+
+## Configuration
+
+### Settings Location
+
+Desktop app settings are stored in:
+
+- **macOS**: `~/Library/Application Support/LobeHub/`
+- **Windows**: `%APPDATA%\LobeHub\`
+- **Linux**: `~/.config/LobeHub/`
+
+### Environment Variables
+
+Configure behavior via `.env` file in app directory:
+
+```bash
+# API Keys
+OPENAI_API_KEY=sk-xxxxx
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+
+# MCP Configuration
+MCP_TOOL_TIMEOUT=30000
+DEBUG_MCP=1
+
+# Network
+HTTP_PROXY=http://proxy.example.com:8080
+HTTPS_PROXY=https://proxy.example.com:8080
+
+# Updates
+ELECTRON_UPDATE_CHANNEL=stable  # or beta, nightly
+```
+
+### Remote Server Sync
+
+Connect desktop app to self-hosted instance:
+
+1. Open **Settings > Data Sync**
+2. Click **Connect to Remote Server**
+3. Enter your server URL
+4. Authenticate via OAuth
+5. Choose sync options (messages, agents, settings)
+6. Data syncs automatically
+
+## Release Channels
+
+Choose the update channel that fits your needs:
+
+| Channel | Description | Stability | Updates |
+|---------|-------------|-----------|----------|
+| **Stable** | Production-ready releases | High | Every 2-4 weeks |
+| **Beta** | Pre-release testing | Medium | Weekly |
+| **Nightly** | Latest development builds | Low | Daily |
+
+**Switching Channels:**
+
+1. Open Settings > Advanced
+2. Select desired channel
+3. Restart application
+4. Update downloads automatically
+
+## Keyboard Shortcuts
+
+### Global Shortcuts
+
+| Action | macOS | Windows/Linux |
+|--------|-------|---------------|
+| Show/Hide App | `⌘ + Shift + L` | `Ctrl + Shift + L` |
+| New Conversation | `⌘ + N` | `Ctrl + N` |
+| Settings | `⌘ + ,` | `Ctrl + ,` |
+
+### In-App Shortcuts
+
+| Action | macOS | Windows/Linux |
+|--------|-------|---------------|
+| Send Message | `⌘ + Enter` | `Ctrl + Enter` |
+| New Line | `Shift + Enter` | `Shift + Enter` |
+| Search | `⌘ + F` | `Ctrl + F` |
+| Toggle Sidebar | `⌘ + B` | `Ctrl + B` |
+| Developer Tools | `⌘ + Alt + I` | `Ctrl + Shift + I` |
+
+**Customize Shortcuts:**
+- Settings > Keyboard Shortcuts
+- Click on shortcut to record new binding
+- Conflicts are detected automatically
+
+## Developer Features
+
+### Development Mode
+
+For developers contributing to LobeHub:
+
+```bash
+# Clone repository
+git clone https://github.com/lobehub/lobe-chat.git
+cd lobe-chat/apps/desktop
+
+# Install dependencies
+pnpm install
+
+# Start development
+pnpm dev
+
+# Build for production
+pnpm build:main
+pnpm package:local
+```
+
+### Developer Tools
+
+Access Chrome DevTools:
+- **macOS**: `⌘ + Option + I`
+- **Windows/Linux**: `Ctrl + Shift + I`
+- Or: Help > Toggle Developer Tools
+
+### Debug Logging
+
+Enable debug logs:
+
+```bash
+# Set environment variable
+DEBUG=lobe:* 
+
+# View logs
+# macOS/Linux: ~/Library/Logs/LobeHub/
+# Windows: %USERPROFILE%\AppData\Roaming\LobeHub\logs\
+```
+
+## Architecture
+
+The desktop app uses a sophisticated architecture:
+
+### Main Process
+
+- **App Core**: Application lifecycle management
+- **Browser Manager**: Multi-window coordination
+- **IPC System**: Type-safe inter-process communication
+- **Controllers**: Handle renderer requests (Auth, Windows, MCP, etc.)
+- **Services**: Business logic (File Search, Content Search)
+
+### Renderer Process
+
+- **React Application**: Full LobeHub web interface
+- **Vite SPA**: Hot module replacement for development
+- **IPC Client**: Type-safe calls to main process
+
+### Preload Scripts
+
+- **Bridge Layer**: Secure communication between processes
+- **API Exposure**: Expose limited Electron APIs to renderer
+- **Security**: Implements context isolation
+
+## Security
+
+### Application Security
+
+- **Code Signing**: macOS app notarized by Apple
+- **Sandboxing**: Controlled system resource access
+- **Content Security Policy**: Prevents XSS attacks
+- **Context Isolation**: Renderer process isolation
+
+### Data Security
+
+- **Encrypted Storage**: API keys encrypted using OS keychain (macOS Keychain, Windows Credential Vault, Linux Secret Service)
+- **Secure OAuth**: PKCE flow for authentication
+- **Local First**: Data stays on your device by default
+- **HTTPS Only**: All network requests use HTTPS
+
+## Performance Optimization
+
+The desktop app is optimized for performance:
+
+- **Native Modules**: Platform-specific optimizations
+- **Resource Management**: Efficient memory and CPU usage
+- **Background Processing**: Non-blocking operations
+- **Lazy Loading**: Load resources on demand
+- **Caching**: Intelligent caching strategies
+
+## Troubleshooting
+
+### App Won't Launch
+
+**macOS:**
+- Check Security & Privacy settings
+- Verify app is in Applications folder
+- Remove quarantine: `xattr -cr /Applications/LobeHub.app`
+
+**Windows:**
+- Run as Administrator
+- Check Windows Defender exceptions
+- Reinstall from official source
+
+**Linux:**
+- Verify AppImage is executable
+- Check missing dependencies: `ldd LobeHub.AppImage`
+- Install required libraries
+
+### Auto-Update Failures
+
+- Check internet connection
+- Verify firewall allows app updates
+- Manually download latest version
+- Check logs for specific errors
+
+### MCP Plugins Not Working
+
+- Verify plugin installation completed
+- Check plugin configuration
+- Review MCP server logs
+- Test connection in Settings > MCP
+
+### Performance Issues
+
+- Clear cache: Settings > Advanced > Clear Cache
+- Disable unused plugins
+- Check for system resource constraints
+- Update to latest version
+
+## FAQ
+
+**Q: Is the desktop app free?**
+A: Yes, completely free and open-source.
+
+**Q: Does it work offline?**
+A: Yes, with local models (Ollama, LM Studio).
+
+**Q: Can I use multiple accounts?**
+A: Yes, through profile management in Settings.
+
+**Q: How do updates work?**
+A: Automatic background downloads, install on restart.
+
+**Q: Is my data synced to the cloud?**
+A: Only if you enable remote server sync. Otherwise, all data is local.
+
+**Q: Can I use custom MCP plugins?**
+A: Yes, install any MCP-compatible server.
+
+## Next Steps
+
+- Download the [Desktop App](https://github.com/lobehub/lobe-chat/releases)
+- Explore [MCP Plugins](/integrations/mcp-plugins) for extending capabilities
+- Configure [AI Providers](/integrations/ai-providers) for model access
+- Review [Desktop Development Guide](https://github.com/lobehub/lobe-chat/blob/main/apps/desktop/Development.md) for contributors

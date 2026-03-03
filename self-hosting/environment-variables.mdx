@@ -1,0 +1,567 @@
+---
+title: Environment variables
+description: Complete reference of all environment variables for configuring LobeHub
+---
+
+This page documents all environment variables available for configuring your LobeHub deployment. Variables are organized by category for easy reference.
+
+## Core configuration
+
+### Security
+
+<ParamField path="KEY_VAULTS_SECRET" type="string" required>
+  Encryption key for sensitive data stored in the database. Must be a base64-encoded 32-byte key.
+  
+  **Generate**:
+  ```bash
+  openssl rand -base64 32
+  ```
+  
+  <Warning>
+    Never commit this to version control. Changing this key will invalidate all encrypted data.
+  </Warning>
+</ParamField>
+
+<ParamField path="AUTH_SECRET" type="string" required>
+  Secret key for Better Auth session encryption and JWT signing.
+  
+  **Generate**:
+  ```bash
+  openssl rand -hex 32
+  ```
+</ParamField>
+
+<ParamField path="ENABLED_CSP" type="string" default="0">
+  Enable Content Security Policy headers (`1`) or disable (`0`).
+</ParamField>
+
+<ParamField path="SSRF_ALLOW_PRIVATE_IP_ADDRESS" type="string" default="0">
+  Allow connections to private IP addresses. Set to `1` to disable SSRF protection.
+  
+  <Warning>
+    Only enable in trusted environments. This can expose internal services.
+  </Warning>
+</ParamField>
+
+<ParamField path="SSRF_ALLOW_IP_ADDRESS_LIST" type="string">
+  Comma-separated whitelist of allowed private IP addresses when SSRF protection is enabled.
+  
+  **Example**: `192.168.1.100,10.0.0.50`
+</ParamField>
+
+## Database
+
+<ParamField path="DATABASE_URL" type="string" required>
+  PostgreSQL connection string.
+  
+  **Format**:
+  ```
+  postgresql://user:password@host:5432/database?sslmode=require
+  ```
+  
+  **Examples**:
+  - Local: `postgresql://postgres:password@localhost:5432/lobechat`
+  - Neon: `postgresql://user:pass@ep-xxx.us-east-2.aws.neon.tech/lobechat?sslmode=require`
+  - Supabase: `postgresql://postgres.xxx:[password]@aws-0-us-east-1.pooler.supabase.com:5432/postgres`
+</ParamField>
+
+<ParamField path="DATABASE_POOL_MAX" type="number" default="10">
+  Maximum number of database connections in the pool.
+</ParamField>
+
+<ParamField path="DATABASE_POOL_MIN" type="number" default="0">
+  Minimum number of database connections to maintain.
+</ParamField>
+
+## Redis
+
+<ParamField path="REDIS_URL" type="string">
+  Redis connection string for caching and session storage.
+  
+  **Format**: `redis://[username]:[password]@host:port/[database]`
+  
+  **Examples**:
+  - Local: `redis://localhost:6379`
+  - Upstash: `redis://default:xxxxx@us1-glad-bear-12345.upstash.io:6379`
+  - Redis Cloud: `redis://default:password@redis-12345.c123.us-east-1-2.ec2.redns.redis-cloud.com:12345`
+</ParamField>
+
+<ParamField path="REDIS_DATABASE" type="number" default="0">
+  Redis database index to use.
+</ParamField>
+
+<ParamField path="REDIS_USERNAME" type="string">
+  Redis username for authentication (if required).
+</ParamField>
+
+<ParamField path="REDIS_PASSWORD" type="string">
+  Redis password for authentication.
+</ParamField>
+
+<ParamField path="REDIS_TLS" type="string" default="0">
+  Enable TLS for Redis connections. Set to `1` for managed Redis with TLS.
+</ParamField>
+
+<ParamField path="REDIS_PREFIX" type="string" default="lobechat">
+  Namespace prefix for all Redis keys.
+</ParamField>
+
+## S3 storage
+
+<ParamField path="S3_ACCESS_KEY_ID" type="string">
+  S3 access key ID for file storage.
+</ParamField>
+
+<ParamField path="S3_SECRET_ACCESS_KEY" type="string">
+  S3 secret access key.
+</ParamField>
+
+<ParamField path="S3_ENDPOINT" type="string">
+  S3 endpoint URL.
+  
+  **Examples**:
+  - AWS S3: `https://s3.amazonaws.com` or `https://s3.us-east-1.amazonaws.com`
+  - Cloudflare R2: `https://account-id.r2.cloudflarestorage.com`
+  - MinIO: `http://localhost:9000`
+</ParamField>
+
+<ParamField path="S3_BUCKET" type="string">
+  S3 bucket name for file storage.
+</ParamField>
+
+<ParamField path="S3_REGION" type="string">
+  S3 bucket region (e.g., `us-east-1`). Use `auto` for Cloudflare R2.
+</ParamField>
+
+<ParamField path="S3_ENABLE_PATH_STYLE" type="string" default="0">
+  Enable path-style bucket addressing. Set to `1` for MinIO and some S3-compatible services.
+</ParamField>
+
+<ParamField path="S3_SET_ACL" type="string" default="1">
+  Set ACL on uploaded objects. Set to `0` for services that don't support ACLs (like Cloudflare R2).
+</ParamField>
+
+<ParamField path="S3_PUBLIC_DOMAIN" type="string">
+  Public CDN domain for serving files. If not set, uses S3 endpoint.
+  
+  **Example**: `https://cdn.example.com`
+</ParamField>
+
+## AI providers
+
+### OpenAI
+
+<ParamField path="OPENAI_API_KEY" type="string">
+  OpenAI API key from [platform.openai.com](https://platform.openai.com/account/api-keys).
+  
+  **Format**: `sk-xxxxxxxxxxxxxxxxxxxxxx`
+</ParamField>
+
+<ParamField path="OPENAI_PROXY_URL" type="string" default="https://api.openai.com/v1">
+  Custom OpenAI API endpoint (for proxies or compatible services).
+</ParamField>
+
+<ParamField path="OPENAI_MODEL_LIST" type="string">
+  Customize available OpenAI models.
+  
+  **Syntax**:
+  - Add model: `+model-name`
+  - Remove model: `-model-name`
+  - Rename model: `model-name=Display Name`
+  
+  **Example**: `+gpt-4-turbo,-gpt-3.5-turbo,gpt-4=GPT-4 Latest`
+</ParamField>
+
+### Anthropic
+
+<ParamField path="ANTHROPIC_API_KEY" type="string">
+  Anthropic API key from [console.anthropic.com](https://console.anthropic.com/).
+</ParamField>
+
+<ParamField path="ANTHROPIC_PROXY_URL" type="string" default="https://api.anthropic.com">
+  Custom Anthropic API endpoint.
+</ParamField>
+
+### Google AI
+
+<ParamField path="GOOGLE_API_KEY" type="string">
+  Google AI API key from [makersuite.google.com](https://makersuite.google.com/app/apikey).
+</ParamField>
+
+### Azure OpenAI
+
+<ParamField path="AZURE_API_KEY" type="string">
+  Azure OpenAI API key from Azure portal.
+</ParamField>
+
+<ParamField path="AZURE_ENDPOINT" type="string">
+  Azure OpenAI endpoint URL.
+  
+  **Example**: `https://your-resource.openai.azure.com`
+</ParamField>
+
+<ParamField path="AZURE_API_VERSION" type="string" default="2024-10-21">
+  Azure API version (YYYY-MM-DD format).
+</ParamField>
+
+### AWS Bedrock
+
+<ParamField path="AWS_REGION" type="string">
+  AWS region for Bedrock service (e.g., `us-east-1`).
+</ParamField>
+
+<ParamField path="AWS_ACCESS_KEY_ID" type="string">
+  AWS access key ID with Bedrock permissions.
+</ParamField>
+
+<ParamField path="AWS_SECRET_ACCESS_KEY" type="string">
+  AWS secret access key.
+</ParamField>
+
+### Ollama
+
+<ParamField path="OLLAMA_PROXY_URL" type="string" default="http://127.0.0.1:11434">
+  Ollama service URL for local LLM inference.
+</ParamField>
+
+<ParamField path="OLLAMA_MODEL_LIST" type="string">
+  Comma-separated list of available Ollama models.
+  
+  **Example**: `llama2,codellama,mistral`
+</ParamField>
+
+### Other providers
+
+LobeHub supports 40+ AI providers. Each follows the same pattern:
+
+- `{PROVIDER}_API_KEY` - API key
+- `{PROVIDER}_PROXY_URL` - Custom endpoint (optional)
+- `{PROVIDER}_MODEL_LIST` - Custom model list (optional)
+
+**Supported providers**: OpenRouter, Mistral, Perplexity, Groq, Together AI, DeepSeek, Moonshot, Minimax, Qwen, Zhipu, Cloudflare Workers AI, and many more.
+
+See `.env.example` for the complete list.
+
+## Authentication
+
+### Basic auth
+
+<ParamField path="AUTH_EMAIL_VERIFICATION" type="string" default="0">
+  Require email verification before sign-in. Set to `1` to enable.
+</ParamField>
+
+<ParamField path="AUTH_EMAIL_WHITELIST" type="string">
+  Comma-separated whitelist for registration.
+  
+  **Formats**:
+  - Full email: `user@example.com`
+  - Domain: `example.com` (allows all emails from domain)
+  
+  **Example**: `alice@company.com,bob@company.com,example.org`
+</ParamField>
+
+<ParamField path="AUTH_EMAIL_BLACKLIST" type="string">
+  Comma-separated blacklist for registration. Same format as whitelist.
+</ParamField>
+
+### SSO providers
+
+<ParamField path="AUTH_SSO_PROVIDERS" type="string">
+  Comma-separated list of enabled OAuth providers.
+  
+  **Supported**: `google`, `github`, `microsoft`, `microsoft-entra-id`, `auth0`, `authentik`, `authelia`, `casdoor`, `cloudflare-zero-trust`, `cognito`, `generic-oidc`, `keycloak`, `logto`, `okta`, `zitadel`
+  
+  **Example**: `google,github,microsoft-entra-id`
+</ParamField>
+
+<ParamField path="GOOGLE_CLIENT_ID" type="string">
+  Google OAuth client ID from [console.cloud.google.com](https://console.cloud.google.com/apis/credentials).
+</ParamField>
+
+<ParamField path="GOOGLE_CLIENT_SECRET" type="string">
+  Google OAuth client secret.
+</ParamField>
+
+<ParamField path="GITHUB_CLIENT_ID" type="string">
+  GitHub OAuth app client ID from [github.com/settings/developers](https://github.com/settings/developers).
+</ParamField>
+
+<ParamField path="GITHUB_CLIENT_SECRET" type="string">
+  GitHub OAuth app client secret.
+</ParamField>
+
+<ParamField path="MICROSOFT_CLIENT_ID" type="string">
+  Microsoft/Azure AD application client ID.
+</ParamField>
+
+<ParamField path="MICROSOFT_CLIENT_SECRET" type="string">
+  Microsoft/Azure AD application client secret.
+</ParamField>
+
+<ParamField path="MICROSOFT_TENANT_ID" type="string">
+  Microsoft Azure AD tenant ID. Use `common` for multi-tenant.
+</ParamField>
+
+<Note>
+  Each SSO provider requires client ID and secret. See [Authentication Setup](/self-hosting/authentication) for detailed configuration.
+</Note>
+
+### Email (SMTP)
+
+<ParamField path="AUTH_EMAIL_FROM" type="string">
+  Sender email address for auth emails.
+  
+  **Example**: `noreply@example.com`
+</ParamField>
+
+<ParamField path="EMAIL_SMTP_HOST" type="string">
+  SMTP server hostname.
+  
+  **Examples**:
+  - Gmail: `smtp.gmail.com`
+  - SendGrid: `smtp.sendgrid.net`
+  - Resend: `smtp.resend.com`
+</ParamField>
+
+<ParamField path="EMAIL_SMTP_PORT" type="number" default="587">
+  SMTP server port. Common ports:
+  - `587` - TLS (recommended)
+  - `465` - SSL
+  - `25` - Unencrypted (not recommended)
+</ParamField>
+
+<ParamField path="EMAIL_SMTP_USER" type="string">
+  SMTP authentication username.
+</ParamField>
+
+<ParamField path="EMAIL_SMTP_PASSWORD" type="string">
+  SMTP authentication password or API key.
+</ParamField>
+
+<ParamField path="EMAIL_SMTP_SECURE" type="string" default="true">
+  Use TLS for SMTP connection. Set to `false` only for port 25.
+</ParamField>
+
+## Observability
+
+### Langfuse
+
+<ParamField path="LANGFUSE_PUBLIC_KEY" type="string">
+  Langfuse public key for LLM observability.
+</ParamField>
+
+<ParamField path="LANGFUSE_SECRET_KEY" type="string">
+  Langfuse secret key.
+</ParamField>
+
+<ParamField path="LANGFUSE_HOST" type="string" default="https://cloud.langfuse.com">
+  Langfuse API endpoint. Use custom URL for self-hosted instances.
+</ParamField>
+
+### OpenTelemetry
+
+<ParamField path="OTEL_EXPORTER_OTLP_ENDPOINT" type="string">
+  OpenTelemetry collector endpoint for distributed tracing.
+  
+  **Example**: `http://localhost:4318`
+</ParamField>
+
+<ParamField path="OTEL_SERVICE_NAME" type="string" default="lobechat">
+  Service name for traces.
+</ParamField>
+
+## Feature flags
+
+<ParamField path="ENABLED_ARTIFACTS" type="string" default="1">
+  Enable Artifacts feature (Claude-style code/content generation). Set to `0` to disable.
+</ParamField>
+
+<ParamField path="ENABLED_MCP" type="string" default="1">
+  Enable Model Context Protocol plugin system. Set to `0` to disable.
+</ParamField>
+
+<ParamField path="ENABLED_UPLOAD" type="string" default="1">
+  Enable file upload feature. Requires S3 configuration.
+</ParamField>
+
+<ParamField path="ENABLED_KNOWLEDGE_BASE" type="string" default="1">
+  Enable knowledge base feature. Requires S3 and database.
+</ParamField>
+
+<ParamField path="ENABLED_WEB_SEARCH" type="string" default="1">
+  Enable web search integration.
+</ParamField>
+
+## Advanced
+
+### API and proxy
+
+<ParamField path="API_KEY_SELECT_MODE" type="string" default="random">
+  API key selection strategy when multiple keys provided.
+  
+  **Options**:
+  - `random` - Random selection
+  - `turn` - Round-robin
+</ParamField>
+
+<ParamField path="HTTP_PROXY" type="string">
+  HTTP proxy for outbound requests.
+  
+  **Example**: `http://proxy.example.com:8080`
+</ParamField>
+
+<ParamField path="HTTPS_PROXY" type="string">
+  HTTPS proxy for outbound requests.
+</ParamField>
+
+### Marketplace
+
+<ParamField path="AGENTS_INDEX_URL" type="string" default="https://chat-agents.lobehub.com">
+  URL for agent marketplace index.
+</ParamField>
+
+<ParamField path="PLUGINS_INDEX_URL" type="string" default="https://chat-plugins.lobehub.com">
+  URL for plugin marketplace index.
+</ParamField>
+
+### Rate limiting
+
+<ParamField path="RATE_LIMIT_ENABLED" type="string" default="1">
+  Enable rate limiting. Requires Redis.
+</ParamField>
+
+<ParamField path="RATE_LIMIT_WINDOW" type="number" default="60">
+  Rate limit window in seconds.
+</ParamField>
+
+<ParamField path="RATE_LIMIT_MAX" type="number" default="60">
+  Maximum requests per window.
+</ParamField>
+
+### Embedding
+
+<ParamField path="EMBEDDING_BATCH_SIZE" type="number" default="100">
+  Number of chunks to embed in a single batch.
+</ParamField>
+
+<ParamField path="EMBEDDING_CONCURRENCY" type="number" default="3">
+  Number of concurrent embedding requests.
+</ParamField>
+
+### Analytics
+
+<ParamField path="NEXT_PUBLIC_ANALYTICS_VERCEL" type="string" default="1">
+  Enable Vercel Analytics (when deployed on Vercel).
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_SPEED_INSIGHTS_VERCEL" type="string" default="1">
+  Enable Vercel Speed Insights.
+</ParamField>
+
+<ParamField path="POSTHOG_KEY" type="string">
+  PostHog API key for product analytics.
+</ParamField>
+
+<ParamField path="POSTHOG_HOST" type="string" default="https://app.posthog.com">
+  PostHog API host.
+</ParamField>
+
+## Environment-specific
+
+### Development
+
+```bash
+NODE_ENV=development
+LOG_LEVEL=debug
+```
+
+### Production
+
+```bash
+NODE_ENV=production
+LOG_LEVEL=info
+```
+
+## Example configurations
+
+### Minimal (Docker)
+
+```bash
+# Required
+DATABASE_URL=postgresql://postgres:password@postgresql:5432/lobechat
+KEY_VAULTS_SECRET=$(openssl rand -base64 32)
+AUTH_SECRET=$(openssl rand -hex 32)
+OPENAI_API_KEY=sk-xxxxxx
+
+# S3 (RustFS)
+S3_ENDPOINT=http://rustfs:9000
+S3_BUCKET=lobe
+S3_ACCESS_KEY_ID=lobehub_access_key
+S3_SECRET_ACCESS_KEY=lobehub_secret_key
+S3_ENABLE_PATH_STYLE=1
+
+# Redis
+REDIS_URL=redis://redis:6379
+```
+
+### Production (Vercel + managed services)
+
+```bash
+# Security
+KEY_VAULTS_SECRET=$(openssl rand -base64 32)
+AUTH_SECRET=$(openssl rand -hex 32)
+
+# Database (Neon)
+DATABASE_URL=postgresql://user:pass@ep-xxx.neon.tech/lobechat?sslmode=require
+
+# Redis (Upstash)
+REDIS_URL=redis://default:xxx@us1-xxx.upstash.io:6379
+
+# S3 (Cloudflare R2)
+S3_ENDPOINT=https://account-id.r2.cloudflarestorage.com
+S3_BUCKET=lobehub-prod
+S3_ACCESS_KEY_ID=xxx
+S3_SECRET_ACCESS_KEY=xxx
+S3_REGION=auto
+S3_SET_ACL=0
+
+# AI Providers
+OPENAI_API_KEY=sk-xxx
+ANTHROPIC_API_KEY=sk-ant-xxx
+GOOGLE_API_KEY=xxx
+
+# Auth (Google + GitHub OAuth)
+AUTH_SSO_PROVIDERS=google,github
+GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=xxx
+GITHUB_CLIENT_ID=xxx
+GITHUB_CLIENT_SECRET=xxx
+
+# Email (Resend)
+AUTH_EMAIL_FROM=noreply@example.com
+EMAIL_SMTP_HOST=smtp.resend.com
+EMAIL_SMTP_PORT=587
+EMAIL_SMTP_USER=resend
+EMAIL_SMTP_PASSWORD=re_xxx
+
+# Observability
+LANGFUSE_PUBLIC_KEY=pk-lf-xxx
+LANGFUSE_SECRET_KEY=sk-lf-xxx
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Docker deployment" icon="docker" href="/self-hosting/docker">
+    Complete Docker setup guide
+  </Card>
+  <Card title="Vercel deployment" icon="triangle" href="/self-hosting/vercel">
+    Deploy to Vercel
+  </Card>
+  <Card title="Authentication" icon="lock" href="/self-hosting/authentication">
+    Configure SSO and user auth
+  </Card>
+  <Card title="Database" icon="database" href="/self-hosting/database">
+    Database configuration
+  </Card>
+</CardGroup>

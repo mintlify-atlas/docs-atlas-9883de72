@@ -1,0 +1,133 @@
+---
+title: 'API Overview'
+description: 'Introduction to the LobeHub API'
+---
+
+## Introduction
+
+LobeHub provides a comprehensive API for building AI agent applications. The API is built with tRPC and offers both REST-style endpoints and real-time streaming capabilities.
+
+## Base URLs
+
+- **tRPC API**: `https://your-domain.com/trpc/lambda`
+- **REST API**: `https://your-domain.com/api`
+- **Agent Stream**: `https://your-domain.com/api/agent/stream`
+
+## API Architecture
+
+LobeHub uses a hybrid API architecture:
+
+- **tRPC Lambda Router**: Type-safe RPC endpoints for most operations
+- **REST Endpoints**: Traditional REST APIs for specific use cases
+- **Server-Sent Events (SSE)**: Real-time streaming for agent execution
+
+## Key Features
+
+### Type Safety
+
+All tRPC endpoints are fully typed using Zod schemas, providing compile-time type checking and runtime validation.
+
+### Authentication
+
+LobeHub uses [Better Auth](https://better-auth.com) for authentication with support for:
+
+- Email/Password authentication
+- Magic links
+- OAuth providers (Google, GitHub, etc.)
+- Passkeys (WebAuthn)
+- Email OTP for mobile
+
+### Real-time Updates
+
+Agent execution provides real-time updates via Server-Sent Events (SSE), allowing you to stream agent responses and tool calls to your application.
+
+## Quick Start
+
+### Using tRPC Client
+
+```typescript
+import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
+import type { LambdaRouter } from '@/server/routers/lambda';
+
+const client = createTRPCProxyClient<LambdaRouter>({
+  links: [
+    httpBatchLink({
+      url: 'https://your-domain.com/trpc/lambda',
+      headers: {
+        // Include authentication headers
+        Authorization: 'Bearer YOUR_SESSION_TOKEN',
+      },
+    }),
+  ],
+});
+
+// Query agents
+const agents = await client.agent.queryAgents.query({
+  limit: 10,
+});
+```
+
+### Using REST API
+
+```bash
+curl -X POST https://your-domain.com/api/agent \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "userId": "user_123",
+    "agentId": "agent_456",
+    "prompt": "Hello, how can you help me?",
+    "autoStart": true
+  }'
+```
+
+## Rate Limits
+
+API rate limits depend on your deployment configuration. For cloud deployments, check your subscription plan for specific limits.
+
+## Error Handling
+
+### tRPC Errors
+
+tRPC uses typed error codes:
+
+- `BAD_REQUEST`: Invalid input parameters
+- `UNAUTHORIZED`: Missing or invalid authentication
+- `FORBIDDEN`: Insufficient permissions
+- `NOT_FOUND`: Resource not found
+- `CONFLICT`: Resource conflict (e.g., duplicate entry)
+- `INTERNAL_SERVER_ERROR`: Server error
+
+```typescript
+try {
+  const result = await client.agent.createAgent.mutate(data);
+} catch (error) {
+  if (error.code === 'UNAUTHORIZED') {
+    // Handle authentication error
+  }
+}
+```
+
+### REST API Errors
+
+REST endpoints return standard HTTP status codes:
+
+- `200`: Success
+- `400`: Bad request
+- `401`: Unauthorized
+- `404`: Not found
+- `500`: Internal server error
+
+## API Resources
+
+- [Authentication](/api/authentication) - Auth endpoints and session management
+- [Agents](/api/agents) - Create and manage AI agents
+- [Chat](/api/chat) - Send messages and manage conversations
+- [Files](/api/files) - Upload and manage files
+- [Knowledge Base](/api/knowledge-base) - Manage knowledge bases and documents
+
+## Support
+
+For API support and questions:
+- GitHub Issues: [lobehub/lobe-chat](https://github.com/lobehub/lobe-chat/issues)
+- Documentation: [lobehub.com/docs](https://lobehub.com/docs)

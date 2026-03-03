@@ -1,0 +1,280 @@
+---
+title: "Agents"
+description: "Understand what agents are and how they work in LobeHub"
+---
+
+## What are agents?
+
+Agents are AI teammates that help you accomplish specific tasks in LobeHub. Think of them as specialized assistants—each with unique capabilities, personalities, and expertise tailored to different types of work.
+
+Unlike traditional chatbots that forget everything after each conversation, agents in LobeHub can:
+
+- **Remember your preferences** through personal memory
+- **Use tools and skills** to perform actions beyond conversation
+- **Access knowledge bases** to provide informed, contextual answers
+- **Collaborate with other agents** in multi-agent workflows
+- **Learn and adapt** based on how you work
+
+<Note>
+Agents are the fundamental unit of work in LobeHub. Everything you do—from writing documents to managing projects—happens through collaboration with agents.
+</Note>
+
+## How agents work
+
+### Agent Builder
+
+Creating an agent is simple. LobeHub features an **Agent Builder** that auto-configures agents based on natural language descriptions:
+
+<Steps>
+  <Step title="Describe what you need">
+    Tell the Agent Builder what kind of assistant you want. For example: "I need a marketing expert who can write blog posts and social media content."
+  </Step>
+  <Step title="Auto-configuration">
+    The Agent Builder automatically selects the right AI model, tools, and settings for your agent.
+  </Step>
+  <Step title="Start using immediately">
+    Your agent is ready to use instantly—no complex configuration required.
+  </Step>
+</Steps>
+
+### Agent components
+
+Every agent consists of several key components:
+
+<CardGroup cols={2}>
+  <Card title="System Role" icon="user-tie">
+    Defines the agent's personality, expertise, and behavior. This is like the agent's job description.
+  </Card>
+  <Card title="AI Model" icon="brain">
+    The underlying language model powering the agent. LobeHub supports 100+ models across different providers.
+  </Card>
+  <Card title="Skills" icon="sparkles">
+    Reusable prompt templates and knowledge that enhance the agent's capabilities.
+  </Card>
+  <Card title="Tools" icon="wrench">
+    Functions the agent can call to perform actions like web search, calculations, or API integrations.
+  </Card>
+  <Card title="Knowledge Base" icon="books">
+    Documents and files the agent can reference to provide informed answers.
+  </Card>
+  <Card title="Memory" icon="head-side-brain">
+    Personal memory that helps the agent understand and adapt to your specific needs.
+  </Card>
+</CardGroup>
+
+## Types of agents
+
+### Built-in agents
+
+LobeHub includes specialized built-in agents that power core features:
+
+<Accordion title="Agent Builder">
+  A meta-agent that helps you create and configure other agents. Powered by Claude Sonnet 4.5, it understands your requirements and sets up agents automatically.
+</Accordion>
+
+<Accordion title="Page Agent">
+  Specialized in document creation and editing. The Page Agent can read your document structure, make edits, and help you refine content in real-time.
+</Accordion>
+
+<Accordion title="Memory Agent">
+  Manages your personal memory across all agents. It extracts insights from conversations and maintains a structured understanding of your preferences.
+</Accordion>
+
+### Custom agents
+
+You can create unlimited custom agents tailored to your specific workflows:
+
+- **Domain experts**: Marketing strategists, software developers, data analysts
+- **Writing assistants**: Content writers, editors, translators
+- **Research helpers**: Information gatherers, summarizers, fact-checkers
+- **Task managers**: Project coordinators, schedulers, organizers
+
+### Agent Marketplace
+
+Discover over 500 pre-built agents created by the LobeHub community:
+
+1. Browse agents by category (business, creative, technical, etc.)
+2. Preview agent capabilities and example conversations
+3. Install with one click to add to your workspace
+4. Share your own agents with the community
+
+<Card title="Explore the Agent Market" icon="store" href="https://lobehub.com/discover/assistants">
+  Find agents created by the community
+</Card>
+
+## Agent configuration
+
+### Basic settings
+
+Customize your agent's core behavior:
+
+<AccordionGroup>
+  <Accordion title="Name and description">
+    Give your agent a memorable name and clear description of its purpose.
+  </Accordion>
+  <Accordion title="System role">
+    Define the agent's expertise, personality, and communication style. This is the most important setting that determines how the agent behaves.
+  </Accordion>
+  <Accordion title="Model selection">
+    Choose from 100+ AI models. Different models excel at different tasks:
+    - **GPT-4**: General-purpose, excellent reasoning
+    - **Claude**: Superior for writing and analysis
+    - **Gemini**: Strong multimodal capabilities
+    - **Local models**: Privacy-focused, offline operation
+  </Accordion>
+</AccordionGroup>
+
+### Advanced settings
+
+<AccordionGroup>
+  <Accordion title="Temperature">
+    Controls creativity vs. consistency:
+    - Low (0.1-0.3): Focused, consistent responses
+    - Medium (0.5-0.7): Balanced creativity
+    - High (0.8-1.0): Creative, varied outputs
+  </Accordion>
+  <Accordion title="Context window">
+    Determines how much conversation history the agent remembers in each session.
+  </Accordion>
+  <Accordion title="Response format">
+    Configure structured outputs, JSON responses, or specific formatting requirements.
+  </Accordion>
+</AccordionGroup>
+
+## Working with agents
+
+### Starting a conversation
+
+To chat with an agent:
+
+1. Select the agent from your agent list in the sidebar
+2. Type your message in the chat input
+3. The agent processes your request using its configured model, tools, and knowledge
+4. Responses appear in real-time with streaming
+
+### Using agent tools
+
+Agents can automatically use tools when needed. For example:
+
+- Ask a question about current events → agent uses **web search** tool
+- Request a calculation → agent uses **calculator** tool  
+- Need to create an image → agent uses **text-to-image** tool
+
+You don't need to specify which tool to use—the agent intelligently selects the right tool based on your request.
+
+<Tip>
+  Enable **Chain of Thought** visualization to see the agent's reasoning process and tool usage in real-time.
+</Tip>
+
+### Switching between agents
+
+You can switch between different agents mid-conversation:
+
+1. Use the agent selector in the chat header
+2. The new agent has access to the conversation history
+3. Each agent brings its unique perspective and capabilities
+
+## Agent memory and learning
+
+Agents in LobeHub feature **continual learning** through personal memory:
+
+### How memory works
+
+<Steps>
+  <Step title="Conversation analysis">
+    As you chat, the Memory Agent extracts key insights about your preferences, work style, and needs.
+  </Step>
+  <Step title="Structured storage">
+    Insights are stored in a structured, editable format that you control.
+  </Step>
+  <Step title="Contextual recall">
+    When relevant, agents automatically recall and apply these insights to provide personalized responses.
+  </Step>
+</Steps>
+
+### What agents remember
+
+- **Preferences**: Communication style, technical level, preferred formats
+- **Context**: Your role, projects, team structure, workflows
+- **Patterns**: Common tasks, frequent questions, decision criteria
+- **History**: Past projects, successes, lessons learned
+
+<Note>
+  Memory is transparent and editable. You can view, modify, or delete any memory entry at any time. Learn more in [Personal Memory](/concepts/memory).
+</Note>
+
+## Best practices
+
+### Creating effective agents
+
+<AccordionGroup>
+  <Accordion title="Be specific with system roles">
+    Instead of "You are a helpful assistant," try:
+    
+    "You are a senior product manager with 10 years of experience in B2B SaaS. You help teams write clear product requirements documents, prioritize features, and communicate with stakeholders. You ask clarifying questions and provide structured, actionable advice."
+  </Accordion>
+  <Accordion title="Choose the right model">
+    Match the model to the task:
+    - Creative writing → Claude or GPT-4
+    - Technical analysis → GPT-4 or Claude
+    - Quick responses → GPT-3.5 or smaller models
+    - Multilingual → GPT-4 or Gemini
+  </Accordion>
+  <Accordion title="Equip agents with relevant tools">
+    Only enable tools the agent actually needs. Too many tools can cause confusion and slower responses.
+  </Accordion>
+  <Accordion title="Build a knowledge base">
+    Upload relevant documents to create context-aware agents that reference your specific information.
+  </Accordion>
+</AccordionGroup>
+
+### Organizing your agents
+
+- **By domain**: Separate agents for marketing, development, research, etc.
+- **By project**: Create project-specific agents with relevant context
+- **By workflow**: Design agents for specific recurring tasks
+- **By persona**: Different communication styles for different audiences
+
+<Tip>
+  Use **Agent Groups** to combine multiple agents for complex workflows. Learn more in [Agent Groups](/concepts/agent-groups).
+</Tip>
+
+## Performance optimization
+
+### Faster responses
+
+- Use smaller, faster models for simple tasks
+- Reduce the number of enabled tools
+- Limit knowledge base size to relevant documents
+- Lower temperature for more focused responses
+
+### Better quality
+
+- Use advanced models (GPT-4, Claude Sonnet) for complex reasoning
+- Enable Chain of Thought for better problem-solving
+- Provide detailed system roles with examples
+- Use skills to inject expert knowledge
+
+### Cost efficiency
+
+- Start with smaller models and upgrade only when needed
+- Use local models for privacy-sensitive or high-volume tasks
+- Disable tools that aren't frequently used
+- Set appropriate context window limits
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Groups" icon="users" href="/concepts/agent-groups">
+    Learn how to combine multiple agents for complex workflows
+  </Card>
+  <Card title="Skills and Tools" icon="wrench" href="/concepts/skills-and-tools">
+    Enhance your agents with additional capabilities
+  </Card>
+  <Card title="Personal Memory" icon="brain" href="/concepts/memory">
+    Understand how agents learn and adapt to you
+  </Card>
+  <Card title="Creating Agents" icon="plus" href="/agents/creating-agents">
+    Step-by-step guide to building your first agent
+  </Card>
+</CardGroup>

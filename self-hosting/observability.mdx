@@ -1,0 +1,406 @@
+---
+title: Observability & Monitoring
+description: Configure monitoring, logging, and tracing for your self-hosted LobeHub instance
+---
+
+# Observability & Monitoring
+
+LobeHub provides built-in observability features to help you monitor performance, debug issues, and understand user behavior in your self-hosted deployment.
+
+## Monitoring Solutions
+
+### Langfuse Integration
+
+LobeHub integrates with [Langfuse](https://langfuse.com) for LLM observability, providing:
+
+- Conversation trace logging
+- Token usage tracking
+- Cost analysis
+- Performance metrics
+- Model comparison
+- User analytics
+
+#### Configuration
+
+<ParamField path="ENABLE_LANGFUSE" type="boolean" default="false">
+  Set to `1` to enable Langfuse integration
+</ParamField>
+
+<ParamField path="LANGFUSE_PUBLIC_KEY" type="string" required>
+  Langfuse public API key
+  
+  Get from [Langfuse Dashboard](https://cloud.langfuse.com) → Settings → API Keys
+</ParamField>
+
+<ParamField path="LANGFUSE_SECRET_KEY" type="string" required>
+  Langfuse secret API key
+  
+  <Warning>Keep this secret secure. Never expose in client-side code.</Warning>
+</ParamField>
+
+<ParamField path="LANGFUSE_HOST" type="string" default="https://cloud.langfuse.com">
+  Langfuse instance URL
+  
+  Use default for Langfuse Cloud, or your self-hosted instance URL.
+</ParamField>
+
+#### Setup Guide
+
+1. Create account at [Langfuse Cloud](https://cloud.langfuse.com) or deploy [self-hosted Langfuse](https://langfuse.com/docs/deployment/self-host)
+2. Create a new project
+3. Navigate to Settings → API Keys
+4. Copy public and secret keys
+5. Configure environment variables:
+
+```bash
+ENABLE_LANGFUSE=1
+LANGFUSE_PUBLIC_KEY=pk-lf-xxxxxxxx
+LANGFUSE_SECRET_KEY=sk-lf-xxxxxxxx
+LANGFUSE_HOST=https://cloud.langfuse.com
+```
+
+#### What Gets Tracked
+
+When Langfuse is enabled, LobeHub tracks:
+
+- **Traces**: Complete conversation flows
+- **Spans**: Individual LLM calls, tool executions
+- **Events**: User interactions, errors
+- **Metadata**: Model names, token counts, latencies
+- **Costs**: Token-based cost calculations
+
+#### User Privacy
+
+LobeHub respects user privacy settings:
+
+- Users can opt-out via settings (controlled by `telemetry` preference)
+- Only aggregated data is sent when opted-in
+- Sensitive information is not logged
+
+### OpenTelemetry Support
+
+LobeHub includes experimental OpenTelemetry instrumentation for advanced observability.
+
+#### Tracing
+
+The application uses `@lobechat/observability-otel` for distributed tracing:
+
+- Memory extraction operations
+- LLM inference calls
+- Database queries
+- Agent evaluations
+
+#### Configuration
+
+OpenTelemetry configuration is currently internal. For custom exporters, modify:
+
+```typescript
+// src/server/services/memory/userMemory/extract.ts
+import { SpanStatusCode } from '@lobechat/observability-otel/api';
+import { attributesCommon } from '@lobechat/observability-otel/node';
+```
+
+## Application Logging
+
+### Server Logs
+
+LobeHub uses Next.js logging, which outputs to stdout/stderr.
+
+#### Log Levels
+
+- **Info**: Normal operations (startup, config loading)
+- **Warn**: Deprecation notices, non-critical issues
+- **Error**: Failures, exceptions
+
+#### Viewing Logs
+
+**Docker:**
+```bash
+docker logs lobehub-container
+```
+
+**Docker Compose:**
+```bash
+docker-compose logs -f app
+```
+
+**Node.js:**
+```bash
+npm run start 2>&1 | tee app.log
+```
+
+### Client Telemetry
+
+Client-side telemetry is controlled by user preferences:
+
+```typescript
+// User setting: settings.general.telemetry
+// Default: undefined (prompt user on first use)
+// Values: true (enabled), false (disabled)
+```
+
+When enabled, tracks:
+- Feature usage (discover agents, tool calls)
+- Error events
+- Performance metrics
+
+## Performance Monitoring
+
+### Database Performance
+
+#### Connection Pooling
+
+For production deployments, use connection pooling:
+
+**Neon (Built-in):**
+```bash
+DATABASE_URL=postgres://user:pass@pooler.neon.tech/dbname
+DATABASE_DRIVER=neon
+```
+
+**PgBouncer (Self-hosted):**
+```bash
+DATABASE_URL=postgres://user:pass@pgbouncer:6432/dbname
+DATABASE_DRIVER=node
+```
+
+#### Query Monitoring
+
+Monitor slow queries in PostgreSQL:
+
+```sql
+-- Enable slow query logging
+ALTER DATABASE lobehub SET log_min_duration_statement = 1000; -- Log queries > 1s
+
+-- View slow queries
+SELECT query, calls, total_time, mean_time 
+FROM pg_stat_statements 
+ORDER BY mean_time DESC 
+LIMIT 20;
+```
+
+### Redis Performance
+
+When using Redis for sessions/caching:
+
+**Monitor Redis:**
+```bash
+redis-cli INFO stats
+redis-cli SLOWLOG GET 10
+```
+
+**Key Metrics:**
+- Hit rate: `keyspace_hits / (keyspace_hits + keyspace_misses)`
+- Memory usage: `used_memory_human`
+- Connected clients: `connected_clients`
+
+### API Rate Limiting
+
+Monitor LLM API usage to avoid rate limits:
+
+- Track requests per minute/hour
+- Monitor token usage (Langfuse provides this)
+- Set up alerts for quota approaching limits
+
+## Error Tracking
+
+### Sentry Integration (Optional)
+
+For production error tracking, integrate Sentry:
+
+1. Install Sentry:
+```bash
+pnpm add @sentry/nextjs
+```
+
+2. Configure `sentry.client.config.ts`:
+```typescript
+import * as Sentry from '@sentry/nextjs';
+
+Sentry.init({
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  environment: process.env.NODE_ENV,
+});
+```
+
+3. Set environment variable:
+```bash
+NEXT_PUBLIC_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+```
+
+## Health Checks
+
+### Endpoint Monitoring
+
+Monitor these endpoints for application health:
+
+**Application:**
+- `GET /` - Homepage (200 OK)
+- `GET /api/health` - Health check endpoint
+
+**Database:**
+```bash
+pg_isready -h localhost -p 5432
+```
+
+**Redis:**
+```bash
+redis-cli PING
+```
+
+**S3:**
+Test upload/download operations periodically
+
+### Uptime Monitoring
+
+Use services like:
+- [UptimeRobot](https://uptimerobot.com)
+- [Pingdom](https://www.pingdom.com)
+- [Better Uptime](https://betteruptime.com)
+
+Monitor:
+- Application URL (5-minute intervals)
+- Database connectivity
+- S3 accessibility
+
+## Metrics Collection
+
+### Custom Metrics
+
+Track custom metrics for your deployment:
+
+**User Metrics:**
+- Total users
+- Active users (daily/monthly)
+- New registrations
+
+**Usage Metrics:**
+- Messages per day
+- Sessions created
+- Files uploaded
+- Token consumption
+
+**Performance Metrics:**
+- Average response time
+- P95/P99 latencies
+- Error rates
+- Database query times
+
+### Prometheus/Grafana (Advanced)
+
+For advanced metrics, set up Prometheus + Grafana:
+
+1. Export Next.js metrics
+2. Collect PostgreSQL metrics
+3. Monitor Redis with redis_exporter
+4. Visualize in Grafana dashboards
+
+## Agent Evaluation Telemetry
+
+LobeHub includes built-in agent evaluation with telemetry:
+
+```typescript
+// Evaluation metrics tracked:
+{
+  completionReason: string,  // stop, error, timeout
+  duration: number,          // execution time (ms)
+  tokens: number,            // total tokens used
+  cost: number,              // estimated cost
+  llmCalls: number,          // number of LLM invocations
+  toolCalls: number,         // number of tool invocations
+  steps: number,             // reasoning steps
+  errorMessage?: string,     // if failed
+  errorDetail?: string       // detailed error info
+}
+```
+
+Access via agent evaluation UI or database tables:
+- `agent_eval_runs` - Evaluation run metadata
+- `agent_eval_run_topics` - Individual test results
+
+## Memory Extraction Observability
+
+For memory extraction operations, configure S3 trace storage:
+
+<ParamField path="MEMORY_USER_MEMORY_EXTRACTOR_S3_ACCESS_KEY_ID" type="string">
+  S3 access key for storing memory extraction traces
+</ParamField>
+
+<ParamField path="MEMORY_USER_MEMORY_EXTRACTOR_S3_SECRET_ACCESS_KEY" type="string">
+  S3 secret key for trace storage
+</ParamField>
+
+<ParamField path="MEMORY_USER_MEMORY_EXTRACTOR_S3_BUCKET_NAME" type="string">
+  S3 bucket for trace payloads
+</ParamField>
+
+<ParamField path="MEMORY_USER_MEMORY_EXTRACTOR_S3_ENDPOINT" type="string">
+  S3 endpoint URL
+</ParamField>
+
+When configured, detailed traces are stored for debugging memory extraction:
+- Input messages
+- LLM responses
+- Extracted entities
+- Processing timestamps
+
+## Security & Privacy
+
+<Warning>
+  **Privacy Considerations:**
+  - User data in traces may include conversation content
+  - Ensure Langfuse/observability backend is secured
+  - Comply with data retention policies (GDPR, etc.)
+  - Allow users to opt-out of telemetry
+  - Do not log sensitive information (API keys, passwords)
+  - Use encryption for data in transit and at rest
+</Warning>
+
+## Debugging Tips
+
+### Enable Verbose Logging
+
+Set Node.js debug environment:
+```bash
+DEBUG=* npm run start
+```
+
+### Database Query Logging
+
+Enable Drizzle query logging:
+```typescript
+// In database config
+const db = drizzle(client, { 
+  logger: true  // Logs all SQL queries
+});
+```
+
+### Trace Specific Requests
+
+Use trace IDs in logs to correlate:
+- Client request → Server handler → Database query → LLM call
+- Look for `trace_id` in messages table
+
+## Best Practices
+
+<Note>
+  **Production Monitoring Checklist:**
+  
+  - [ ] Enable Langfuse for LLM observability
+  - [ ] Set up error tracking (Sentry or similar)
+  - [ ] Configure uptime monitoring
+  - [ ] Enable database slow query logging
+  - [ ] Monitor Redis hit rate (if using Redis)
+  - [ ] Set up log aggregation (CloudWatch, Datadog, etc.)
+  - [ ] Configure alerts for critical errors
+  - [ ] Track token usage and costs
+  - [ ] Monitor storage usage (S3, database)
+  - [ ] Regular backup verification
+  - [ ] Review access logs for security
+</Note>
+
+## Next Steps
+
+- [Database Configuration](/self-hosting/database) - Optimize database performance
+- [Storage Configuration](/self-hosting/storage) - Monitor S3 usage
+- [Authentication](/self-hosting/authentication) - Track authentication events

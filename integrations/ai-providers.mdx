@@ -1,0 +1,300 @@
+---
+title: AI Provider Integrations
+description: Connect LobeHub to 70+ AI model providers for flexible, multi-model intelligence
+---
+
+LobeHub supports a comprehensive ecosystem of AI model providers, giving you the flexibility to choose the best models for your specific needs. Whether you prefer commercial APIs, open-source models, or local deployments, LobeHub seamlessly integrates with your preferred infrastructure.
+
+## Why Multi-Provider Support?
+
+LobeHub's multi-provider architecture offers several key advantages:
+
+- **Unified Intelligence**: Access any model and any modality from a single interface
+- **Cost Optimization**: Switch between providers to optimize for performance and budget
+- **Redundancy**: Avoid vendor lock-in and maintain service continuity
+- **Flexibility**: Mix and match models for different agents and use cases
+
+## Supported Providers
+
+LobeHub integrates with **72 AI model providers**, including:
+
+### Major Commercial Providers
+
+<AccordionGroup>
+  <Accordion title="OpenAI">
+    Connect to OpenAI's latest models including GPT-4, GPT-4 Turbo, and GPT-3.5.
+
+    **Setup Steps:**
+    1. Obtain your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+    2. In LobeHub Settings, navigate to Language Model settings
+    3. Select OpenAI as your provider
+    4. Enter your API key
+    5. Optional: Configure custom base URL if using a proxy
+
+    **Environment Variables:**
+    ```bash
+    OPENAI_API_KEY=sk-xxxxxx
+    OPENAI_PROXY_URL=https://api.openai.com/v1  # Optional
+    ```
+
+    **Supported Features:**
+    - Chat completions with streaming
+    - Vision capabilities (GPT-4 Vision)
+    - Function calling
+    - DALL-E image generation
+    - Web search integration
+  </Accordion>
+
+  <Accordion title="Anthropic Claude">
+    Access Claude 3.5 Sonnet, Claude 3 Opus, and other Anthropic models.
+
+    **Setup Steps:**
+    1. Get your API key from [Anthropic Console](https://console.anthropic.com/)
+    2. Navigate to Settings > Language Model
+    3. Choose Anthropic as provider
+    4. Input your API key
+
+    **Environment Variables:**
+    ```bash
+    ANTHROPIC_API_KEY=sk-ant-xxxxx
+    ```
+
+    **Supported Features:**
+    - Extended context windows (up to 200K tokens)
+    - Artifacts support for code and content generation
+    - Function calling
+    - Vision capabilities
+  </Accordion>
+
+  <Accordion title="Google Gemini">
+    Integrate Google's Gemini models including Gemini Pro and Gemini Ultra.
+
+    **Setup Steps:**
+    1. Create an API key in [Google AI Studio](https://makersuite.google.com/app/apikey)
+    2. Go to LobeHub Settings > Language Model
+    3. Select Google as provider
+    4. Enter your API key
+
+    **Environment Variables:**
+    ```bash
+    GOOGLE_API_KEY=xxxxx
+    ```
+
+    **Supported Features:**
+    - Multi-modal inputs (text, images, video)
+    - Long context understanding
+    - Function calling
+  </Accordion>
+
+  <Accordion title="Microsoft Azure OpenAI">
+    Use OpenAI models deployed on Azure infrastructure.
+
+    **Setup Steps:**
+    1. Deploy OpenAI models in your Azure subscription
+    2. Obtain endpoint URL and API key from Azure Portal
+    3. In LobeHub, select Azure OpenAI provider
+    4. Configure endpoint, API key, and deployment name
+
+    **Environment Variables:**
+    ```bash
+    AZURE_API_KEY=xxxxx
+    AZURE_ENDPOINT=https://your-resource.openai.azure.com
+    AZURE_API_VERSION=2024-02-15-preview
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Open Source & Local Models
+
+<AccordionGroup>
+  <Accordion title="Ollama (Local LLM)">
+    Run open-source models locally on your own hardware.
+
+    **Setup Steps:**
+    1. Install Ollama from [ollama.ai](https://ollama.ai)
+    2. Pull a model: `ollama pull llama3`
+    3. In LobeHub, select Ollama as provider
+    4. Configure the local endpoint (default: http://localhost:11434)
+
+    **Supported Models:**
+    - Llama 3, Llama 2
+    - Mistral, Mixtral
+    - Qwen, DeepSeek
+    - And 100+ other open models
+
+    **Benefits:**
+    - Complete data privacy
+    - No API costs
+    - Offline capability
+  </Accordion>
+
+  <Accordion title="LM Studio">
+    Desktop application for running LLMs locally.
+
+    **Setup Steps:**
+    1. Download and install [LM Studio](https://lmstudio.ai/)
+    2. Download models through LM Studio's interface
+    3. Start the local server in LM Studio
+    4. Configure LobeHub to connect to http://localhost:1234
+
+    **Features:**
+    - User-friendly model management
+    - GPU acceleration support
+    - Compatible with LobeHub out of the box
+  </Accordion>
+
+  <Accordion title="Hugging Face">
+    Access thousands of models from the Hugging Face Hub.
+
+    **Setup Steps:**
+    1. Create account at [huggingface.co](https://huggingface.co)
+    2. Generate API token in Settings
+    3. Select Hugging Face provider in LobeHub
+    4. Enter your token
+
+    **Environment Variables:**
+    ```bash
+    HUGGINGFACE_API_KEY=hf_xxxxx
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Regional & Specialized Providers
+
+<AccordionGroup>
+  <Accordion title="Chinese AI Providers">
+    LobeHub supports major Chinese AI providers:
+
+    - **Zhipu AI (智谱清言)**: GLM-4 and ChatGLM models
+    - **Moonshot AI (月之暗面)**: Kimi models with long context
+    - **DeepSeek**: Open and affordable models
+    - **Baichuan**: Baichuan2 series models
+    - **Alibaba Qwen (通义千问)**: Qwen models
+    - **Tencent Hunyuan (腾讯混元)**: Hunyuan models
+    - **Baidu Wenxin (文心一言)**: ERNIE models
+    - **iFlytek Spark (讯飞星火)**: Spark models
+    - **MiniMax**: MiniMax models
+    - **SenseNova (商汤日日新)**: SenseChat models
+    - **Step Fun (阶跃星辰)**: Step models
+    - **360 AI**: 360GPT models
+
+    Each provider requires registration and API key from their respective platforms.
+  </Accordion>
+
+  <Accordion title="Inference Platforms">
+    Cloud platforms that provide access to multiple models:
+
+    - **OpenRouter**: Unified API for 100+ models
+    - **Together AI**: Fast inference for open models
+    - **Replicate**: Run models via simple API
+    - **Groq**: Ultra-fast LPU inference
+    - **Fireworks AI**: Optimized model serving
+    - **Perplexity**: Search-augmented models
+  </Accordion>
+</AccordionGroup>
+
+## Complete Provider List
+
+LobeHub supports these 72 providers:
+
+AI21, AI302, AI360, AIHubMix, Akash Chat, Anthropic, Azure OpenAI, Azure AI, Baichuan, AWS Bedrock, Black Forest Labs, Cerebras, Cloudflare, Cohere, Comet API, ComfyUI, DeepSeek, FAL, Fireworks AI, Gitee AI, GitHub Models, GitHub Copilot, Google, Groq, Higress, Hugging Face, Tencent Hunyuan, Infiniai, InternLM, Jina, LM Studio, LobeHub, MiniMax, Mistral, ModelScope, Moonshot, Nebius, NewAPI, Novita, NVIDIA, Ollama, Ollama Cloud, OpenAI, OpenRouter, Perplexity, PPIO, Qiniu, Qwen, Replicate, SambaNova, Search1API, SenseNova, Silicon Cloud, iFlytek Spark, Step Fun, Straico, Taichu, Tencent Cloud, Together AI, Upstage, Vercel v0, Vercel AI Gateway, Vertex AI, vLLM, Volcengine, Baidu Wenxin, xAI, XiaoMiMiMo, Xinference, Zenmux, ZeroOne, Zhipu
+
+## Adding a Provider
+
+### Via Settings Interface
+
+1. Open LobeHub Settings
+2. Navigate to **Language Model** section
+3. Click **Add Model Provider**
+4. Select your provider from the list
+5. Enter required credentials (API key, endpoint, etc.)
+6. Test the connection
+7. Save configuration
+
+### Via Environment Variables
+
+For self-hosted deployments, configure providers using environment variables:
+
+```bash
+# OpenAI
+OPENAI_API_KEY=sk-xxxxxx
+OPENAI_PROXY_URL=https://api.openai.com/v1
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+
+# Google
+GOOGLE_API_KEY=xxxxx
+
+# Azure OpenAI
+AZURE_API_KEY=xxxxx
+AZURE_ENDPOINT=https://your-resource.openai.azure.com
+
+# Local Ollama
+OLLAMA_PROXY_URL=http://localhost:11434
+```
+
+See the complete [Environment Variables documentation](https://lobehub.com/docs/self-hosting/environment-variables) for all provider options.
+
+## Model Selection
+
+Once providers are configured, you can select specific models:
+
+1. **Per-Agent Configuration**: Assign different models to different agents
+2. **Session Override**: Change models mid-conversation
+3. **Default Model**: Set a default for new conversations
+
+## Custom Model Lists
+
+Control which models appear in your LobeHub instance:
+
+```bash
+# Add custom models
+OPENAI_MODEL_LIST=+custom-model-name
+
+# Hide specific models
+OPENAI_MODEL_LIST=-gpt-3.5-turbo
+
+# Rename models for display
+OPENAI_MODEL_LIST=model_name=Custom Display Name
+
+# Combine operations
+OPENAI_MODEL_LIST=+custom-model,-gpt-3.5-turbo,gpt-4=GPT-4
+```
+
+## Best Practices
+
+- **Start Small**: Begin with one or two providers, then expand as needed
+- **API Key Security**: Never commit API keys to version control
+- **Cost Monitoring**: Track usage across providers to optimize costs
+- **Fallback Strategy**: Configure multiple providers for redundancy
+- **Local First**: Use local models (Ollama) for privacy-sensitive work
+- **Test Connections**: Verify each provider configuration before deploying
+
+## Troubleshooting
+
+### Connection Errors
+
+- Verify API key is correct and active
+- Check base URL/endpoint configuration
+- Ensure network connectivity to provider
+- Review firewall and proxy settings
+
+### Model Not Available
+
+- Confirm model is supported by your provider tier
+- Check for region restrictions
+- Verify model name spelling
+
+### Rate Limits
+
+- Review provider's rate limit documentation
+- Implement request queuing
+- Consider upgrading provider tier
+- Use multiple providers for load distribution
+
+## Next Steps
+
+- Explore the [MCP Plugin System](/integrations/mcp-plugins) to extend capabilities
+- Learn about [Desktop App](/integrations/desktop-app) for enhanced performance
+- Review [Agent Builder](/features/agent-builder) to create specialized agents

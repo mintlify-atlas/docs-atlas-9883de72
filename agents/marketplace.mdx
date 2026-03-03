@@ -1,0 +1,511 @@
+---
+title: Agent Marketplace
+description: Share your agents with the community and discover agents created by others
+---
+
+# Agent Marketplace
+
+The LobeHub Agent Marketplace is a vibrant community platform where you can discover, share, and collaborate on AI agents. Join a growing ecosystem of creators building the world's largest human-agent co-evolving network.
+
+## Overview
+
+The marketplace provides:
+
+- **Discovery**: Browse 500+ community-created agents
+- **Publishing**: Share your agents with the world
+- **Versioning**: Track and manage agent updates
+- **Analytics**: Monitor your agent's usage and installations
+- **Collaboration**: Fork and improve existing agents
+
+## Discovering Agents
+
+### Browse the Marketplace
+
+Explore agents at [lobechat.com/discover/assistants](https://lobechat.com/discover/assistants):
+
+<CardGroup cols={2}>
+  <Card title="Featured Agents" icon="star">
+    Curated selection of high-quality, popular agents
+  </Card>
+  
+  <Card title="Recent Submissions" icon="clock">
+    Newest agents from the community
+  </Card>
+  
+  <Card title="By Category" icon="folder-tree">
+    Browse by tags: development, writing, analysis, education, etc.
+  </Card>
+  
+  <Card title="Search" icon="magnifying-glass">
+    Find specific agents by name, description, or capability
+  </Card>
+</CardGroup>
+
+### Agent Categories
+
+Popular categories include:
+
+| Category | Examples | Use Cases |
+|----------|----------|----------|
+| **Development** | Code reviewers, debuggers | Software engineering |
+| **Writing** | Copywriters, editors | Content creation |
+| **Analysis** | Data analysts, researchers | Research & insights |
+| **Education** | Tutors, explainers | Learning & teaching |
+| **Creative** | Artists, designers | Design & creativity |
+| **Business** | Consultants, strategists | Business operations |
+| **Customer Support** | Support agents, FAQs | Help & support |
+| **Productivity** | Task managers, organizers | Workflow optimization |
+
+### Installing Agents
+
+<Steps>
+
+### Find an Agent
+
+Browse or search for an agent that matches your needs.
+
+### View Details
+
+Review the agent's:
+- Description and capabilities
+- Model and tools used
+- Creator information
+- Installation count
+- Version history
+
+### Install to Your Workspace
+
+Click "Add to Workspace" to create a local copy:
+
+```typescript
+// Agent is automatically configured with:
+{
+  meta: { /* title, description, avatar, tags */ },
+  config: { /* model, provider, plugins */ },
+  systemRole: "...",
+  marketIdentifier: "creator/agent-name"  // Links to marketplace
+}
+```
+
+### Customize if Needed
+
+Modify the installed agent to fit your specific needs.
+
+</Steps>
+
+## Publishing Your Agents
+
+### Preparation Checklist
+
+Before publishing, ensure your agent has:
+
+- [ ] Clear, descriptive title
+- [ ] Comprehensive description (2-3 sentences)
+- [ ] Appropriate avatar (emoji or image)
+- [ ] Relevant tags (3-5 recommended)
+- [ ] Well-tested system prompt
+- [ ] Configured model and tools
+- [ ] Opening message and questions (optional but recommended)
+
+### Publishing Process
+
+<Steps>
+
+### Configure Agent
+
+Create and refine your agent using the [Agent Builder](/agents/agent-builder):
+
+```typescript
+// Example well-configured agent
+{
+  meta: {
+    title: "Python Code Reviewer",
+    description: "Expert at reviewing Python code for bugs, style issues, and best practices. Follows PEP 8 and modern Python conventions.",
+    avatar: "🐍",
+    tags: ["python", "code-review", "development", "best-practices"],
+    backgroundColor: "#3776ab"
+  },
+  config: {
+    model: "claude-sonnet-4-5-20250929",
+    provider: "anthropic",
+    plugins: ["lobe-knowledge-base"],
+    openingMessage: "I'm ready to review your Python code! Share your code and I'll provide detailed feedback.",
+    openingQuestions: [
+      "What aspect should I focus on? (bugs, style, performance)",
+      "Is this production code or a learning project?"
+    ]
+  },
+  systemRole: `You are a Python code review expert...`
+}
+```
+
+### Test Thoroughly
+
+Test your agent with various inputs:
+
+- Typical use cases
+- Edge cases and errors
+- Different user skill levels
+- Various input formats
+
+### Publish to Marketplace
+
+From your agent's profile page:
+
+1. Click "Publish to Marketplace"
+2. Review agent details
+3. Add version notes (what's new, what changed)
+4. Submit for publication
+
+```typescript
+// Agent is published with:
+{
+  marketIdentifier: "your-username/agent-name",
+  version: "1.0.0",
+  publishedAt: "2026-03-03T10:00:00Z",
+  status: "published"
+}
+```
+
+</Steps>
+
+### Publishing Guidelines
+
+<AccordionGroup>
+  <Accordion title="Quality Standards">
+    - **Clear Purpose**: Agent should have a specific, well-defined role
+    - **Tested Behavior**: Consistent responses across similar inputs
+    - **Good Documentation**: Clear description of what agent does
+    - **Appropriate Model**: Model choice fits the use case
+    - **Relevant Tools**: Only necessary tools enabled
+  </Accordion>
+  
+  <Accordion title="Description Best Practices">
+    - Start with what the agent does
+    - Mention key capabilities or expertise
+    - Indicate target users or use cases
+    - Keep it concise (2-3 sentences)
+    - Use clear, jargon-free language
+  </Accordion>
+  
+  <Accordion title="Tag Selection">
+    - Use 3-5 relevant tags
+    - Include primary category (development, writing, etc.)
+    - Add specific skills or domains
+    - Use common, searchable terms
+    - Avoid redundant or overly broad tags
+  </Accordion>
+  
+  <Accordion title="System Prompt Quality">
+    - Define role and expertise clearly
+    - Include specific workflows or processes
+    - Set communication style guidelines
+    - Provide examples when helpful
+    - Keep it focused and actionable
+  </Accordion>
+</AccordionGroup>
+
+## Managing Published Agents
+
+### Version Management
+
+Update your published agents:
+
+```typescript
+// Create new version
+{
+  version: "1.1.0",
+  changes: [
+    "Added support for type hints review",
+    "Improved async code analysis",
+    "Updated to latest Python 3.12 features"
+  ],
+  publishedAt: "2026-03-15T10:00:00Z"
+}
+```
+
+**Versioning Guidelines**:
+- **Major (2.0.0)**: Breaking changes, complete redesign
+- **Minor (1.1.0)**: New features, significant improvements
+- **Patch (1.0.1)**: Bug fixes, minor tweaks
+
+### Update Published Agent
+
+<Steps>
+
+### Modify Local Copy
+
+Update your agent's configuration or prompt locally.
+
+### Test Changes
+
+Thoroughly test the updated version.
+
+### Publish Update
+
+From agent profile:
+1. Click "Publish Update"
+2. Enter version number
+3. Describe changes
+4. Submit
+
+### Users Get Update Notice
+
+Installed copies show update notification:
+```
+"New version available: 1.1.0
+- Added support for type hints review
+- Improved async code analysis"
+```
+
+</Steps>
+
+### Unpublish Agent
+
+Remove agent from marketplace:
+
+```typescript
+// Unpublished agents:
+{
+  status: "unpublished",
+  unpublishedAt: "2026-03-20T10:00:00Z",
+  reason: "major-revision" | "deprecated" | "merged"
+}
+```
+
+**Note**: Unpublished agents can be republished later. Existing installations continue to work.
+
+### Deprecate Agent
+
+Permanently remove from marketplace:
+
+```typescript
+{
+  status: "deprecated",
+  deprecatedAt: "2026-03-25T10:00:00Z",
+  message: "This agent has been replaced by 'Advanced Python Reviewer'"
+}
+```
+
+**Warning**: Deprecation is permanent and cannot be reversed.
+
+## Analytics & Insights
+
+Track your agent's performance:
+
+<CardGroup cols={2}>
+  <Card title="Installation Count" icon="download">
+    Total number of users who installed your agent
+  </Card>
+  
+  <Card title="Version Distribution" icon="chart-pie">
+    Which versions users are running
+  </Card>
+  
+  <Card title="User Feedback" icon="comments">
+    Ratings and comments from users
+  </Card>
+  
+  <Card title="Fork Count" icon="code-branch">
+    How many derived agents were created
+  </Card>
+</CardGroup>
+
+## Forking & Derivatives
+
+### Fork an Agent
+
+Create your own version based on existing agent:
+
+<Steps>
+
+### Install Base Agent
+
+Install the agent you want to fork.
+
+### Modify Configuration
+
+Customize to your needs:
+- Change model or parameters
+- Adjust system prompt
+- Add or remove tools
+- Update metadata
+
+### Publish as Derivative
+
+When publishing, indicate it's based on another agent:
+
+```typescript
+{
+  marketIdentifier: "your-username/custom-reviewer",
+  forkedFrom: "original-author/python-reviewer",
+  changes: "Specialized for data science code review"
+}
+```
+
+</Steps>
+
+**Attribution**: Derivative agents show their origin and credit the original creator.
+
+### Derivative Best Practices
+
+- **Add Value**: Make meaningful improvements or specializations
+- **Credit Original**: Always acknowledge the base agent
+- **Clear Differences**: Explain what's different/better
+- **Respect License**: Follow original agent's terms
+
+## Community Features
+
+### Sharing & Promotion
+
+Share your agents:
+
+```markdown
+<!-- Agent Card -->
+[![Python Code Reviewer](https://lobechat.com/og/agent/username/python-reviewer.png)]
+(https://lobechat.com/discover/assistant/username/python-reviewer)
+
+Expert Python code reviewer following PEP 8 and modern best practices.
+```
+
+### Collaboration
+
+Work with the community:
+
+- **Feedback**: Accept user suggestions
+- **Issues**: Address reported problems
+- **Requests**: Consider feature requests
+- **Recognition**: Credit contributors
+
+### Marketplace Etiquette
+
+<AccordionGroup>
+  <Accordion title="Be Original">
+    Create unique agents or add significant value to derivatives. 
+    Don't just re-publish existing agents with minor tweaks.
+  </Accordion>
+  
+  <Accordion title="Maintain Your Agents">
+    Keep published agents updated and working. Remove or deprecate 
+    agents you can't maintain.
+  </Accordion>
+  
+  <Accordion title="Respond to Feedback">
+    Engage with users who provide feedback or report issues. 
+    It helps improve your agents.
+  </Accordion>
+  
+  <Accordion title="Respect Privacy">
+    Don't create agents that collect user data without clear 
+    disclosure and consent.
+  </Accordion>
+  
+  <Accordion title="Follow Guidelines">
+    Adhere to marketplace content policies and community standards.
+  </Accordion>
+</AccordionGroup>
+
+## Marketplace Tools
+
+### Search & Discovery Tools
+
+Find agents programmatically:
+
+```typescript
+// Search agents in marketplace
+searchMarketAgents({
+  query: "code review",
+  category: "development",
+  tags: ["python", "best-practices"],
+  sortBy: "installations" | "recent" | "rating"
+})
+```
+
+### Installation API
+
+```typescript
+// Install agent from marketplace
+installMarketAgent({
+  identifier: "username/agent-name",
+  version?: "1.0.0"  // Optional: specific version
+})
+
+// Returns installed agent configuration
+```
+
+## Success Stories
+
+### Featured Community Agents
+
+<CardGroup cols={2}>
+  <Card title="Turtle Soup Host" icon="puzzle-piece">
+    Interactive lateral thinking puzzle game host with 500+ installations
+  </Card>
+  
+  <Card title="Academic Writing Assistant" icon="graduation-cap">
+    Expert research paper writing assistant trusted by students and researchers
+  </Card>
+  
+  <Card title="Minecraft Developer" icon="cube">
+    Specialized in Java development and Minecraft mod creation
+  </Card>
+  
+  <Card title="Gourmet Reviewer" icon="utensils">
+    Professional food critique expert with sophisticated analysis
+  </Card>
+</CardGroup>
+
+## Tips for Success
+
+<CardGroup cols={2}>
+  <Card title="Solve Real Problems" icon="lightbulb">
+    Create agents that address actual user needs, not just interesting ideas
+  </Card>
+  
+  <Card title="Iterate Based on Feedback" icon="rotate">
+    Listen to users and continuously improve your agents
+  </Card>
+  
+  <Card title="Document Clearly" icon="file-text">
+    Good descriptions and examples help users understand your agent
+  </Card>
+  
+  <Card title="Choose Right Model" icon="microchip">
+    Match model capabilities to agent requirements for best results
+  </Card>
+  
+  <Card title="Test Thoroughly" icon="flask">
+    Test with diverse inputs before publishing to ensure quality
+  </Card>
+  
+  <Card title="Stay Updated" icon="arrow-up">
+    Keep agents current with latest features and model capabilities
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Create Your Agent" icon="user-plus" href="/agents/creating-agents">
+    Build your first custom agent
+  </Card>
+  
+  <Card title="Use Agent Builder" icon="wand-magic-sparkles" href="/agents/agent-builder">
+    Configure agents with AI assistance
+  </Card>
+  
+  <Card title="Add Tools" icon="wrench" href="/agents/tools">
+    Extend capabilities with tools
+  </Card>
+  
+  <Card title="Browse Marketplace" icon="store" href="https://lobechat.com/discover/assistants">
+    Explore community agents
+  </Card>
+</CardGroup>
+
+## Resources
+
+- [Submit Your Agent](https://github.com/lobehub/lobe-chat-agents) - GitHub repository for submissions
+- [Marketplace](https://lobechat.com/discover/assistants) - Browse agents
+- [MCP Marketplace](https://lobehub.com/mcp) - Discover plugins
+- [Community Discord](https://discord.gg/AYFPHvv2jT) - Join the community

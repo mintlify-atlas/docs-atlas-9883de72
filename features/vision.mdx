@@ -1,0 +1,433 @@
+---
+title: Vision & Image Understanding
+description: Upload images and have AI analyze, describe, and understand visual content
+---
+
+LobeHub supports vision capabilities, allowing AI agents to see and understand images you share. This multimodal feature enables conversations that go beyond text to include rich visual context.
+
+## What is Vision?
+
+Vision-enabled AI models can:
+
+- **Analyze images** - Understand what's in photos and screenshots
+- **Read text** - Extract text from images (OCR)
+- **Describe visuals** - Provide detailed descriptions of scenes and objects
+- **Answer questions** - Respond to queries about image content
+- **Compare images** - Analyze differences between multiple images
+- **Recognize patterns** - Identify trends, layouts, and designs
+
+## Uploading Images
+
+### Multiple Upload Methods
+
+<Tabs>
+  <Tab title="Drag & Drop">
+    **Quick Image Upload**
+
+    Simply drag and drop images into the chat:
+
+    1. Drag image file from your computer
+    2. Drop it into the message input area
+    3. Image preview appears
+    4. Add your question or context
+    5. Send message
+
+    **Supports:**
+    - Single images
+    - Multiple images at once
+    - Various image formats
+  </Tab>
+
+  <Tab title="Click to Upload">
+    **File Browser Upload**
+
+    Use the upload button for traditional file selection:
+
+    1. Click the image/attachment icon
+    2. Browse your files
+    3. Select one or more images
+    4. Images appear as previews
+    5. Type your message
+    6. Send
+
+    **Advantages:**
+    - Familiar upload flow
+    - Multi-select support
+    - File preview before upload
+  </Tab>
+
+  <Tab title="Paste from Clipboard">
+    **Instant Screenshot Sharing**
+
+    Paste images directly from clipboard:
+
+    1. Copy image (screenshot, copied image, etc.)
+    2. Click in message input area
+    3. Press Ctrl+V (Cmd+V on Mac)
+    4. Image appears instantly
+    5. Add context and send
+
+    **Perfect for:**
+    - Screenshots
+    - Copied images from web
+    - Design mockups
+    - Quick visual questions
+  </Tab>
+</Tabs>
+
+### Supported Image Formats
+
+**Common formats:**
+- JPEG/JPG
+- PNG
+- WebP
+- GIF (static frames)
+- BMP
+
+**File size limits:**
+- Maximum: Typically 20MB per image
+- Recommended: Under 5MB for best performance
+- Large images automatically optimized
+
+<Note>
+  Very large images may be compressed during upload to optimize processing speed and costs.
+</Note>
+
+## Using Vision Features
+
+### Image Analysis
+
+**Ask about images:**
+
+```
+[Upload image]
+"What's in this image?"
+"Describe what you see in detail"
+"What are the main elements of this photo?"
+```
+
+The AI provides detailed descriptions including:
+- Objects and subjects
+- Colors and composition
+- Setting and context
+- Actions and activities
+- Mood and atmosphere
+
+### Text Recognition (OCR)
+
+**Extract text from images:**
+
+```
+[Upload screenshot]
+"What does the text say?"
+"Transcribe all text from this image"
+"Read the error message in this screenshot"
+```
+
+**Works with:**
+- Screenshots of documents
+- Photos of signs or labels
+- Handwritten notes (varying success)
+- Printed text in scenes
+- Code in screenshots
+- UI elements and menus
+
+### Multiple Images
+
+**Compare and analyze several images:**
+
+```
+[Upload 3 design variations]
+"Compare these three designs and suggest which is most effective"
+
+[Upload before/after photos]
+"What are the differences between these images?"
+
+[Upload data visualizations]
+"Analyze the trends shown in these charts"
+```
+
+The AI can reference specific images and make comparisons across them.
+
+### Image Q&A
+
+**Ask specific questions:**
+
+<Tabs>
+  <Tab title="Object Identification">
+    ```
+    "What type of plant is this?"
+    "What car model is shown?"
+    "What brand is this product?"
+    "Identify all the animals in this photo"
+    ```
+  </Tab>
+
+  <Tab title="Scene Understanding">
+    ```
+    "Where was this photo likely taken?"
+    "What time of day is it in this image?"
+    "What's the weather like in this scene?"
+    "What activity is happening here?"
+    ```
+  </Tab>
+
+  <Tab title="Technical Analysis">
+    ```
+    "What are the dimensions of this layout?"
+    "What colors are used in this design?"
+    "Is this image properly exposed?"
+    "What design principles are applied here?"
+    ```
+  </Tab>
+
+  <Tab title="Content Analysis">
+    ```
+    "What's the main message of this infographic?"
+    "Summarize this diagram"
+    "Explain this flowchart"
+    "What does this graph show?"
+    ```
+  </Tab>
+</Tabs>
+
+## Use Cases
+
+<Tabs>
+  <Tab title="Software Development">
+    **Code & UI Analysis**
+
+    Vision helps with development tasks:
+
+    **Screenshot debugging:**
+    - "What's causing this error message?"
+    - "Analyze this stack trace"
+    - Share UI bugs visually
+
+    **UI/UX review:**
+    - "Review this interface design"
+    - "Suggest improvements for this layout"
+    - "Is this mobile-responsive design effective?"
+
+    **Code in images:**
+    - "Explain this code snippet" (from screenshot)
+    - "Find the bug in this code"
+    - "Convert this whiteboard diagram to code"
+
+    **Design implementation:**
+    - "Write CSS to recreate this design"
+    - "What components are used in this UI?"
+    - "Match this color palette"
+  </Tab>
+
+  <Tab title="Education & Learning">
+    **Visual Learning Support**
+
+    Images enhance educational conversations:
+
+    **Homework help:**
+    - Math problems from textbooks
+    - Diagram explanations
+    - Science experiment photos
+    - Historical document analysis
+
+    **Concept explanation:**
+    - "Explain what's happening in this diagram"
+    - "Help me understand this chart"
+    - "What does this scientific image show?"
+
+    **Language learning:**
+    - Scene descriptions for vocabulary
+    - Reading signs and menus
+    - Cultural context from photos
+
+    **Note review:**
+    - "Summarize my handwritten notes"
+    - "Organize these whiteboard ideas"
+    - "Create digital version of this sketch"
+  </Tab>
+
+  <Tab title="Content Creation">
+    **Design & Creative Work**
+
+    Vision assists creative processes:
+
+    **Design feedback:**
+    - "Critique this logo design"
+    - "Suggest improvements for this poster"
+    - "Is this layout balanced?"
+    - "What's the mood of this color scheme?"
+
+    **Content ideation:**
+    - "Create a caption for this image"
+    - "Write alt text for accessibility"
+    - "Suggest blog post ideas from this photo"
+
+    **Style analysis:**
+    - "What design style is this?"
+    - "Identify the visual influences"
+    - "Recreate this style with different content"
+
+    **Image enhancement:**
+    - "Suggest edits to improve this photo"
+    - "What's wrong with the composition?"
+    - "How can I make this more visually appealing?"
+  </Tab>
+
+  <Tab title="Professional Use">
+    **Business & Analysis**
+
+    Vision for professional workflows:
+
+    **Document processing:**
+    - Extract data from invoices
+    - Analyze contracts and forms
+    - Digitize business cards
+    - Process receipts
+
+    **Data visualization:**
+    - "Interpret this sales chart"
+    - "Summarize this dashboard"
+    - "What trends are visible?"
+    - "Explain these metrics"
+
+    **Presentation review:**
+    - "Improve this slide design"
+    - "Is this chart clear?"
+    - "Suggest better data visualization"
+
+    **Product analysis:**
+    - Competitive product comparison
+    - Packaging design review
+    - Retail display analysis
+    - Brand consistency checking
+  </Tab>
+
+  <Tab title="Daily Life">
+    **Everyday Assistance**
+
+    Vision for practical daily tasks:
+
+    **Shopping & products:**
+    - "What is this product?"
+    - "Find similar items"
+    - "Read these ingredient labels"
+    - "Compare these product features"
+
+    **Travel & navigation:**
+    - "Translate this sign"
+    - "What landmark is this?"
+    - "Where should I visit near here?"
+    - "Read this menu in [language]"
+
+    **Home & DIY:**
+    - "How do I fix this?"
+    - "What type of damage is this?"
+    - "Identify this tool/part"
+    - "What plant is this?"
+
+    **Food & cooking:**
+    - "What dish is this?"
+    - "Identify these ingredients"
+    - "Is this cooked properly?"
+    - "Estimate nutrition content"
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Provide clear images">
+    Use well-lit, in-focus images for best results. Blurry or dark images reduce accuracy.
+  </Accordion>
+
+  <Accordion title="Add context with text">
+    Combine images with text prompts to guide the AI's analysis. Explain what you want to know.
+  </Accordion>
+
+  <Accordion title="Crop to relevant areas">
+    Remove unnecessary parts of images to focus AI attention on what matters.
+  </Accordion>
+
+  <Accordion title="Use multiple angles">
+    For complex objects or scenes, upload images from different perspectives.
+  </Accordion>
+
+  <Accordion title="Be specific in questions">
+    Instead of "What's this?", ask "What type of architectural style is this building?"
+  </Accordion>
+
+  <Accordion title="Verify critical information">
+    Vision AI can make mistakes. Verify important details, especially for medical, legal, or critical use cases.
+  </Accordion>
+</AccordionGroup>
+
+## Limitations
+
+<Warning>
+  Vision models have limitations and can make errors. Always verify critical information independently.
+</Warning>
+
+**Known limitations:**
+
+- **People & faces** - Cannot identify specific individuals (privacy protection)
+- **Fine details** - May miss very small text or details
+- **Handwriting** - Variable accuracy with handwritten content
+- **Context** - May misinterpret images without proper context
+- **Medical/legal** - Not suitable for medical diagnosis or legal advice
+- **Real-time** - Cannot process video (only static images)
+
+**Privacy considerations:**
+
+- Don't upload sensitive documents without redaction
+- Avoid images containing personal information
+- Be cautious with proprietary or confidential visuals
+- Images may be processed by AI provider services
+
+## Vision-Capable Models
+
+Not all AI models support vision. Look for these vision-enabled models:
+
+**OpenAI:**
+- GPT-4 Vision (GPT-4V)
+- GPT-4o
+- GPT-4o mini
+
+**Anthropic:**
+- Claude 3 Opus
+- Claude 3 Sonnet  
+- Claude 3 Haiku
+- Claude 3.5 Sonnet
+
+**Google:**
+- Gemini Pro Vision
+- Gemini 1.5 Pro
+- Gemini 1.5 Flash
+
+**Others:**
+- Check model documentation for vision support
+
+<Info>
+  The upload button appears automatically when using vision-capable models. Switch to a vision-enabled model to unlock image analysis.
+</Info>
+
+## Tips for Better Results
+
+**Image quality:**
+- Higher resolution = better detail recognition
+- Good lighting improves accuracy
+- Straight-on shots better than angled
+
+**Prompting:**
+- Be specific about what you want analyzed
+- Ask follow-up questions for deeper analysis
+- Request structured output (lists, tables, etc.)
+
+**Multi-image analysis:**
+- Number or label images in your prompt
+- Ask for specific comparisons
+- Request side-by-side analysis
+
+<Note>
+  Vision features consume more tokens than text-only conversations, which may affect usage costs for API-based deployments.
+</Note>

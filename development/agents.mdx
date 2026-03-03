@@ -1,0 +1,460 @@
+---
+title: Agent Development
+description: Learn how to build, configure, and deploy custom AI agents in LobeHub.
+---
+
+# Agent Development
+
+Agents are the core building blocks of LobeHub. This guide covers everything you need to build custom agents from configuration to deployment.
+
+## What is an Agent?
+
+An **agent** in LobeHub is an AI assistant with:
+
+- **Personality** - System prompt, role, background
+- **Capabilities** - Model selection, parameters, function calling
+- **Tools** - Plugins, MCP servers, built-in tools
+- **Knowledge** - Attached knowledge bases (RAG)
+- **Memory** - Conversation history, user preferences
+
+## Agent Architecture
+
+```plaintext
+┌────────────────────────────────────────┐
+│          User Input                        │
+└────────────────────────────────────────┘
+                 ↓
+┌────────────────────────────────────────┐
+│      Agent Configuration               │
+│  - System prompt                       │
+│  - Model + parameters                  │
+│  - Enabled tools                       │
+│  - Knowledge bases                     │
+└────────────────────────────────────────┘
+                 ↓
+┌────────────────────────────────────────┐
+│        Agent Runtime                  │
+│  1. Context assembly                   │
+│  2. LLM reasoning                      │
+│  3. Tool invocation                    │
+│  4. Response generation                │
+└────────────────────────────────────────┘
+                 ↓
+┌────────────────────────────────────────┐
+│        Agent Response                 │
+└────────────────────────────────────────┘
+```
+
+## Agent Configuration
+
+Agents are defined by their configuration stored in the database:
+
+```typescript
+interface AgentConfig {
+  // Identity
+  id: string;
+  name: string;
+  avatar?: string;
+  description?: string;
+  
+  // Behavior
+  systemRole: string;           // System prompt
+  chatConfig: {
+    model: string;              // e.g., 'gpt-4'
+    provider: string;           // e.g., 'openai'
+    temperature: number;        // 0-2
+    maxTokens?: number;
+    topP?: number;
+    presencePenalty?: number;
+    frequencyPenalty?: number;
+  };
+  
+  // Capabilities
+  tools?: string[];             // Tool IDs
+  knowledgeBases?: string[];    // KB IDs
+  
+  // Metadata
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+## Creating an Agent Programmatically
+
+### Using tRPC Client
+
+```typescript
+import { trpc } from '@/libs/trpc';
+
+const createAgent = trpc.agent.create.useMutation();
+
+await createAgent.mutateAsync({
+  name: 'Code Review Assistant',
+  description: 'Reviews code for best practices and bugs',
+  systemRole: `You are an expert code reviewer with deep knowledge of:
+- Software architecture
+- Security best practices
+- Performance optimization
+- Clean code principles
+
+When reviewing code:
+1. Identify potential bugs
+2. Suggest improvements
+3. Explain your reasoning
+4. Be constructive and educational`,
+  chatConfig: {
+    model: 'gpt-4',
+    provider: 'openai',
+    temperature: 0.3,  // Lower temp for consistency
+    maxTokens: 2000,
+  },
+  tools: ['web-search', 'code-interpreter'],
+});
+```
+
+### Using Agent Store
+
+```typescript
+import { useAgentStore } from '@/store/agent';
+
+const createAgent = useAgentStore.getState().createAgent;
+
+await createAgent({
+  name: 'Data Analyst',
+  systemRole: 'You are a data analyst specialized in...',
+  chatConfig: {
+    model: 'claude-3-opus-20240229',
+    provider: 'anthropic',
+    temperature: 0.5,
+  },
+});
+```
+
+## System Prompts
+
+The **system prompt** (systemRole) defines the agent's personality and behavior.
+
+### Best Practices
+
+**1. Be Specific**
+
+```typescript
+// ❌ Bad - Too vague
+systemRole: 'You are a helpful assistant.'
+
+// ✅ Good - Specific role and context
+systemRole: `You are a senior Python developer specializing in Django.
+You help developers debug issues, optimize performance, and follow best practices.
+Always provide code examples and explain your reasoning.`
+```
+
+**2. Define Scope**
+
+```typescript
+systemRole: `You are a customer support agent for TechCorp.
+
+You can help with:
+- Account issues
+- Billing questions
+- Product troubleshooting
+
+You cannot:
+- Modify orders (escalate to supervisor)
+- Issue refunds (direct to billing)
+- Provide medical advice`
+```
+
+**3. Set Constraints**
+
+```typescript
+systemRole: `You are a concise email assistant.
+
+Rules:
+- Keep responses under 100 words
+- Use professional tone
+- Always include a clear call-to-action
+- Never use jargon without explanation`
+```
+
+**4. Include Examples**
+
+```typescript
+systemRole: `You are a SQL query assistant.
+
+When asked for a query, respond in this format:
+
+Query:
+\`\`\`sql
+SELECT * FROM users WHERE active = true;
+\`\`\`
+
+Explanation:
+This query retrieves all active users from the users table.
+
+Considerations:
+- Add an index on 'active' for large tables
+- Consider pagination for production use`
+```
+
+## Model Selection
+
+### Recommended Models by Use Case
+
+| Use Case | Recommended Model | Why |
+|----------|-------------------|-----|
+| **General Chat** | GPT-4, Claude 3.5 Sonnet | Best overall quality |
+| **Coding** | GPT-4, Claude 3.5 Sonnet | Strong reasoning, code gen |
+| **Creative Writing** | Claude 3.5 Sonnet, GPT-4 | Creative, nuanced |
+| **Data Analysis** | GPT-4, Claude 3.5 Sonnet | Strong analytical skills |
+| **Fast Responses** | GPT-3.5-turbo, Claude 3 Haiku | Low latency |
+| **Cost Optimization** | GPT-3.5-turbo, Llama 3 | Cheaper per token |
+| **Local/Private** | Ollama (Llama 3, Mixtral) | On-premises |
+
+### Parameter Tuning
+
+```typescript
+chatConfig: {
+  // Temperature: 0-2
+  // 0 = deterministic, 2 = very creative
+  temperature: 0.7,
+  
+  // Max tokens: response length limit
+  maxTokens: 1500,
+  
+  // Top P: nucleus sampling (0-1)
+  // Lower = more focused, higher = more diverse
+  topP: 0.9,
+  
+  // Penalties: reduce repetition (-2 to 2)
+  presencePenalty: 0,
+  frequencyPenalty: 0,
+}
+```
+
+## Agent Tools
+
+Enable tools to extend agent capabilities:
+
+```typescript
+// Enable built-in tools
+tools: [
+  'web-search',           // Internet search
+  'knowledge-base',       // RAG retrieval
+  'code-interpreter',     // Execute Python code
+  'memory',               // Remember user info
+  'calculator',           // Math operations
+  'image-generator',      // DALL-E integration
+]
+```
+
+### Custom Tool Integration
+
+See [Building Plugins](/development/plugins) for creating custom tools.
+
+## Knowledge Bases
+
+Attach knowledge bases for RAG (Retrieval-Augmented Generation):
+
+```typescript
+// Create knowledge base
+const kb = await trpc.knowledgeBase.create.mutate({
+  name: 'Company Docs',
+  description: 'Internal documentation',
+});
+
+// Upload files
+await trpc.knowledgeBase.uploadFiles.mutate({
+  knowledgeBaseId: kb.id,
+  files: [/* File objects */],
+});
+
+// Attach to agent
+await trpc.agent.update.mutate({
+  id: agentId,
+  knowledgeBases: [kb.id],
+});
+```
+
+Now the agent can search and cite from uploaded documents.
+
+## Multi-Agent Collaboration
+
+### Agent Groups
+
+Create groups for multi-agent workflows:
+
+```typescript
+const group = await trpc.agentGroup.create.mutate({
+  name: 'Content Team',
+  description: 'Collaborative content creation',
+  agents: [
+    { id: researcherAgentId, role: 'researcher' },
+    { id: writerAgentId, role: 'writer' },
+    { id: editorAgentId, role: 'editor' },
+  ],
+  orchestration: 'supervisor',  // or 'sequential', 'parallel'
+});
+```
+
+### Orchestration Patterns
+
+**Supervisor** - One agent delegates to others
+
+```plaintext
+User → Supervisor Agent
+         │
+         ├── Task 1 → Agent A
+         ├── Task 2 → Agent B
+         └── Task 3 → Agent C
+         │
+         → Final Response
+```
+
+**Sequential** - Chain of agents
+
+```plaintext
+User → Agent A → Agent B → Agent C → Response
+```
+
+**Parallel** - Concurrent execution
+
+```plaintext
+         ┌── Agent A ──┐
+User ───┤            ├── Merge → Response
+         └── Agent B ──┘
+```
+
+## Agent Marketplace
+
+Share your agent with the community:
+
+### 1. Create Agent Config
+
+```json
+{
+  "identifier": "code-reviewer-pro",
+  "meta": {
+    "title": "Code Reviewer Pro",
+    "description": "Expert code reviewer for multiple languages",
+    "avatar": "https://...",
+    "tags": ["coding", "review", "best-practices"]
+  },
+  "config": {
+    "systemRole": "...",
+    "model": "gpt-4",
+    "temperature": 0.3
+  }
+}
+```
+
+### 2. Submit to Marketplace
+
+PR to [lobe-chat-agents](https://github.com/lobehub/lobe-chat-agents)
+
+### 3. CI Auto-translates
+
+Automatic i18n for global reach
+
+## Testing Agents
+
+### Manual Testing
+
+1. Create agent via UI or API
+2. Start chat session
+3. Test various scenarios
+4. Iterate on system prompt
+
+### Automated Testing
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { AgentRuntime } from '@lobechat/agent-runtime';
+
+describe('Code Reviewer Agent', () => {
+  it('should identify security issues', async () => {
+    const runtime = new AgentRuntime({
+      agentConfig: codeReviewerConfig,
+    });
+    
+    const response = await runtime.chat({
+      messages: [
+        {
+          role: 'user',
+          content: 'Review this code: eval(userInput)',
+        },
+      ],
+    });
+    
+    expect(response.content).toContain('security');
+    expect(response.content).toContain('eval');
+  });
+});
+```
+
+## Best Practices
+
+### 1. Iterative Prompt Development
+
+- Start simple, add constraints iteratively
+- Test edge cases
+- Use examples to guide behavior
+
+### 2. Tool Selection
+
+- Only enable necessary tools
+- Too many tools confuse the LLM
+- Group related tools
+
+### 3. Context Management
+
+- Monitor token usage
+- Use summarization for long conversations
+- Clear context when switching tasks
+
+### 4. Error Handling
+
+```typescript
+systemRole: `...
+
+If you encounter an error:
+1. Explain what went wrong
+2. Suggest a fix or alternative
+3. Ask for clarification if needed
+
+Do not:
+- Make up information
+- Ignore errors silently
+- Retry indefinitely without user input`
+```
+
+### 5. User Experience
+
+- Acknowledge long operations: "Analyzing your code..."
+- Provide progress updates
+- Explain reasoning when appropriate
+- Be concise but thorough
+
+## Examples
+
+Explore built-in agents:
+
+```bash
+packages/builtin-agents/
+├── code-assistant/
+├── data-analyst/
+├── content-writer/
+└── ...
+```
+
+## Resources
+
+- [Agent Marketplace](https://lobechat.com/discover/assistants)
+- [System Prompt Examples](https://github.com/lobehub/lobe-chat-agents)
+- [Agent Runtime Docs](https://github.com/lobehub/lobe-chat/tree/main/packages/agent-runtime)
+
+## Next Steps
+
+- [Building Plugins](/development/plugins)
+- [Creating Skills](/development/skills)
+- [Knowledge Base Integration](/features/knowledge-base)

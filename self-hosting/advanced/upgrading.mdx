@@ -1,0 +1,547 @@
+---
+title: Upgrading Your LobeHub Deployment
+description: Learn how to safely upgrade your self-hosted LobeHub instance across different deployment platforms with minimal downtime.
+tags:
+  - Upgrade
+  - Version Management
+  - Docker
+  - Vercel
+  - Deployment
+---
+
+# Upgrading LobeHub
+
+This guide covers upgrade procedures for self-hosted LobeHub deployments across different platforms. Follow the appropriate section based on your deployment method.
+
+## Before You Upgrade
+
+<Steps>
+  ### Review the Changelog
+  
+  Check the [LobeHub Changelog](https://github.com/lobehub/lobe-chat/blob/main/CHANGELOG.md) for:
+  
+  - New features and improvements
+  - Bug fixes
+  - Breaking changes or deprecations
+  - Required configuration updates
+  
+  ### Backup Your Data
+  
+  <Warning>
+    Always backup your data before upgrading, especially for major version changes.
+  </Warning>
+  
+  **What to backup:**
+  
+  - **Database**: PostgreSQL data (user accounts, conversations, agents)
+  - **Environment variables**: Current configuration
+  - **S3/Storage**: Uploaded files and knowledge base data (if applicable)
+  
+  ```bash
+  # Backup PostgreSQL database
+  docker exec postgres-container pg_dump -U username dbname > backup-$(date +%Y%m%d).sql
+  
+  # Backup environment file
+  cp .env .env.backup-$(date +%Y%m%d)
+  ```
+  
+  ### Check Compatibility
+  
+  Verify that your current environment meets the requirements for the new version:
+  
+  - Node.js version (if applicable)
+  - PostgreSQL version
+  - Docker version
+  - Browser compatibility (for end users)
+</Steps>
+
+## Docker Deployment Upgrades
+
+### Standard Docker Upgrade
+
+For standalone Docker deployments:
+
+<Steps>
+  ### Stop the Current Container
+  
+  ```bash
+  docker stop lobe-chat
+  docker rm lobe-chat
+  ```
+  
+  ### Pull the Latest Image
+  
+  ```bash
+  # Pull latest stable version
+  docker pull lobehub/lobe-chat:latest
+  
+  # Or pull a specific version
+  docker pull lobehub/lobe-chat:v2.1.26
+  ```
+  
+  <Callout type="info">
+    Use version tags for production deployments to ensure consistent, predictable upgrades.
+  </Callout>
+  
+  ### Restart with New Image
+  
+  ```bash
+  docker run -d -p 3210:3210 \
+    -e OPENAI_API_KEY=sk-xxxx \
+    -e DATABASE_URL=postgresql://user:pass@host:5432/lobechat \
+    --name lobe-chat \
+    lobehub/lobe-chat:latest
+  ```
+  
+  Or if using an environment file:
+  
+  ```bash
+  docker run -d -p 3210:3210 \
+    --env-file .env \
+    --name lobe-chat \
+    lobehub/lobe-chat:latest
+  ```
+  
+  ### Verify the Upgrade
+  
+  ```bash
+  # Check container logs
+  docker logs lobe-chat
+  
+  # Verify version
+  docker inspect lobehub/lobe-chat:latest | grep 'org.opencontainers.image.version'
+  ```
+  
+  Access your LobeHub instance and verify functionality.
+</Steps>
+
+### Docker Compose Upgrade
+
+For docker-compose deployments:
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  lobe-chat:
+    image: lobehub/lobe-chat:latest  # Or specify version tag
+    ports:
+      - "3210:3210"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    restart: always
+
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: lobechat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your-secure-password
+```
+
+**Upgrade process:**
+
+```bash
+# Pull latest images
+docker-compose pull
+
+# Stop and remove containers
+docker-compose down
+
+# Start with new images
+docker-compose up -d
+
+# View logs
+docker-compose logs -f lobe-chat
+```
+
+### Automated Docker Upgrades
+
+For automated updates, create an upgrade script:
+
+```bash
+#!/bin/bash
+# auto-update-lobe-chat.sh
+
+# Set proxy if needed (optional)
+export https_proxy=http://127.0.0.1:7890
+
+# Pull latest image and capture output
+output=$(docker pull lobehub/lobe-chat:latest 2>&1)
+
+# Check if pull was successful
+if [ $? -ne 0 ]; then
+  echo "Failed to pull image"
+  exit 1
+fi
+
+# Check if image was updated
+echo "$output" | grep -q "Image is up to date"
+
+if [ $? -eq 0 ]; then
+  echo "No update available"
+  exit 0
+fi
+
+echo "Update detected, upgrading..."
+
+# Backup current database
+docker exec postgres pg_dump -U postgres lobechat > backup-$(date +%Y%m%d-%H%M%S).sql
+
+# Remove old container
+echo "Stopped: $(docker stop lobe-chat)"
+echo "Removed: $(docker rm lobe-chat)"
+
+# Start new container
+echo "Started: $(docker run -d --network=host --env-file /path/to/.env --name=lobe-chat --restart=always lobehub/lobe-chat:latest)"
+
+# Log update details
+echo "Updated at: $(date)"
+echo "Version: $(docker inspect lobehub/lobe-chat:latest | grep 'org.opencontainers.image.version' | awk -F'"' '{print $4}')"
+
+# Cleanup old images
+docker images | grep 'lobehub/lobe-chat' | grep -v 'latest' | awk '{print $3}' | xargs -r docker rmi > /dev/null 2>&1
+echo "Cleaned up old images"
+```
+
+**Schedule with cron:**
+
+```bash
+# Edit crontab
+crontab -e
+
+# Add line to check for updates every 6 hours
+0 */6 * * * /path/to/auto-update-lobe-chat.sh >> /var/log/lobe-chat-update.log 2>&1
+```
+
+<Warning>
+  Test automated upgrade scripts thoroughly before enabling in production. Always include database backups in automation.
+</Warning>
+
+## Vercel Deployment Upgrades
+
+### Manual Redeployment
+
+For Vercel deployments created via one-click deploy:
+
+<Steps>
+  ### Update Your Fork
+  
+  If you forked the LobeHub repository:
+  
+  1. Go to your forked repository on GitHub
+  2. Click "Sync fork" → "Update branch"
+  3. Resolve any merge conflicts if present
+  
+  ### Trigger Redeploy
+  
+  Vercel will automatically redeploy when you push to the connected branch, or manually trigger:
+  
+  1. Go to Vercel dashboard
+  2. Select your LobeHub project
+  3. Click "Deployments"
+  4. Click "Redeploy" on the latest deployment
+  
+  ### Verify Deployment
+  
+  Check the deployment logs for any errors and test your instance.
+</Steps>
+
+### Automated Updates (GitHub Actions)
+
+Enable automatic upstream sync for forked repositories:
+
+<Steps>
+  ### Enable GitHub Workflows
+  
+  1. Go to your forked repository on GitHub
+  2. Navigate to **Actions** tab
+  3. Click "I understand my workflows, go ahead and enable them"
+  
+  ### Enable Upstream Sync Action
+  
+  1. Find the "Upstream Sync" workflow
+  2. Click "Enable workflow"
+  3. The workflow will run hourly to check for updates
+  
+  ### Manual Sync (if automatic fails)
+  
+  If automatic sync fails:
+  
+  1. Go to your repository on GitHub
+  2. Click "Sync fork"
+  3. Click "Update branch"
+</Steps>
+
+<Callout type="warning">
+  If you encounter sync errors, you may need to manually resolve conflicts or click "Discard commits" to force sync (this will lose any custom changes in your fork).
+</Callout>
+
+## Platform-Specific Upgrades
+
+### Zeabur
+
+1. Go to your Zeabur dashboard
+2. Select your LobeHub service
+3. Click "Redeploy" or "Update"
+4. Zeabur will pull the latest image automatically
+
+### Sealos
+
+1. Navigate to your Sealos app console
+2. Find your LobeHub application
+3. Click "Update" or modify the image tag
+4. Apply changes
+
+### Railway
+
+1. Go to Railway dashboard
+2. Select your LobeHub project
+3. Click "Deploy" → "Redeploy"
+4. Or connect to GitHub for automatic deployments
+
+## Version-Specific Upgrade Notes
+
+### Upgrading to v2.x from v1.x
+
+<Warning>
+  Version 2.0 includes significant architectural changes. Review these notes carefully before upgrading.
+</Warning>
+
+**Major changes in v2.0:**
+
+1. **Docker image renamed**:
+   ```bash
+   # Old image
+   docker pull lobehub/lobe-chat
+   
+   # New image (v2.x)
+   docker pull lobehub/lobe-chat  # Image name remains same but tag structure changed
+   ```
+
+2. **Database requirement**:
+   - v2.x requires PostgreSQL database
+   - Must set `DATABASE_URL` environment variable
+   
+   ```bash
+   DATABASE_URL="postgresql://username:password@host:5432/lobechat"
+   ```
+
+3. **Authentication changes**:
+   - Better Auth integration
+   - New auth environment variables (see [Auth Configuration](/docs/self-hosting/auth))
+
+4. **Agent system refactor**:
+   - Multi-agent support
+   - Group chat functionality
+   - Market for agent sharing
+
+**Migration steps:**
+
+<Steps>
+  ### Set Up PostgreSQL
+  
+  ```bash
+  docker run -d \
+    --name postgres \
+    -e POSTGRES_DB=lobechat \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=your-password \
+    -v ./data:/var/lib/postgresql/data \
+    -p 5432:5432 \
+    postgres:16-alpine
+  ```
+  
+  ### Update Environment Variables
+  
+  ```bash
+  # Required new variables
+  DATABASE_URL="postgresql://postgres:your-password@localhost:5432/lobechat"
+  KEY_VAULTS_SECRET="your-32-char-secret-key-here!!"
+  NEXT_AUTH_SECRET="your-auth-secret-key"
+  NEXTAUTH_URL="https://your-domain.com"
+  
+  # Optional: Enable authentication
+  NEXT_AUTH_SSO_PROVIDERS="github,google"
+  AUTH_GITHUB_ID="your-github-oauth-id"
+  AUTH_GITHUB_SECRET="your-github-oauth-secret"
+  ```
+  
+  ### Deploy v2.x
+  
+  ```bash
+  docker run -d \
+    -p 3210:3210 \
+    -e DATABASE_URL="postgresql://postgres:your-password@postgres:5432/lobechat" \
+    -e KEY_VAULTS_SECRET="your-secret-key" \
+    -e NEXT_AUTH_SECRET="your-auth-secret" \
+    --link postgres:postgres \
+    --name lobe-chat \
+    lobehub/lobe-chat:latest
+  ```
+  
+  ### Verify Migration
+  
+  Check logs for database migration success:
+  
+  ```bash
+  docker logs lobe-chat | grep -i "migration"
+  ```
+</Steps>
+
+### Upgrading from v2.0.x to v2.1.x
+
+**Notable changes:**
+
+- Redis cache support for improved performance
+- Docker compose dev environment restructure
+- Claude Opus 4.6 support for Bedrock
+- Compressed message storage
+- Notebook tool improvements
+
+**Optional Redis configuration:**
+
+```bash
+# Add Redis for caching (optional but recommended)
+REDIS_URL="redis://localhost:6379"
+REDIS_PREFIX="lobechat"
+```
+
+See [Redis Configuration](/docs/self-hosting/advanced/redis) for details.
+
+## Post-Upgrade Checklist
+
+<Steps>
+  ### Verify Core Functionality
+  
+  - [ ] User login/authentication works
+  - [ ] Chat messages send and receive
+  - [ ] Model selection and switching
+  - [ ] Plugin functionality (if enabled)
+  - [ ] File uploads (if using S3)
+  - [ ] Knowledge base queries (if enabled)
+  
+  ### Check Configuration
+  
+  - [ ] All environment variables properly set
+  - [ ] API keys valid and working
+  - [ ] Database connection stable
+  - [ ] Redis cache working (if configured)
+  
+  ### Monitor Performance
+  
+  ```bash
+  # Check resource usage
+  docker stats lobe-chat
+  
+  # Monitor logs for errors
+  docker logs -f lobe-chat | grep -i "error\|warn"
+  ```
+  
+  ### Update Documentation
+  
+  - [ ] Document new version number
+  - [ ] Update internal deployment notes
+  - [ ] Notify team members of changes
+</Steps>
+
+## Rollback Procedure
+
+If issues arise after upgrade:
+
+### Docker Rollback
+
+```bash
+# Stop current container
+docker stop lobe-chat
+docker rm lobe-chat
+
+# Run previous version
+docker run -d -p 3210:3210 \
+  --env-file .env.backup \
+  --name lobe-chat \
+  lobehub/lobe-chat:v2.0.13  # Specify previous working version
+
+# Restore database if needed
+docker exec -i postgres psql -U postgres lobechat < backup-20260303.sql
+```
+
+### Vercel Rollback
+
+1. Go to Vercel dashboard
+2. Click "Deployments"
+3. Find previous working deployment
+4. Click "⋯" → "Promote to Production"
+
+## Best Practices
+
+<Steps>
+  ### Use Version Tags
+  
+  Always use specific version tags in production:
+  
+  ```bash
+  # Recommended for production
+  docker pull lobehub/lobe-chat:v2.1.26
+  
+  # Avoid in production
+  docker pull lobehub/lobe-chat:latest
+  ```
+  
+  ### Test in Staging First
+  
+  Maintain a staging environment:
+  
+  ```bash
+  # Staging environment
+  docker run -d -p 3211:3210 \
+    --env-file .env.staging \
+    --name lobe-chat-staging \
+    lobehub/lobe-chat:v2.1.26
+  ```
+  
+  ### Schedule Upgrades During Low Traffic
+  
+  Plan upgrades during maintenance windows to minimize user impact.
+  
+  ### Monitor After Upgrade
+  
+  Keep close watch on logs and metrics for 24-48 hours post-upgrade:
+  
+  ```bash
+  # Set up log monitoring
+  docker logs -f lobe-chat > upgrade-logs-$(date +%Y%m%d).log
+  ```
+  
+  ### Document Configuration Changes
+  
+  Keep a changelog of environment variable modifications:
+  
+  ```bash
+  # .env.changelog
+  # 2026-03-03: Upgraded to v2.1.26
+  # - Added REDIS_URL for caching
+  # - Updated OPENAI_MODEL_LIST to include GPT-4 Turbo
+  ```
+</Steps>
+
+## Getting Help
+
+If you encounter issues during upgrade:
+
+- Check [GitHub Issues](https://github.com/lobehub/lobe-chat/issues)
+- Review [Troubleshooting Guide](/docs/self-hosting/advanced/troubleshooting)
+- Join [Discord Community](https://discord.gg/rGHwKq4R)
+- Consult [Documentation](https://lobehub.com/docs)
+
+## Reference
+
+- [LobeHub Changelog](https://github.com/lobehub/lobe-chat/blob/main/CHANGELOG.md)
+- [Docker Deployment Guide](/docs/self-hosting/platform/docker)
+- [Environment Variables](/docs/self-hosting/environment-variables)
+- [Upstream Sync](/docs/self-hosting/advanced/upstream-sync)
